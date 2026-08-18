@@ -6,71 +6,229 @@
 <title>Parámetros Emisor - Visor</title>
  
 <style>
+:root {
+    --naranja: #FF6C0C;
+    --gris: #4F4F4F;
+    --fondo: #F2F2F2;
+    --borde: #D9D9D9;
+}
+ 
+* {
+    box-sizing: border-box;
+}
+ 
 body {
+    margin: 0;
+    background: var(--fondo);
     font-family: Segoe UI, Arial, sans-serif;
-    margin: 40px;
-    background: #f5f5f5;
+    color: #333;
+}
+ 
+.encabezado {
+    background: white;
+    padding: 18px 24px;
+    border-bottom: 1px solid var(--borde);
 }
  
 h1 {
-    color: #FF6C0C;
+    margin: 0;
+    color: var(--naranja);
+    font-size: 34px;
+    font-weight: 300;
 }
  
-button {
-    border: 0;
-    border-radius: 8px;
-    padding: 11px 15px;
-    margin-right: 8px;
-    background: #4F4F4F;
-    color: white;
+.pestanas,
+.opciones {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    background: white;
+    padding: 12px 24px;
+    border-bottom: 1px solid var(--borde);
+}
+ 
+.opciones {
+    background: #F8F8F8;
+}
+ 
+.boton {
+    border: 1px solid #C8C8C8;
+    border-radius: 999px;
+    padding: 10px 18px;
+    background: white;
+    color: var(--gris);
     font-weight: 700;
     cursor: pointer;
 }
  
-button:hover {
-    background: #FF6C0C;
+.boton:hover {
+    border-color: var(--naranja);
+}
+ 
+.boton.activo {
+    background: var(--gris);
+    border-color: var(--gris);
+    color: white;
+}
+ 
+.boton-opcion.activo {
+    background: var(--naranja);
+    border-color: var(--naranja);
+    color: white;
+}
+ 
+.resumen {
+    padding: 16px 24px 0;
+    color: #666;
+    font-size: 14px;
+}
+ 
+.contenido {
+    padding: 16px 24px 60px;
 }
  
 .card {
     background: white;
-    border: 1px solid #ddd;
+    border: 1px solid var(--borde);
     border-radius: 10px;
-    padding: 15px;
+    padding: 16px;
     margin-bottom: 15px;
+    box-shadow: 0 2px 7px rgba(0, 0, 0, 0.07);
+}
+ 
+.card h2 {
+    margin: 0 0 14px;
+    color: var(--naranja);
+    font-weight: 400;
 }
  
 .label {
-    font-weight: bold;
-    color: #555;
+    font-weight: 700;
+    color: var(--gris);
+}
+ 
+.mensaje {
+    background: white;
+    border: 1px solid var(--borde);
+    border-radius: 10px;
+    padding: 25px;
+    text-align: center;
+    color: #666;
+}
+ 
+@media (max-width: 600px) {
+    h1 {
+        font-size: 27px;
+    }
+ 
+    .encabezado,
+    .pestanas,
+    .opciones,
+    .contenido,
+    .resumen {
+        padding-left: 14px;
+        padding-right: 14px;
+    }
 }
 </style>
 </head>
  
 <body>
  
-<h1>Parámetros Emisor - Visor</h1>
+<header class="encabezado">
+    <h1>Parámetros Emisor - Visor</h1>
+</header>
  
-<div>
-    <button onclick="cargarArchivo('op05')">Opción 5</button>
-    <button onclick="cargarArchivo('op12')">Opción 12</button>
-</div>
+<nav class="pestanas">
+    <button id="btnExterno" class="boton activo" onclick="cambiarAmbito('externo')">
+        Externo
+    </button>
  
-<br>
+    <button id="btnInterno" class="boton" onclick="cambiarAmbito('interno')">
+        Interno
+    </button>
+</nav>
  
-<div id="resultado">
-Seleccione una opción.
-</div>
+<nav class="opciones">
+    <button id="btnOp05" class="boton boton-opcion activo" onclick="cambiarOpcion('op05')">
+        Opción 5
+    </button>
+ 
+    <button id="btnOp12" class="boton boton-opcion" onclick="cambiarOpcion('op12')">
+        Opción 12
+    </button>
+</nav>
+ 
+<div id="resumen" class="resumen"></div>
+ 
+<main id="resultado" class="contenido">
+    <div class="mensaje">Cargando datos...</div>
+</main>
  
 <script>
-async function cargarArchivo(opcion) {
+let ambitoActual = 'externo';
+let opcionActual = 'op05';
+ 
+function cambiarAmbito(nuevoAmbito) {
+    ambitoActual = nuevoAmbito;
+ 
+    document.getElementById('btnExterno').classList.toggle(
+        'activo',
+        ambitoActual === 'externo'
+    );
+ 
+    document.getElementById('btnInterno').classList.toggle(
+        'activo',
+        ambitoActual === 'interno'
+    );
+ 
+    cargarDatos();
+}
+ 
+function cambiarOpcion(nuevaOpcion) {
+    opcionActual = nuevaOpcion;
+ 
+    document.getElementById('btnOp05').classList.toggle(
+        'activo',
+        opcionActual === 'op05'
+    );
+ 
+    document.getElementById('btnOp12').classList.toggle(
+        'activo',
+        opcionActual === 'op12'
+    );
+ 
+    cargarDatos();
+}
+ 
+function escaparHtml(valor) {
+    return String(valor ?? '')
+        .replaceAll('&', '&amp;')
+        .replaceAll('<', '&lt;')
+        .replaceAll('>', '&gt;')
+        .replaceAll('"', '&quot;')
+        .replaceAll("'", '&#039;');
+}
+ 
+async function cargarDatos() {
     const contenedor = document.getElementById('resultado');
-    contenedor.innerHTML = '<p>Cargando datos...</p>';
+    const resumen = document.getElementById('resumen');
+    const numeroOpcion = opcionActual === 'op05' ? '5' : '12';
+    const nombreAmbito = ambitoActual === 'externo' ? 'Externo' : 'Interno';
+ 
+    contenedor.innerHTML = '<div class="mensaje">Cargando datos...</div>';
+    resumen.textContent = nombreAmbito + ' · Opción ' + numeroOpcion;
  
     try {
-        const respuesta = await fetch(
-            './data/externo/' + opcion + '.json?v=' + Date.now(),
-            { cache: 'no-store' }
-        );
+        const ruta =
+            './data/' +
+            ambitoActual +
+            '/' +
+            opcionActual +
+            '.json?v=' +
+            Date.now();
+ 
+        const respuesta = await fetch(ruta, { cache: 'no-store' });
  
         if (!respuesta.ok) {
             throw new Error('No fue posible leer el archivo: ' + respuesta.status);
@@ -82,33 +240,44 @@ async function cargarArchivo(opcion) {
             throw new Error('El archivo JSON no contiene una lista válida.');
         }
  
+        resumen.textContent =
+            nombreAmbito +
+            ' · Opción ' +
+            numeroOpcion +
+            ' · ' +
+            datos.length +
+            (datos.length === 1 ? ' registro' : ' registros');
+ 
         if (datos.length === 0) {
-            contenedor.innerHTML = '<p>No hay registros.</p>';
+            contenedor.innerHTML =
+                '<div class="mensaje">No hay registros para esta combinación.</div>';
             return;
         }
  
         contenedor.innerHTML = '';
  
         datos.forEach(registro => {
-            const tarjeta = document.createElement('div');
+            const tarjeta = document.createElement('article');
             tarjeta.className = 'card';
  
             tarjeta.innerHTML = `
-                <p><span class="label">Nombre:</span> ${registro.nombre || ''}</p>
-                <p><span class="label">Producto:</span> ${registro.producto || ''}</p>
-                <p><span class="label">País:</span> ${registro.pais || ''}</p>
-                <p><span class="label">Descripción:</span> ${registro.descripcion || ''}</p>
+                <h2>${escaparHtml(registro.nombre || 'Sin nombre')}</h2>
+                <p><span class="label">Código:</span> ${escaparHtml(registro.codigo || numeroOpcion)}</p>
+                <p><span class="label">Producto:</span> ${escaparHtml(registro.producto || '')}</p>
+                <p><span class="label">País:</span> ${escaparHtml(registro.pais || '')}</p>
+                <p><span class="label">Descripción:</span> ${escaparHtml(registro.descripcion || '')}</p>
             `;
  
             contenedor.appendChild(tarjeta);
         });
     } catch (error) {
-        contenedor.innerHTML = '<p>Error leyendo el archivo.</p>';
+        contenedor.innerHTML =
+            '<div class="mensaje">Error leyendo el archivo seleccionado.</div>';
         console.error(error);
     }
 }
  
-cargarArchivo('op05');
+cargarDatos();
 </script>
  
 </body>
