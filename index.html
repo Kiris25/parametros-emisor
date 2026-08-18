@@ -1,12 +1,126 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-    <meta charset="UTF-8">
-    <title>Parámetros Emisor - Visor</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Parámetros Emisor - Visor</title>
+
+<style>
+body{
+    font-family: Segoe UI, Arial, sans-serif;
+    margin:40px;
+    background:#f5f5f5;
+}
+
+h1{
+    color:#FF6C0C;
+}
+
+.card{
+    background:white;
+    border:1px solid #ddd;
+    border-radius:10px;
+    padding:15px;
+    margin-bottom:15px;
+}
+
+.label{
+    font-weight:bold;
+    color:#555;
+}
+</style>
+
 </head>
+
 <body>
 
 <h1>Parámetros Emisor - Visor</h1>
+
+<h2>Opción 5</h2>
+
+<div id="resultado">
+Cargando datos...
+</div>
+
+<script>
+
+async function cargarOpcion5(){
+
+    try{
+
+        const respuesta = await fetch(
+            './data/externo/op05.json?v=' + Date.now(),
+            { cache: 'no-store' }
+        );
+
+        const datos = await respuesta.json();
+
+        const contenedor =
+            document.getElementById('resultado');
+
+        if(datos.length === 0){
+
+            contenedor.innerHTML =
+                '<p>No hay registros.</p>';
+
+            return;
+        }
+
+        contenedor.innerHTML = '';
+
+        datos.forEach(registro => {
+
+            contenedor.innerHTML += `
+                <div class="card">
+
+                    <p>
+                    <span class="label">
+                    Nombre:
+                    </span>
+                    ${registro.nombre || ''}
+                    </p>
+
+                    <p>
+                    <span class="label">
+                    Producto:
+                    </span>
+                    ${registro.producto || ''}
+                    </p>
+
+                    <p>
+                    <span class="label">
+                    País:
+                    </span>
+                    ${registro.pais || ''}
+                    </p>
+
+                    <p>
+                    <span class="label">
+                    Descripción:
+                    </span>
+                    ${registro.descripcion || ''}
+                    </p>
+
+                </div>
+            `;
+
+        });
+
+    }
+    catch(error){
+
+        document.getElementById('resultado').innerHTML =
+            '<p>Error leyendo op05.json</p>';
+
+        console.error(error);
+
+    }
+
+}
+
+cargarOpcion5();
+
+</script>
 
 </body>
 </html>
