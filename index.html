@@ -4,135 +4,112 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Parámetros Emisor - Visor</title>
-
+ 
 <style>
-body{
+body {
     font-family: Segoe UI, Arial, sans-serif;
-    margin:40px;
-    background:#f5f5f5;
+    margin: 40px;
+    background: #f5f5f5;
 }
-
-h1{
-    color:#FF6C0C;
+ 
+h1 {
+    color: #FF6C0C;
 }
-
-.card{
-    background:white;
-    border:1px solid #ddd;
-    border-radius:10px;
-    padding:15px;
-    margin-bottom:15px;
+ 
+button {
+    border: 0;
+    border-radius: 8px;
+    padding: 11px 15px;
+    margin-right: 8px;
+    background: #4F4F4F;
+    color: white;
+    font-weight: 700;
+    cursor: pointer;
 }
-
-.label{
-    font-weight:bold;
-    color:#555;
+ 
+button:hover {
+    background: #FF6C0C;
+}
+ 
+.card {
+    background: white;
+    border: 1px solid #ddd;
+    border-radius: 10px;
+    padding: 15px;
+    margin-bottom: 15px;
+}
+ 
+.label {
+    font-weight: bold;
+    color: #555;
 }
 </style>
-
 </head>
-
+ 
 <body>
-
+ 
 <h1>Parámetros Emisor - Visor</h1>
-
+ 
 <div>
-
-    <button onclick="cargarArchivo('op05')">
-        Opción 5
-    </button>
-
-    <button onclick="cargarArchivo('op12')">
-        Opción 12
-    </button>
-
+    <button onclick="cargarArchivo('op05')">Opción 5</button>
+    <button onclick="cargarArchivo('op12')">Opción 12</button>
 </div>
-
+ 
 <br>
-
+ 
 <div id="resultado">
 Seleccione una opción.
 </div>
-
+ 
 <script>
-
-async function cargarOpcion5(){
-
-    try{
-
+async function cargarArchivo(opcion) {
+    const contenedor = document.getElementById('resultado');
+    contenedor.innerHTML = '<p>Cargando datos...</p>';
+ 
+    try {
         const respuesta = await fetch(
-            './data/externo/op05.json?v=' + Date.now(),
+            './data/externo/' + opcion + '.json?v=' + Date.now(),
             { cache: 'no-store' }
         );
-
+ 
+        if (!respuesta.ok) {
+            throw new Error('No fue posible leer el archivo: ' + respuesta.status);
+        }
+ 
         const datos = await respuesta.json();
-
-        const contenedor =
-            document.getElementById('resultado');
-
-        if(datos.length === 0){
-
-            contenedor.innerHTML =
-                '<p>No hay registros.</p>';
-
+ 
+        if (!Array.isArray(datos)) {
+            throw new Error('El archivo JSON no contiene una lista válida.');
+        }
+ 
+        if (datos.length === 0) {
+            contenedor.innerHTML = '<p>No hay registros.</p>';
             return;
         }
-
+ 
         contenedor.innerHTML = '';
-
+ 
         datos.forEach(registro => {
-
-            contenedor.innerHTML += `
-                <div class="card">
-
-                    <p>
-                    <span class="label">
-                    Nombre:
-                    </span>
-                    ${registro.nombre || ''}
-                    </p>
-
-                    <p>
-                    <span class="label">
-                    Producto:
-                    </span>
-                    ${registro.producto || ''}
-                    </p>
-
-                    <p>
-                    <span class="label">
-                    País:
-                    </span>
-                    ${registro.pais || ''}
-                    </p>
-
-                    <p>
-                    <span class="label">
-                    Descripción:
-                    </span>
-                    ${registro.descripcion || ''}
-                    </p>
-
-                </div>
+            const tarjeta = document.createElement('div');
+            tarjeta.className = 'card';
+ 
+            tarjeta.innerHTML = `
+                <p><span class="label">Nombre:</span> ${registro.nombre || ''}</p>
+                <p><span class="label">Producto:</span> ${registro.producto || ''}</p>
+                <p><span class="label">País:</span> ${registro.pais || ''}</p>
+                <p><span class="label">Descripción:</span> ${registro.descripcion || ''}</p>
             `;
-
+ 
+            contenedor.appendChild(tarjeta);
         });
-
-    }
-    catch(error){
-
-        document.getElementById('resultado').innerHTML =
-            '<p>Error leyendo op05.json</p>';
-
+    } catch (error) {
+        contenedor.innerHTML = '<p>Error leyendo el archivo.</p>';
         console.error(error);
-
     }
-
 }
-
-cargarOpcion5();
-
+ 
+cargarArchivo('op05');
 </script>
-
+ 
 </body>
 </html>
