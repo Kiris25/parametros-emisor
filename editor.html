@@ -1,599 +1,1071 @@
 <!DOCTYPE html> 
 <html lang="es"> 
 <head> 
-  <meta charset="utf-8"/> 
-  <meta content="width=device-width, initial-scale=1.0" name="viewport"/> 
-  <title> 
-   Parámetros Emisor - Editor V1 
-  </title> 
-  <style> 
-   :root{ 
-    --naranja:#ff6c0c; 
-    --gris:#4f4f4f; 
-    --fondo:#f2f2f2; 
-    --borde:#d9d9d9; 
-    --verde:#217346; 
-    --rojo:#b42318 
-} 
-*{ 
-    box-sizing:border-box 
-} 
-body{ 
-    margin:0; 
-    background:var(--fondo); 
-    font-family:Segoe UI,Arial,sans-serif; 
-    color:#333 
-} 
-header{ 
-    background:#fff; 
-    padding:18px 24px; 
-    border-bottom:1px solid var(--borde); 
-    display:flex; 
-    justify-content:space-between; 
-    gap:12px; 
-    align-items:center; 
-    flex-wrap:wrap 
-} 
-h1{ 
-    margin:0; 
-    color:var(--naranja); 
-    font-size:32px; 
-    font-weight:300 
-} 
-.sub{ 
-    color:#666; 
-    font-size:13px; 
-    margin-top:4px 
-} 
-nav,.barra{ 
-    display:flex; 
-    gap:10px; 
-    flex-wrap:wrap; 
-    background:#fff; 
-    padding:12px 24px; 
-    border-bottom:1px solid var(--borde) 
-} 
-.opciones{ 
-    background:#f8f8f8 
-} 
-.btn{ 
-    border:1px solid #c8c8c8; 
-    border-radius:999px; 
-    padding:10px 16px; 
-    background:#fff; 
-    color:var(--gris); 
-    font-weight:700; 
-    cursor:pointer 
-} 
-.btn:hover{ 
-    border-color:var(--naranja) 
-} 
-.btn.activo{ 
-    background:var(--gris); 
-    border-color:var(--gris); 
-    color:#fff 
-} 
-.btn.op.activo{ 
-    background:var(--naranja); 
-    border-color:var(--naranja) 
-} 
-.btn-primario,.btn-guardar{ 
-    border:0; 
-    border-radius:8px; 
-    padding:11px 16px; 
-    color:#fff; 
-    font-weight:700; 
-    cursor:pointer 
-} 
-.btn-primario{ 
-    background:var(--naranja) 
-} 
-.btn-guardar{ 
-    background:var(--verde) 
-} 
-.btn-peligro{ 
-    background:var(--rojo); 
-    color:#fff; 
-    border:0; 
-    border-radius:7px; 
-    padding:8px 11px; 
-    cursor:pointer 
-} 
-.btn-sec{ 
-    background:var(--gris); 
-    color:#fff; 
-    border:0; 
-    border-radius:8px; 
-    padding:11px 16px; 
-    font-weight:700; 
-    cursor:pointer 
-} 
-.config{ 
-    display:grid; 
-    grid-template-columns:repeat(3,minmax(140px,1fr)); 
-    gap:10px; 
-    padding:14px 24px; 
-    background:#fff; 
-    border-bottom:1px solid var(--borde) 
-} 
-.config label,.form label{ 
-    font-weight:700; 
-    color:var(--gris); 
-    font-size:13px 
-} 
-.config input,.form input,.form textarea{ 
-    width:100%; 
-    margin-top:5px; 
-    border:1px solid var(--borde); 
-    border-radius:8px; 
-    padding:10px; 
-    font:inherit 
-} 
-.form textarea{ 
-    min-height:90px; 
-    resize:vertical 
-} 
-.estado{ 
-    padding:12px 24px; 
-    color:#666; 
-    font-size:14px 
-} 
-.estado.ok{ 
-    color:var(--verde) 
-} 
-.estado.error{ 
-    color:var(--rojo) 
-} 
-main{ 
-    padding:0 24px 60px 
-} 
-.panel{ 
-    background:#fff; 
-    border:1px solid var(--borde); 
-    border-radius:12px; 
-    padding:18px; 
-    box-shadow:0 2px 7px #00000012 
-} 
-.panel-top{ 
-    display:flex; 
-    justify-content:space-between; 
-    gap:12px; 
-    align-items:center; 
-    flex-wrap:wrap 
-} 
-.panel h2{ 
-    margin:0; 
-    color:var(--naranja); 
-    font-weight:400 
-} 
-.form{ 
-    display:grid; 
-    grid-template-columns:repeat(2,minmax(220px,1fr)); 
-    gap:14px; 
-    margin-top:18px 
-} 
-.completo{ 
-    grid-column:1/-1 
-} 
-.acciones{ 
-    grid-column:1/-1; 
-    display:flex; 
-    gap:10px; 
-    justify-content:flex-end; 
-    flex-wrap:wrap 
-} 
-.lista{ 
-    margin-top:24px; 
-    display:grid; 
-    gap:12px 
-} 
-.card{ 
-    border:1px solid var(--borde); 
-    border-radius:10px; 
-    padding:15px; 
-    background:#fff 
-} 
-.card-top{ 
-    display:flex; 
-    justify-content:space-between; 
-    gap:10px; 
-    align-items:flex-start 
-} 
-.card h3{ 
-    margin:0; 
-    color:var(--naranja); 
-    font-weight:500 
-} 
-.card p{ 
-    margin:8px 0 
-} 
-.label{ 
-    font-weight:700; 
-    color:var(--gris) 
-} 
-.card-actions{ 
-    display:flex; 
-    gap:8px; 
-    flex-wrap:wrap 
-} 
-.vacio{ 
-    text-align:center; 
-    padding:24px; 
-    color:#666; 
-    border:1px dashed var(--borde); 
-    border-radius:10px 
-} 
-.toast{ 
-    position:fixed; 
-    right:20px; 
-    bottom:20px; 
-    max-width:420px; 
-    background:#222; 
-    color:#fff; 
-    padding:13px 16px; 
-    border-radius:9px; 
-    box-shadow:0 8px 30px #0004 
-} 
-.toast.error{ 
-    background:var(--rojo) 
-} 
-[hidden]{ 
-    display:none!important 
-} 
-@media(max-width:760px){ 
-    .config,.form{ 
-        grid-template-columns:1fr 
-    } 
-    .completo{ 
-        grid-column:auto 
-    } 
-    header,nav,.barra,.config,main,.estado{ 
-        padding-left:14px; 
-        padding-right:14px 
-    } 
-    h1{ 
-        font-size:26px 
-    } 
-} 
-  </style> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Parámetros Emisor - Editor V3</title> 
+    <style> 
+        :root { 
+            --naranja: #ff6c0c; 
+            --gris: #4f4f4f; 
+            --fondo: #f2f2f2; 
+            --borde: #d9d9d9; 
+            --verde: #217346; 
+            --rojo: #b42318; 
+        } 
+ 
+        * { 
+            box-sizing: border-box; 
+        } 
+ 
+        body { 
+            margin: 0; 
+            background: var(--fondo); 
+            font-family: "Segoe UI", Arial, sans-serif; 
+            color: #333; 
+        } 
+ 
+        header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+            padding: 18px 24px; 
+            background: #fff; 
+            border-bottom: 1px solid var(--borde); 
+        } 
+ 
+        h1 { 
+            margin: 0; 
+            color: var(--naranja); 
+            font-size: 32px; 
+            font-weight: 300; 
+        } 
+ 
+        .subtitulo { 
+            margin-top: 4px; 
+            color: #666; 
+            font-size: 13px; 
+        } 
+ 
+        nav, 
+        .barra { 
+            display: flex; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+            padding: 12px 24px; 
+            background: #fff; 
+            border-bottom: 1px solid var(--borde); 
+        } 
+ 
+        .opciones { 
+            max-height: 150px; 
+            overflow-y: auto; 
+            background: #f8f8f8; 
+        } 
+ 
+        .boton { 
+            padding: 10px 16px; 
+            border: 1px solid #c8c8c8; 
+            border-radius: 999px; 
+            background: #fff; 
+            color: var(--gris); 
+            font-weight: 700; 
+            cursor: pointer; 
+        } 
+ 
+        .boton:hover { 
+            border-color: var(--naranja); 
+        } 
+ 
+        .boton.activo { 
+            border-color: var(--gris); 
+            background: var(--gris); 
+            color: #fff; 
+        } 
+ 
+        .boton-opcion { 
+            padding: 8px 12px; 
+            font-size: 12px; 
+        } 
+ 
+        .boton-opcion.activo { 
+            border-color: var(--naranja); 
+            background: var(--naranja); 
+            color: #fff; 
+        } 
+ 
+        .boton-primario, 
+        .boton-guardar, 
+        .boton-secundario, 
+        .boton-peligro { 
+            padding: 11px 16px; 
+            border: 0; 
+            border-radius: 8px; 
+            color: #fff; 
+            font-weight: 700; 
+            cursor: pointer; 
+        } 
+ 
+        .boton-primario { 
+            background: var(--naranja); 
+        } 
+ 
+        .boton-guardar { 
+            background: var(--verde); 
+        } 
+ 
+        .boton-secundario { 
+            background: var(--gris); 
+        } 
+ 
+        .boton-peligro { 
+            padding: 8px 11px; 
+            background: var(--rojo); 
+        } 
+ 
+        .configuracion { 
+            display: grid; 
+            grid-template-columns: repeat(3, minmax(140px, 1fr)); 
+            gap: 10px; 
+            padding: 14px 24px; 
+            background: #fff; 
+            border-bottom: 1px solid var(--borde); 
+        } 
+ 
+        .configuracion label, 
+        .formulario label { 
+            color: var(--gris); 
+            font-size: 13px; 
+            font-weight: 700; 
+        } 
+ 
+        .configuracion input, 
+        .formulario input, 
+        .formulario textarea, 
+        .filtros input { 
+            width: 100%; 
+            margin-top: 5px; 
+            padding: 10px; 
+            border: 1px solid var(--borde); 
+            border-radius: 8px; 
+            font: inherit; 
+        } 
+ 
+        .formulario textarea { 
+            min-height: 90px; 
+            resize: vertical; 
+        } 
+ 
+        .filtros { 
+            display: grid; 
+            grid-template-columns: 2fr repeat(3, 1fr) auto; 
+            gap: 10px; 
+            padding: 14px 24px; 
+            background: #fff; 
+            border-bottom: 1px solid var(--borde); 
+        } 
+ 
+        .filtros input { 
+            margin-top: 0; 
+        } 
+ 
+        .estado { 
+            padding: 12px 24px; 
+            color: #666; 
+            font-size: 14px; 
+        } 
+ 
+        .estado.ok { 
+            color: var(--verde); 
+        } 
+ 
+        .estado.error { 
+            color: var(--rojo); 
+        } 
+ 
+        main { 
+            padding: 0 24px 60px; 
+        } 
+ 
+        .panel { 
+            padding: 18px; 
+            border: 1px solid var(--borde); 
+            border-radius: 12px; 
+            background: #fff; 
+            box-shadow: 0 2px 7px #00000012; 
+        } 
+ 
+        .panel-superior { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            gap: 12px; 
+            flex-wrap: wrap; 
+        } 
+ 
+        .panel h2 { 
+            margin: 0; 
+            color: var(--naranja); 
+            font-weight: 400; 
+        } 
+ 
+        .formulario { 
+            display: grid; 
+            grid-template-columns: repeat(2, minmax(220px, 1fr)); 
+            gap: 14px; 
+            margin-top: 18px; 
+        } 
+ 
+        .completo { 
+            grid-column: 1 / -1; 
+        } 
+ 
+        .acciones { 
+            display: flex; 
+            grid-column: 1 / -1; 
+            justify-content: flex-end; 
+            gap: 10px; 
+            flex-wrap: wrap; 
+        } 
+ 
+        .resumen { 
+            margin: 22px 0 10px; 
+            color: #666; 
+            font-size: 14px; 
+        } 
+ 
+        .lista { 
+            display: grid; 
+            gap: 14px; 
+        } 
+ 
+        .tarjeta { 
+            padding: 16px; 
+            border: 1px solid var(--borde); 
+            border-radius: 10px; 
+            background: #fff; 
+        } 
+ 
+        .tarjeta-superior { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: flex-start; 
+            gap: 10px; 
+        } 
+ 
+        .tarjeta h3 { 
+            margin: 0; 
+            color: var(--naranja); 
+            font-weight: 500; 
+        } 
+ 
+        .tarjeta-acciones { 
+            display: flex; 
+            gap: 8px; 
+            flex-wrap: wrap; 
+        } 
+ 
+        .detalle { 
+            display: grid; 
+            grid-template-columns: repeat(3, minmax(200px, 1fr)); 
+            gap: 10px; 
+            margin-top: 14px; 
+        } 
+ 
+        .campo { 
+            min-height: 88px; 
+            padding: 10px; 
+            border: 1px solid #e6e6e6; 
+            border-top: 4px solid #bdbdbd; 
+            background: #fafafa; 
+        } 
+ 
+        .campo-destacado { 
+            background: #fff5ec; 
+        } 
+ 
+        .etiqueta { 
+            margin-bottom: 7px; 
+            color: var(--gris); 
+            font-size: 11px; 
+            font-weight: 800; 
+            text-transform: uppercase; 
+        } 
+ 
+        .texto { 
+            line-height: 1.4; 
+            white-space: pre-wrap; 
+        } 
+ 
+        .vacio { 
+            padding: 24px; 
+            border: 1px dashed var(--borde); 
+            border-radius: 10px; 
+            color: #666; 
+            text-align: center; 
+        } 
+ 
+        .toast { 
+            position: fixed; 
+            right: 20px; 
+            bottom: 20px; 
+            max-width: 420px; 
+            padding: 13px 16px; 
+            border-radius: 9px; 
+            background: #222; 
+            color: #fff; 
+            box-shadow: 0 8px 30px #0004; 
+        } 
+ 
+        .toast.error { 
+            background: var(--rojo); 
+        } 
+ 
+        [hidden] { 
+            display: none !important; 
+        } 
+ 
+        @media (max-width: 1000px) { 
+            .filtros, 
+            .detalle { 
+                grid-template-columns: repeat(2, 1fr); 
+            } 
+        } 
+ 
+        @media (max-width: 760px) { 
+            .configuracion, 
+            .formulario, 
+            .filtros, 
+            .detalle { 
+                grid-template-columns: 1fr; 
+            } 
+ 
+            .completo, 
+            .acciones { 
+                grid-column: auto; 
+            } 
+ 
+            header, 
+            nav, 
+            .barra, 
+            .configuracion, 
+            .filtros, 
+            main, 
+            .estado { 
+                padding-left: 14px; 
+                padding-right: 14px; 
+            } 
+ 
+            h1 { 
+                font-size: 26px; 
+            } 
+        } 
+    </style> 
 </head> 
 <body> 
-  <header> 
-   <div> 
-    <h1> 
-     Parámetros Emisor - Editor V1 
-    </h1> 
-    <div class="sub"> 
-     Crear, editar, eliminar y publicar registros en GitHub. 
-    </div> 
-   </div> 
-   <a class="btn" href="./index.html"> 
-    Abrir visor 
-   </a> 
-  </header> 
-  <nav> 
-   <button class="btn activo" id="btnExterno" onclick="cambiarAmbito('externo')"> 
-    Externo 
-   </button> 
-   <button class="btn" id="btnInterno" onclick="cambiarAmbito('interno')"> 
-    Interno 
-   </button> 
-  </nav> 
-  <nav class="opciones" id="menuOpciones"> 
-  </nav> 
-  <section class="config"> 
-   <label> 
-    Propietario de GitHub 
-    <input id="propietario" placeholder="Ejemplo: nombre-usuario"/> 
-   </label> 
-   <label> 
-    Repositorio 
-    <input id="repositorio" value="parametros-emisor"/> 
-   </label> 
-   <label> 
-    Rama 
-    <input id="rama" value="main"/> 
-   </label> 
-  </section> 
-  <section class="barra"> 
-   <button class="btn-sec" onclick="cargarDatos()"> 
-    Recargar desde GitHub Pages 
-   </button> 
-   <button class="btn-sec" onclick="exportarJSON()"> 
-    Exportar JSON 
-   </button> 
-   <button class="btn-sec" onclick="seleccionarJSON()"> 
-    Importar JSON 
-   </button> 
-   <input accept=".json,application/json" hidden="" id="archivoJSON" type="file"/> 
-   <button class="btn-guardar" onclick="publicarEnGitHub()"> 
-    Guardar en GitHub 
-   </button> 
-  </section> 
-  <div class="estado" id="estado"> 
-   Cargando datos... 
-  </div> 
-  <main> 
-   <section class="panel"> 
-    <div class="panel-top"> 
-     <h2 id="tituloFormulario"> 
-      Nuevo registro 
-     </h2> 
-     <button class="btn-primario" onclick="nuevoRegistro()"> 
-      + Crear registro 
-     </button> 
-    </div> 
-    <form class="form" id="formulario"> 
-     <input id="indiceEdicion" type="hidden" value="-1"/> 
-     <label> 
-      Código 
-      <input id="codigo" required=""/> 
-     </label> 
-     <label> 
-      Nombre 
-      <input id="nombre" required=""/> 
-     </label> 
-     <label> 
-      Producto 
-      <input id="producto"/> 
-     </label> 
-     <label> 
-      País 
-      <input id="pais"/> 
-     </label> 
-     <label class="completo"> 
-      Descripción 
-      <textarea id="descripcion"></textarea> 
-     </label> 
-     <div class="acciones"> 
-      <button class="btn-sec" onclick="cancelarEdicion()" type="button"> 
-       Cancelar 
-      </button> 
-      <button class="btn-primario" type="submit"> 
-       Guardar en borrador 
-      </button> 
-     </div> 
-    </form> 
-    <div class="lista" id="lista"> 
-    </div> 
-   </section> 
-  </main> 
-  <div class="toast" hidden="" id="toast"> 
-  </div> 
-  <script> 
-   'use strict'; 
-let ambitoActual='externo',opcionActual='op05',datosActuales=[]; 
-const OPCIONES=['05','12','13','14','15','16','17','18','19','20','21','22','23','24','25','26','27','28','29','30','31','32','33','34','35','36','38','39','40','42','44','45','46','47','48','49','50','52','53']; 
-const $=id=>document.getElementById(id); 
-function rutaActual(){ 
-    return `data/${ambitoActual}/${opcionActual}.json` 
-} 
-function codigoOpcion(){ 
-    return opcionActual.replace('op','') 
-} 
-function construirMenuOpciones(){ 
-    const menu=$('menuOpciones'); 
-    menu.innerHTML=OPCIONES.map(codigo=>`<button id="btnOp${codigo}" class="btn op ${opcionActual==='op'+codigo?'activo':''}" onclick="cambiarOpcion('op${codigo}')">Opción ${codigo}</button>`).join('') 
-} 
-function escapar(v){ 
-    return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;') 
-} 
-function mostrarToast(texto,error=false){ 
-    const t=$('toast'); 
-    t.textContent=texto; 
-    t.className='toast'+(error?' error':''); 
-    t.hidden=false; 
-    clearTimeout(mostrarToast.timer); 
-    mostrarToast.timer=setTimeout(()=>t.hidden=true,3500) 
-} 
-function guardarConfig(){ 
-    localStorage.setItem('parametrosEmisorGitHub',JSON.stringify({ 
-        propietario:$('propietario').value.trim(),repositorio:$('repositorio').value.trim(),rama:$('rama').value.trim() 
-    })) 
-} 
-function cargarConfig(){ 
-    try{ 
-        const c=JSON.parse(localStorage.getItem('parametrosEmisorGitHub')||'{}'); 
-        $('propietario').value=c.propietario||''; 
-        $('repositorio').value=c.repositorio||'parametros-emisor'; 
-        $('rama').value=c.rama||'main' 
-    } 
-    catch(e){ 
-        console.error(e) 
-    } 
-} 
-function cambiarAmbito(v){ 
-    ambitoActual=v; 
-    $('btnExterno').classList.toggle('activo',v==='externo'); 
-    $('btnInterno').classList.toggle('activo',v==='interno'); 
-    cancelarEdicion(); 
-    cargarDatos() 
-} 
-function cambiarOpcion(v){ 
-    opcionActual=v; 
-    construirMenuOpciones(); 
-    cancelarEdicion(); 
-    cargarDatos() 
-} 
-async function cargarDatos(){ 
-    const estado=$('estado'); 
-    estado.className='estado'; 
-    estado.textContent='Cargando '+rutaActual()+'...'; 
-    try{ 
-        const r=await fetch('./'+rutaActual()+'?v='+Date.now(),{ 
-            cache:'no-store' 
-        }); 
-        if(!r.ok)throw new Error('No fue posible leer el archivo ('+r.status+').'); 
-        const d=await r.json(); 
-        if(!Array.isArray(d))throw new Error('El JSON no contiene una lista válida.'); 
-        datosActuales=d; 
-        renderizar(); 
-        estado.className='estado ok'; 
-        estado.textContent=`${rutaActual()} · ${d.length} registro(s) cargado(s).` 
-    } 
-    catch(e){ 
-        datosActuales=[]; 
-        renderizar(); 
-        estado.className='estado error'; 
-        estado.textContent=e.message; 
-        mostrarToast(e.message,true) 
-    } 
-} 
-function renderizar(){ 
-    const lista=$('lista'); 
-    if(!datosActuales.length){ 
-        lista.innerHTML='<div class="vacio">No hay registros para esta combinación.</div>'; 
-        return 
-    } 
-    lista.innerHTML=datosActuales.map((r,i)=>`<article class="card"><div class="card-top"><h3>${escapar(r.nombre||'Sin nombre')}</h3><div class="card-actions"><button class="btn" onclick="editarRegistro(${i})">Editar</button><button class="btn-peligro" onclick="eliminarRegistro(${i})">Eliminar</button></div></div><p><span class="label">Código:</span> ${escapar(r.codigo||codigoOpcion())}</p><p><span class="label">Producto:</span> ${escapar(r.producto||'')}</p><p><span class="label">País:</span> ${escapar(r.pais||'')}</p><p><span class="label">Descripción:</span> ${escapar(r.descripcion||'')}</p></article>`).join('') 
-} 
-function nuevoRegistro(){ 
-    cancelarEdicion(); 
-    $('tituloFormulario').textContent='Nuevo registro'; 
-    $('codigo').value=codigoOpcion(); 
-    $('nombre').focus() 
-} 
-function editarRegistro(i){ 
-    const r=datosActuales[i]; 
-    $('indiceEdicion').value=i; 
-    $('codigo').value=r.codigo??codigoOpcion(); 
-    $('nombre').value=r.nombre??''; 
-    $('producto').value=r.producto??''; 
-    $('pais').value=r.pais??''; 
-    $('descripcion').value=r.descripcion??''; 
-    $('tituloFormulario').textContent='Editar registro'; 
-    window.scrollTo({ 
-        top:0,behavior:'smooth' 
-    }) 
-} 
-function cancelarEdicion(){ 
-    $('formulario').reset(); 
-    $('indiceEdicion').value='-1'; 
-    $('codigo').value=codigoOpcion(); 
-    $('tituloFormulario').textContent='Nuevo registro' 
-} 
-$('formulario').addEventListener('submit',e=>{ 
-    e.preventDefault(); 
-    const r={ 
-        codigo:$('codigo').value.trim()||codigoOpcion(),nombre:$('nombre').value.trim(),producto:$('producto').value.trim(),pais:$('pais').value.trim(),descripcion:$('descripcion').value.trim() 
-    }; 
-    const i=Number($('indiceEdicion').value); 
-    if(i>=0)datosActuales[i]=r; 
-    else datosActuales.unshift(r); 
-    renderizar(); 
-    cancelarEdicion(); 
-    mostrarToast('Cambio agregado al borrador. Pulse Guardar en GitHub para publicarlo.') 
-}); 
-function eliminarRegistro(i){ 
-    const nombre=datosActuales[i]?.nombre||'este registro'; 
-    if(!confirm('¿Eliminar '+nombre+'?'))return; 
-    datosActuales.splice(i,1); 
-    renderizar(); 
-    cancelarEdicion(); 
-    mostrarToast('Registro eliminado del borrador. Pulse Guardar en GitHub para publicarlo.') 
-} 
-function exportarJSON(){ 
-    const contenido=JSON.stringify(datosActuales,null,2)+'\n'; 
-    const blob=new Blob([contenido],{ 
-        type:'application/json;charset=utf-8' 
-    }); 
-    const url=URL.createObjectURL(blob); 
-    const enlace=document.createElement('a'); 
-    enlace.href=url; 
-    enlace.download=ambitoActual+'_'+opcionActual+'.json'; 
-    document.body.appendChild(enlace); 
-    enlace.click(); 
-    enlace.remove(); 
-    URL.revokeObjectURL(url); 
-    mostrarToast('Respaldo JSON exportado correctamente.') 
-} 
-function seleccionarJSON(){ 
-    $('archivoJSON').value=''; 
-    $('archivoJSON').click() 
-} 
-async function importarJSON(evento){ 
-    const archivo=evento.target.files?.[0]; 
-    if(!archivo)return; 
-    try{ 
-        const importados=JSON.parse(await archivo.text()); 
-        if(!Array.isArray(importados))throw new Error('El archivo debe contener una lista JSON.'); 
-        if(!importados.every(item=>item&&typeof item==='object'&&!Array.isArray(item)))throw new Error('Todos los elementos deben ser registros JSON.'); 
-        datosActuales=importados; 
-        renderizar(); 
-        cancelarEdicion(); 
-        $('estado').className='estado ok'; 
-        $('estado').textContent=`${importados.length} registro(s) importado(s) al borrador de ${rutaActual()}.`; 
-        mostrarToast('Importación completada. Pulse Guardar en GitHub para publicar.') 
-    } 
-    catch(error){ 
-        $('estado').className='estado error'; 
-        $('estado').textContent=error.message; 
-        mostrarToast(error.message,true) 
-    } 
-} 
-function base64Unicode(texto){ 
-    const bytes=new TextEncoder().encode(texto); 
-    let bin=''; 
-    for(let i=0; 
-    i<bytes.length; 
-    i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768)); 
-    return btoa(bin) 
-} 
-async function publicarEnGitHub(){ 
-    guardarConfig(); 
-    const owner=$('propietario').value.trim(),repo=$('repositorio').value.trim(),branch=$('rama').value.trim()||'main'; 
-    if(!owner||!repo){ 
-        mostrarToast('Complete Propietario de GitHub y Repositorio.',true); 
-        return 
-    } 
-    const token=prompt('Pegue el token de GitHub. Se usará una sola vez y no se guardará.'); 
-    if(!token?.trim())return; 
-    const path=rutaActual(),api=`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}`; 
-    const headers={ 
-        Accept:'application/vnd.github+json',Authorization:'Bearer '+token.trim(),'X-GitHub-Api-Version':'2022-11-28' 
-    }; 
-    try{ 
-        $('estado').textContent='Publicando '+path+'...'; 
-        let sha; 
-        const actual=await fetch(api+'?ref='+encodeURIComponent(branch),{ 
-            headers 
-        }); 
-        if(actual.ok)sha=(await actual.json()).sha; 
-        else if(actual.status!==404)throw new Error('GitHub rechazó la lectura ('+actual.status+').'); 
-        const body={ 
-            message:`Actualizar ${path} desde Editor V1`,content:base64Unicode(JSON.stringify(datosActuales,null,2)+'\n'),branch 
-        }; 
-        if(sha)body.sha=sha; 
-        const r=await fetch(api,{ 
-            method:'PUT',headers:{ 
-                ...headers,'Content-Type':'application/json' 
-            },body:JSON.stringify(body) 
-        }); 
-        if(!r.ok){ 
-            const detalle=await r.text(); 
-            throw new Error('GitHub rechazó el guardado ('+r.status+'). '+detalle) 
+    <header> 
+        <div> 
+            <h1>Parámetros Emisor - Editor V3</h1> 
+            <div class="subtitulo"> 
+                Crear, editar, eliminar, respaldar y publicar registros en GitHub. 
+            </div> 
+        </div> 
+        <a href="./index.html" class="boton">Abrir visor</a> 
+    </header> 
+ 
+    <nav> 
+        <button id="btnExterno" class="boton activo" onclick="cambiarAmbito('externo')"> 
+            Externo 
+        </button> 
+        <button id="btnInterno" class="boton" onclick="cambiarAmbito('interno')"> 
+            Interno 
+        </button> 
+    </nav> 
+ 
+    <nav id="menuOpciones" class="opciones"></nav> 
+ 
+    <section class="configuracion"> 
+        <label> 
+            Propietario de GitHub 
+            <input id="propietario" placeholder="Ejemplo: nombre-usuario"> 
+        </label> 
+        <label> 
+            Repositorio 
+            <input id="repositorio" value="parametros-emisor"> 
+        </label> 
+        <label> 
+            Rama 
+            <input id="rama" value="main"> 
+        </label> 
+    </section> 
+ 
+    <section class="barra"> 
+        <button class="boton-secundario" onclick="cargarDatos()"> 
+            Recargar desde GitHub Pages 
+        </button> 
+        <button class="boton-secundario" onclick="exportarJSON()"> 
+            Exportar JSON 
+        </button> 
+        <button class="boton-secundario" onclick="seleccionarJSON()"> 
+            Importar JSON 
+        </button> 
+        <input id="archivoJSON" type="file" accept=".json,application/json" hidden> 
+        <button class="boton-guardar" onclick="publicarEnGitHub()"> 
+            Guardar en GitHub 
+        </button> 
+    </section> 
+ 
+    <section class="filtros"> 
+        <input id="busquedaGeneral" type="search" placeholder="Buscar en todos los campos" oninput="aplicarFiltros()"> 
+        <input id="filtroNombre" type="search" placeholder="Filtrar nombre" oninput="aplicarFiltros()"> 
+        <input id="filtroProducto" type="search" placeholder="Filtrar producto" oninput="aplicarFiltros()"> 
+        <input id="filtroPais" type="search" placeholder="Filtrar país" oninput="aplicarFiltros()"> 
+        <button class="boton-secundario" onclick="limpiarFiltros()">Limpiar</button> 
+    </section> 
+ 
+    <div id="estado" class="estado">Cargando datos...</div> 
+ 
+    <main> 
+        <section class="panel"> 
+            <div class="panel-superior"> 
+                <h2 id="tituloFormulario">Nuevo registro</h2> 
+                <button class="boton-primario" onclick="nuevoRegistro()"> 
+                    + Crear registro 
+                </button> 
+            </div> 
+ 
+            <form id="formulario" class="formulario"> 
+                <input id="indiceEdicion" type="hidden" value="-1"> 
+ 
+                <label> 
+                    Código 
+                    <input id="codigo" required> 
+                </label> 
+ 
+                <label> 
+                    Nombre 
+                    <input id="nombre" required> 
+                </label> 
+ 
+                <label> 
+                    Producto 
+                    <input id="producto"> 
+                </label> 
+ 
+                <label> 
+                    País 
+                    <input id="pais"> 
+                </label> 
+ 
+                <label class="completo"> 
+                    Valores permitidos 
+                    <textarea id="valores"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    ¿Qué hace? 
+                    <textarea id="que"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    ¿Cómo funciona? 
+                    <textarea id="como"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    Dependencias / Reglas 
+                    <textarea id="dependencias"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    ¿Cuándo aplica? 
+                    <textarea id="cuando"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    Ejemplo funcional 
+                    <textarea id="ejemplo"></textarea> 
+                </label> 
+ 
+                <label class="completo"> 
+                    Notas visibles al cliente 
+                    <textarea id="notas"></textarea> 
+                </label> 
+ 
+                <div class="acciones"> 
+                    <button type="button" class="boton-secundario" onclick="cancelarEdicion()"> 
+                        Cancelar 
+                    </button> 
+                    <button type="submit" class="boton-primario"> 
+                        Guardar en borrador 
+                    </button> 
+                </div> 
+            </form> 
+ 
+            <div id="resumen" class="resumen"></div> 
+            <div id="lista" class="lista"></div> 
+        </section> 
+    </main> 
+ 
+    <div id="toast" class="toast" hidden></div> 
+ 
+    <script> 
+        "use strict"; 
+ 
+        const OPCIONES = [ 
+            { codigo: "05", nombre: "Consultar" }, 
+            { codigo: "12", nombre: "Trabajar con" }, 
+            { codigo: "13", nombre: "Por Moneda" }, 
+            { codigo: "14", nombre: "Clasificación de consumo" }, 
+            { codigo: "15", nombre: "Membresías Preferenciales" }, 
+            { codigo: "16", nombre: "Cargos Automáticos" }, 
+            { codigo: "17", nombre: "Ciclos de corte" }, 
+            { codigo: "18", nombre: "Por Tipo de Cliente" }, 
+            { codigo: "19", nombre: "Renovación" }, 
+            { codigo: "20", nombre: "Pólizas" }, 
+            { codigo: "21", nombre: "Envío Mensajes" }, 
+            { codigo: "22", nombre: "Sorteos" }, 
+            { codigo: "23", nombre: "Estados Imprimir" }, 
+            { codigo: "24", nombre: "Clases para Disponible" }, 
+            { codigo: "25", nombre: "Trasiego" }, 
+            { codigo: "26", nombre: "Cargos I.V." }, 
+            { codigo: "27", nombre: "Corporativo" }, 
+            { codigo: "28", nombre: "Skip Payment" }, 
+            { codigo: "29", nombre: "Tipo tarjeta / Diseño" }, 
+            { codigo: "30", nombre: "Estados Extrafinanciamiento" }, 
+            { codigo: "31", nombre: "Limpiar Saldos" }, 
+            { codigo: "32", nombre: "Tipo Cuenta No Permitido" }, 
+            { codigo: "33", nombre: "Costos de Cobro" }, 
+            { codigo: "34", nombre: "Estados de Cuenta por Emisor" }, 
+            { codigo: "35", nombre: "Excepciones Estados" }, 
+            { codigo: "36", nombre: "Origen de Tarjeta" }, 
+            { codigo: "38", nombre: "Estado No Cálculo Intereses" }, 
+            { codigo: "39", nombre: "Parámetros Excepción Cálculo" }, 
+            { codigo: "40", nombre: "Tipo de Documentos" }, 
+            { codigo: "42", nombre: "Tarjetas Prepago por Emisor" }, 
+            { codigo: "44", nombre: "Parámetros Reducción Automática" }, 
+            { codigo: "45", nombre: "Cargos Vence Pago por TC" }, 
+            { codigo: "46", nombre: "Copia de Emisor" }, 
+            { codigo: "47", nombre: "Parámetros Deterioro Tarjeta" }, 
+            { codigo: "48", nombre: "Tarjeta Prospecto Débito" }, 
+            { codigo: "49", nombre: "Estados de Tarjeta Renovación" }, 
+            { codigo: "50", nombre: "Estados Renovación por Emisor" }, 
+            { codigo: "52", nombre: "Rangos Bines Visa / Mastercard" }, 
+            { codigo: "53", nombre: "Tipo Tecnología" } 
+        ]; 
+ 
+        let ambitoActual = "externo"; 
+        let opcionActual = "op05"; 
+        let datosActuales = []; 
+ 
+        const $ = id => document.getElementById(id); 
+ 
+        function rutaActual() { 
+            return `data/${ambitoActual}/${opcionActual}.json`; 
         } 
-        $('estado').className='estado ok'; 
-        $('estado').textContent=path+' guardado correctamente. El visor leerá este mismo archivo.'; 
-        mostrarToast('Guardado en GitHub correctamente.') 
-    } 
-    catch(e){ 
-        console.error(e); 
-        $('estado').className='estado error'; 
-        $('estado').textContent=e.message; 
-        mostrarToast(e.message,true) 
-    } 
-} 
-document.addEventListener('DOMContentLoaded',()=>{ 
-    construirMenuOpciones(); 
-    $('archivoJSON').addEventListener('change',importarJSON); 
-    cargarConfig(); 
-    ['propietario','repositorio','rama'].forEach(id=>$(id).addEventListener('change',guardarConfig)); 
-    cancelarEdicion(); 
-    cargarDatos() 
-}); 
-  </script> 
+ 
+        function codigoOpcion() { 
+            return opcionActual.replace("op", ""); 
+        } 
+ 
+        function opcionSeleccionada() { 
+            return OPCIONES.find(opcion => opcion.codigo === codigoOpcion()) || { 
+                codigo: codigoOpcion(), 
+                nombre: "Sin nombre" 
+            }; 
+        } 
+ 
+        function nombreOpcionActual() { 
+            const opcion = opcionSeleccionada(); 
+            return `Op. ${opcion.codigo} · ${opcion.nombre}`; 
+        } 
+ 
+        function construirMenuOpciones() { 
+            const menu = $("menuOpciones"); 
+ 
+            menu.innerHTML = OPCIONES.map(opcion => ` 
+                <button 
+                    class="boton boton-opcion ${opcionActual === "op" + opcion.codigo ? "activo" : ""}" 
+                    onclick="cambiarOpcion('op${opcion.codigo}')" 
+                    title="${escapar(opcion.nombre)}"> 
+                    Op. ${opcion.codigo} · ${escapar(opcion.nombre)} 
+                </button> 
+            `).join(""); 
+        } 
+ 
+        function escapar(valor) { 
+            return String(valor ?? "") 
+                .replaceAll("&", "&amp;") 
+                .replaceAll("<", "&lt;") 
+                .replaceAll(">", "&gt;") 
+                .replaceAll('"', "&quot;") 
+                .replaceAll("'", "&#039;"); 
+        } 
+ 
+        function normalizar(valor) { 
+            return String(valor ?? "") 
+                .toLowerCase() 
+                .normalize("NFD") 
+                .replace(/[\u0300-\u036f]/g, "") 
+                .replace(/\s+/g, " ") 
+                .trim(); 
+        } 
+ 
+        function valorRegistro(registro, nuevo, anterior = "") { 
+            return registro[nuevo] ?? registro[anterior] ?? ""; 
+        } 
+ 
+        function mostrarToast(texto, error = false) { 
+            const toast = $("toast"); 
+ 
+            toast.textContent = texto; 
+            toast.className = "toast" + (error ? " error" : ""); 
+            toast.hidden = false; 
+ 
+            clearTimeout(mostrarToast.temporizador); 
+            mostrarToast.temporizador = setTimeout(() => { 
+                toast.hidden = true; 
+            }, 3500); 
+        } 
+ 
+        function guardarConfiguracion() { 
+            const configuracion = { 
+                propietario: $("propietario").value.trim(), 
+                repositorio: $("repositorio").value.trim(), 
+                rama: $("rama").value.trim() 
+            }; 
+ 
+            localStorage.setItem( 
+                "parametrosEmisorGitHub", 
+                JSON.stringify(configuracion) 
+            ); 
+        } 
+ 
+        function cargarConfiguracion() { 
+            try { 
+                const configuracion = JSON.parse( 
+                    localStorage.getItem("parametrosEmisorGitHub") || "{}" 
+                ); 
+ 
+                $("propietario").value = configuracion.propietario || ""; 
+                $("repositorio").value = configuracion.repositorio || "parametros-emisor"; 
+                $("rama").value = configuracion.rama || "main"; 
+            } catch (error) { 
+                console.error(error); 
+            } 
+        } 
+ 
+        function cambiarAmbito(nuevoAmbito) { 
+            ambitoActual = nuevoAmbito; 
+ 
+            $("btnExterno").classList.toggle("activo", nuevoAmbito === "externo"); 
+            $("btnInterno").classList.toggle("activo", nuevoAmbito === "interno"); 
+ 
+            cancelarEdicion(); 
+            limpiarFiltros(false); 
+            cargarDatos(); 
+        } 
+ 
+        function cambiarOpcion(nuevaOpcion) { 
+            opcionActual = nuevaOpcion; 
+ 
+            construirMenuOpciones(); 
+            cancelarEdicion(); 
+            limpiarFiltros(false); 
+            cargarDatos(); 
+        } 
+ 
+        async function cargarDatos() { 
+            const estado = $("estado"); 
+ 
+            estado.className = "estado"; 
+            estado.textContent = `Cargando ${nombreOpcionActual()} desde ${rutaActual()}...`; 
+ 
+            try { 
+                const respuesta = await fetch( 
+                    `./${rutaActual()}?v=${Date.now()}`, 
+                    { cache: "no-store" } 
+                ); 
+ 
+                if (respuesta.status === 404) { 
+                    datosActuales = []; 
+                    renderizar([]); 
+                    estado.className = "estado"; 
+                    estado.textContent = `${nombreOpcionActual()} todavía no tiene archivo. Puede crear o importar registros y luego Guardar en GitHub.`; 
+                    return; 
+                } 
+ 
+                if (!respuesta.ok) { 
+                    throw new Error(`No fue posible leer el archivo (${respuesta.status}).`); 
+                } 
+ 
+                const datos = await respuesta.json(); 
+ 
+                if (!Array.isArray(datos)) { 
+                    throw new Error("El archivo JSON no contiene una lista válida."); 
+                } 
+ 
+                datosActuales = datos; 
+                aplicarFiltros(); 
+ 
+                estado.className = "estado ok"; 
+                estado.textContent = `${ambitoActual === "externo" ? "Externo" : "Interno"} · ${nombreOpcionActual()} · ${datos.length} registro(s) cargado(s).`; 
+            } catch (error) { 
+                datosActuales = []; 
+                renderizar([]); 
+                estado.className = "estado error"; 
+                estado.textContent = error.message; 
+                mostrarToast(error.message, true); 
+            } 
+        } 
+ 
+        function aplicarFiltros() { 
+            const general = normalizar($("busquedaGeneral").value); 
+            const nombre = normalizar($("filtroNombre").value); 
+            const producto = normalizar($("filtroProducto").value); 
+            const pais = normalizar($("filtroPais").value); 
+ 
+            const filtrados = datosActuales.filter(registro => { 
+                const textoCompleto = normalizar([ 
+                    registro.codigo, 
+                    registro.nombre, 
+                    registro.producto, 
+                    registro.pais, 
+                    valorRegistro(registro, "valores"), 
+                    valorRegistro(registro, "que", "descripcion"), 
+                    valorRegistro(registro, "como"), 
+                    valorRegistro(registro, "dependencias", "dep"), 
+                    valorRegistro(registro, "cuando"), 
+                    valorRegistro(registro, "ejemplo"), 
+                    valorRegistro(registro, "notas") 
+                ].join(" ")); 
+ 
+                return ( 
+                    (!general || textoCompleto.includes(general)) && 
+                    (!nombre || normalizar(registro.nombre).includes(nombre)) && 
+                    (!producto || normalizar(registro.producto).includes(producto)) && 
+                    (!pais || normalizar(registro.pais).includes(pais)) 
+                ); 
+            }); 
+ 
+            renderizar(filtrados); 
+        } 
+ 
+        function limpiarFiltros(renderizarAhora = true) { 
+            [ 
+                "busquedaGeneral", 
+                "filtroNombre", 
+                "filtroProducto", 
+                "filtroPais" 
+            ].forEach(id => { 
+                $(id).value = ""; 
+            }); 
+ 
+            if (renderizarAhora) { 
+                renderizar(datosActuales); 
+            } 
+        } 
+ 
+        function campoTarjeta(etiqueta, valor, destacado = false) { 
+            return ` 
+                <div class="campo ${destacado ? "campo-destacado" : ""}"> 
+                    <div class="etiqueta">${escapar(etiqueta)}</div> 
+                    <div class="texto">${escapar(valor || "—")}</div> 
+                </div> 
+            `; 
+        } 
+ 
+        function renderizar(datos) { 
+            const lista = $("lista"); 
+            const resumen = $("resumen"); 
+ 
+            resumen.textContent = `${ambitoActual === "externo" ? "Externo" : "Interno"} · ${nombreOpcionActual()} · mostrando ${datos.length} de ${datosActuales.length} registro(s).`; 
+ 
+            if (!datos.length) { 
+                lista.innerHTML = ` 
+                    <div class="vacio"> 
+                        No hay registros para mostrar en esta combinación. 
+                    </div> 
+                `; 
+                return; 
+            } 
+ 
+            lista.innerHTML = datos.map(registro => { 
+                const indiceReal = datosActuales.indexOf(registro); 
+ 
+                return ` 
+                    <article class="tarjeta"> 
+                        <div class="tarjeta-superior"> 
+                            <div> 
+                                <h3>${escapar(registro.nombre || "Sin nombre")}</h3> 
+                                <div class="subtitulo"> 
+                                    ${escapar(nombreOpcionActual())} 
+                                </div> 
+                            </div> 
+                            <div class="tarjeta-acciones"> 
+                                <button class="boton" onclick="editarRegistro(${indiceReal})"> 
+                                    Editar 
+                                </button> 
+                                <button class="boton-peligro" onclick="eliminarRegistro(${indiceReal})"> 
+                                    Eliminar 
+                                </button> 
+                            </div> 
+                        </div> 
+                        <div class="detalle"> 
+                            ${campoTarjeta("Código", registro.codigo || codigoOpcion())} 
+                            ${campoTarjeta("Producto", registro.producto)} 
+                            ${campoTarjeta("País", registro.pais)} 
+                            ${campoTarjeta("Valores permitidos", valorRegistro(registro, "valores"))} 
+                            ${campoTarjeta("¿Qué hace?", valorRegistro(registro, "que", "descripcion"))} 
+                            ${campoTarjeta("¿Cómo funciona?", valorRegistro(registro, "como"))} 
+                            ${campoTarjeta("Dependencias / Reglas", valorRegistro(registro, "dependencias", "dep"))} 
+                            ${campoTarjeta("¿Cuándo aplica?", valorRegistro(registro, "cuando"))} 
+                            ${campoTarjeta("Ejemplo funcional", valorRegistro(registro, "ejemplo"), true)} 
+                            ${campoTarjeta("Notas visibles al cliente", valorRegistro(registro, "notas"))} 
+                        </div> 
+                    </article> 
+                `; 
+            }).join(""); 
+        } 
+ 
+        function nuevoRegistro() { 
+            cancelarEdicion(); 
+            $("tituloFormulario").textContent = `Nuevo registro · ${nombreOpcionActual()}`; 
+            $("codigo").value = codigoOpcion(); 
+            $("nombre").focus(); 
+        } 
+ 
+        function editarRegistro(indice) { 
+            const registro = datosActuales[indice]; 
+ 
+            $("indiceEdicion").value = indice; 
+            $("codigo").value = registro.codigo ?? codigoOpcion(); 
+            $("nombre").value = registro.nombre ?? ""; 
+            $("producto").value = registro.producto ?? ""; 
+            $("pais").value = registro.pais ?? ""; 
+            $("valores").value = valorRegistro(registro, "valores"); 
+            $("que").value = valorRegistro(registro, "que", "descripcion"); 
+            $("como").value = valorRegistro(registro, "como"); 
+            $("dependencias").value = valorRegistro(registro, "dependencias", "dep"); 
+            $("cuando").value = valorRegistro(registro, "cuando"); 
+            $("ejemplo").value = valorRegistro(registro, "ejemplo"); 
+            $("notas").value = valorRegistro(registro, "notas"); 
+ 
+            $("tituloFormulario").textContent = `Editar registro · ${nombreOpcionActual()}`; 
+            window.scrollTo({ top: 0, behavior: "smooth" }); 
+        } 
+ 
+        function cancelarEdicion() { 
+            $("formulario").reset(); 
+            $("indiceEdicion").value = "-1"; 
+            $("codigo").value = codigoOpcion(); 
+            $("tituloFormulario").textContent = `Nuevo registro · ${nombreOpcionActual()}`; 
+        } 
+ 
+        $("formulario").addEventListener("submit", evento => { 
+            evento.preventDefault(); 
+ 
+            const registro = { 
+                codigo: $("codigo").value.trim() || codigoOpcion(), 
+                nombre: $("nombre").value.trim(), 
+                producto: $("producto").value.trim(), 
+                pais: $("pais").value.trim(), 
+                valores: $("valores").value.trim(), 
+                que: $("que").value.trim(), 
+                como: $("como").value.trim(), 
+                dependencias: $("dependencias").value.trim(), 
+                cuando: $("cuando").value.trim(), 
+                ejemplo: $("ejemplo").value.trim(), 
+                notas: $("notas").value.trim() 
+            }; 
+ 
+            const indice = Number($("indiceEdicion").value); 
+ 
+            if (indice >= 0) { 
+                datosActuales[indice] = registro; 
+            } else { 
+                datosActuales.unshift(registro); 
+            } 
+ 
+            aplicarFiltros(); 
+            cancelarEdicion(); 
+            mostrarToast("Cambio agregado al borrador. Pulse Guardar en GitHub para publicarlo."); 
+        }); 
+ 
+        function eliminarRegistro(indice) { 
+            const nombre = datosActuales[indice]?.nombre || "este registro"; 
+ 
+            if (!confirm(`¿Eliminar ${nombre}?`)) { 
+                return; 
+            } 
+ 
+            datosActuales.splice(indice, 1); 
+            aplicarFiltros(); 
+            cancelarEdicion(); 
+            mostrarToast("Registro eliminado del borrador. Pulse Guardar en GitHub para publicarlo."); 
+        } 
+ 
+        function exportarJSON() { 
+            const contenido = JSON.stringify(datosActuales, null, 2) + "\n"; 
+            const archivo = new Blob([contenido], { 
+                type: "application/json;charset=utf-8" 
+            }); 
+            const url = URL.createObjectURL(archivo); 
+            const enlace = document.createElement("a"); 
+ 
+            enlace.href = url; 
+            enlace.download = `${ambitoActual}_${opcionActual}.json`; 
+            document.body.appendChild(enlace); 
+            enlace.click(); 
+            enlace.remove(); 
+            URL.revokeObjectURL(url); 
+ 
+            mostrarToast("Respaldo JSON exportado correctamente."); 
+        } 
+ 
+        function seleccionarJSON() { 
+            $("archivoJSON").value = ""; 
+            $("archivoJSON").click(); 
+        } 
+ 
+        async function importarJSON(evento) { 
+            const archivo = evento.target.files?.[0]; 
+ 
+            if (!archivo) { 
+                return; 
+            } 
+ 
+            try { 
+                const importados = JSON.parse(await archivo.text()); 
+ 
+                if (!Array.isArray(importados)) { 
+                    throw new Error("El archivo debe contener una lista JSON."); 
+                } 
+ 
+                if (!importados.every(item => item && typeof item === "object" && !Array.isArray(item))) { 
+                    throw new Error("Todos los elementos deben ser registros JSON."); 
+                } 
+ 
+                datosActuales = importados; 
+                aplicarFiltros(); 
+                cancelarEdicion(); 
+ 
+                $("estado").className = "estado ok"; 
+                $("estado").textContent = `${importados.length} registro(s) importado(s) al borrador de ${rutaActual()}.`; 
+                mostrarToast("Importación completada. Pulse Guardar en GitHub para publicar."); 
+            } catch (error) { 
+                $("estado").className = "estado error"; 
+                $("estado").textContent = error.message; 
+                mostrarToast(error.message, true); 
+            } 
+        } 
+ 
+        function base64Unicode(texto) { 
+            const bytes = new TextEncoder().encode(texto); 
+            let binario = ""; 
+ 
+            for (let i = 0; i < bytes.length; i += 32768) { 
+                binario += String.fromCharCode(...bytes.subarray(i, i + 32768)); 
+            } 
+ 
+            return btoa(binario); 
+        } 
+ 
+        async function publicarEnGitHub() { 
+            guardarConfiguracion(); 
+ 
+            const owner = $("propietario").value.trim(); 
+            const repo = $("repositorio").value.trim(); 
+            const branch = $("rama").value.trim() || "main"; 
+ 
+            if (!owner || !repo) { 
+                mostrarToast("Complete Propietario de GitHub y Repositorio.", true); 
+                return; 
+            } 
+ 
+            const token = prompt( 
+                "Pegue el token de GitHub. Se usará una sola vez y no se guardará." 
+            ); 
+ 
+            if (!token?.trim()) { 
+                return; 
+            } 
+ 
+            const path = rutaActual(); 
+            const api = `https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}`; 
+            const headers = { 
+                Accept: "application/vnd.github+json", 
+                Authorization: `Bearer ${token.trim()}`, 
+                "X-GitHub-Api-Version": "2022-11-28" 
+            }; 
+ 
+            try { 
+                $("estado").className = "estado"; 
+                $("estado").textContent = `Publicando ${path}...`; 
+ 
+                let sha; 
+                const actual = await fetch( 
+                    `${api}?ref=${encodeURIComponent(branch)}`, 
+                    { headers } 
+                ); 
+ 
+                if (actual.ok) { 
+                    sha = (await actual.json()).sha; 
+                } else if (actual.status !== 404) { 
+                    throw new Error(`GitHub rechazó la lectura (${actual.status}).`); 
+                } 
+ 
+                const body = { 
+                    message: `Actualizar ${path} desde Editor V3`, 
+                    content: base64Unicode(JSON.stringify(datosActuales, null, 2) + "\n"), 
+                    branch 
+                }; 
+ 
+                if (sha) { 
+                    body.sha = sha; 
+                } 
+ 
+                const respuesta = await fetch(api, { 
+                    method: "PUT", 
+                    headers: { 
+                        ...headers, 
+                        "Content-Type": "application/json" 
+                    }, 
+                    body: JSON.stringify(body) 
+                }); 
+ 
+                if (!respuesta.ok) { 
+                    const detalle = await respuesta.text(); 
+                    throw new Error(`GitHub rechazó el guardado (${respuesta.status}). ${detalle}`); 
+                } 
+ 
+                $("estado").className = "estado ok"; 
+                $("estado").textContent = `${path} guardado correctamente. El visor leerá este mismo archivo.`; 
+                mostrarToast("Guardado en GitHub correctamente."); 
+            } catch (error) { 
+                console.error(error); 
+                $("estado").className = "estado error"; 
+                $("estado").textContent = error.message; 
+                mostrarToast(error.message, true); 
+            } 
+        } 
+ 
+        document.addEventListener("DOMContentLoaded", () => { 
+            construirMenuOpciones(); 
+            cargarConfiguracion(); 
+ 
+            $("archivoJSON").addEventListener("change", importarJSON); 
+ 
+            ["propietario", "repositorio", "rama"].forEach(id => { 
+                $(id).addEventListener("change", guardarConfiguracion); 
+            }); 
+ 
+            cancelarEdicion(); 
+            cargarDatos(); 
+        }); 
+    </script> 
 </body> 
 </html> 
- 
  
