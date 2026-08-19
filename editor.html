@@ -1,15 +1,364 @@
-<!doctype html><html lang="es"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><title>Parámetros Emisor - Editor bilingüe</title><script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script><style> 
-:root{--o:#ff6c0c;--g:#4f4f4f;--bg:#f2f2f2;--br:#d9d9d9;--r:#b42318;--ok:#217346}*{box-sizing:border-box}body{margin:0;background:var(--bg);font-family:Segoe UI,Arial;color:#333}button,input,textarea,select{font:inherit}button{cursor:pointer}.top{display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;padding:11px 20px;background:#fff;border-bottom:1px solid var(--br)}h1{margin:0;color:var(--o);font-size:32px;font-weight:300}.actions,.tabs{display:flex;gap:7px;flex-wrap:wrap;align-items:center}.btn{border:0;border-radius:8px;padding:9px 12px;background:var(--g);color:#fff;font-weight:750}.orange,.active{background:var(--o)!important}.red{background:var(--r)}.tabs{padding:9px 20px;background:#fff;border-bottom:1px solid var(--br)}.tab{border:1px solid #ccc;border-radius:999px;padding:9px 20px;background:#fff;color:var(--g);font-weight:800}.lang{display:flex;overflow:hidden;border:1px solid var(--br);border-radius:999px}.lang button{border:0;padding:8px 12px;background:#fff;color:var(--g);font-weight:800}.menu{display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:7px 20px;background:#fafafa}.op{height:26px;border:1px solid #ccc;border-radius:14px;background:#fff;font-size:9.5px;font-weight:750;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.filters{display:grid;grid-template-columns:2fr 1fr 1fr 1fr auto;gap:8px;padding:11px 20px}input,textarea,select,.editable{width:100%;padding:9px;border:1px solid var(--br);border-radius:7px;background:#fff}.status,.title{padding:5px 20px}.status.ok{color:var(--ok)}.status.error{color:var(--r)}.title{margin:0;font-size:24px;font-weight:400}.content{padding:9px 20px 80px}.card{background:#fff;border:1px solid var(--br);margin-bottom:13px}.head{display:grid;grid-template-columns:130px 1fr auto;border-bottom:1px solid var(--br)}.code{background:#595959;color:#fff;display:flex;align-items:center;justify-content:center;font-weight:800}.name{padding:10px 14px;color:var(--o);font-size:23px;outline:none}.card-actions{display:flex;gap:5px;align-items:center;padding:6px}.grid{display:grid;grid-template-columns:repeat(3,1fr);gap:9px;padding:11px}.field{min-height:90px;padding:9px;background:#fafafa;border:1px solid #e5e5e5;border-top:4px solid #bbb}.field.example{background:#fff5ec}.label{font-size:11px;font-weight:850;text-transform:uppercase;margin-bottom:6px}.text{white-space:pre-wrap;line-height:1.35;outline:none}.text:focus,.name:focus{background:#fff;box-shadow:inset 0 0 0 2px #ff6c0c38}.empty{padding:25px;background:#fff;text-align:center}.modal{position:fixed;inset:0;z-index:100;background:#0009;display:flex;align-items:center;justify-content:center;padding:15px}.modal[hidden]{display:none}.dialog{width:min(880px,100%);max-height:94vh;overflow:auto;background:#fff;border-radius:14px;padding:18px}.dialog-head{display:flex;justify-content:space-between}.form{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:12px}.full,.form-actions{grid-column:1/-1}.form-actions{display:flex;justify-content:flex-end;gap:8px}.toast{position:fixed;right:18px;bottom:18px;z-index:150;background:#222;color:#fff;padding:12px;border-radius:8px}.toast.error{background:var(--r)}.questions{position:fixed;right:20px;bottom:20px;z-index:90}.qpanel{position:fixed;right:20px;bottom:75px;z-index:100;width:min(410px,calc(100vw - 24px));max-height:620px;overflow:hidden;background:#fff;border-radius:15px;box-shadow:0 15px 42px #0005}.qpanel[hidden]{display:none}.qhead{display:flex;justify-content:space-between;padding:12px;background:var(--o);color:#fff;cursor:move}.qbody{padding:13px;max-height:550px;overflow:auto}.faq,.recommend{display:block;width:100%;margin:6px 0;padding:9px;text-align:left;border:1px solid var(--br);border-radius:8px;background:#fafafa}.recommend strong{color:var(--o)}mark{background:#fff176}.labels-grid{display:grid;grid-template-columns:1fr 1fr;gap:8px}.hint{font-size:11px;color:#666}@media(max-width:900px){.menu{grid-template-columns:repeat(6,1fr)}.grid{grid-template-columns:1fr 1fr}@media(max-width:650px){.menu{grid-template-columns:repeat(4,1fr)}.filters,.grid,.form,.labels-grid{grid-template-columns:1fr}.full,.form-actions{grid-column:auto}.head{grid-template-columns:85px 1fr}.card-actions{grid-column:1/-1} 
-</style></head><body> 
-<header class="top"><h1 id="sysTitle">Parámetros del Emisor · Editor</h1><div class="actions"><button class="btn orange" onclick="newRecord()">Nuevo registro</button><button class="btn" onclick="pickExcel()">Importar Excel</button><button class="btn" onclick="openLabels()">Etiquetas del sistema</button><button id="saveBtn" class="btn orange" onclick="saveChanges()" disabled>Guardar cambios</button><div class="lang"><button id="esBtn" class="active" onclick="setLanguage('es')">Español</button><button id="enBtn" onclick="setLanguage('en')">English</button></div></div></header> 
-<section class="tabs"><button id="ext" class="tab active" onclick="setAudience('externo')">Externo</button><button id="int" class="tab" onclick="setAudience('interno')">Interno</button></section><nav id="menu" class="menu"></nav><section class="filters"><input id="search" placeholder="Buscar en todas las opciones"><input id="fName" placeholder="Nombre"><input id="fProduct" placeholder="Producto"><input id="fCountry" placeholder="País"><button class="btn" onclick="clearFilters()">Limpiar</button></section><div id="status" class="status"></div><h2 id="title" class="title"></h2><main id="content" class="content"></main><input id="excel" type="file" accept=".xlsx,.xls" hidden> 
-<div id="recordModal" class="modal" hidden><section class="dialog"><div class="dialog-head"><h2>Nuevo registro</h2><button class="btn" onclick="closeModal('recordModal')">Cerrar</button></div><form id="recordForm" class="form"><label>Opción<select id="code"></select></label><label>Nombre<input id="nombre" required></label><label>Producto<input id="producto"></label><label>País<input id="pais"></label><label class="full">Valores<textarea id="valores"></textarea></label><label class="full">Qué hace<textarea id="que"></textarea></label><label class="full">Cómo funciona<textarea id="como"></textarea></label><label class="full">Dependencias<textarea id="dependencias"></textarea></label><label class="full">Cuándo aplica<textarea id="cuando"></textarea></label><label class="full">Ejemplo<textarea id="ejemplo"></textarea></label><label class="full">Notas<textarea id="notas"></textarea></label><div class="form-actions"><button type="button" class="btn" onclick="closeModal('recordModal')">Cancelar</button><button class="btn orange">Agregar</button></div></form></section></div> 
-<div id="labelsModal" class="modal" hidden><section class="dialog"><div class="dialog-head"><h2>Etiquetas del sistema</h2><button class="btn" onclick="closeModal('labelsModal')">Cerrar</button></div><p class="hint">Estas etiquetas se guardan en data/config/labels.json del repositorio del idioma activo y el visor las usa al recargar.</p><div id="labelsGrid" class="labels-grid"></div><div class="form-actions"><button class="btn orange" onclick="applyLabels()">Guardar etiquetas</button></div></section></div><div id="toast" class="toast" hidden></div> 
-<script>'use strict'; 
-const $=id=>document.getElementById(id);const OPTIONS=[['05','Consultar'],['12','Trabajar con'],['13','Moneda'],['14','Clasificación'],['15','Membresías'],['16','Cargos Auto'],['17','Ciclos'],['18','Tipo Cliente'],['19','Renovación'],['20','Pólizas'],['21','Mensajes'],['22','Sorteos'],['23','Estados'],['24','Clases'],['25','Trasiego'],['26','Cargos I.V.'],['27','Corporativo'],['28','Skip Pay'],['29','Diseño'],['30','Extrafin.'],['31','Limpiar'],['32','Tipo Cta.'],['33','Costos'],['34','Estados Cta.'],['35','Excepciones'],['36','Origen'],['38','No Intereses'],['39','Excep.'],['40','Documentos'],['42','Prepago'],['44','Reducc.'],['45','Vence Pago'],['46','Copia'],['47','Deterioro'],['48','Prospecto'],['49','Renov. Tarj.'],['50','Renov. Emisor'],['52','Rangos'],['53','Tecnología']];const FIELDS=['nombre','producto','pais','valores','que','como','dependencias','cuando','ejemplo','notas'];let language='es',audience='externo',option='05',data={}; 
-function esc(v){return String(v??'').replace(/[&<>"']/g,m=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#039;'}[m]))}function norm(v){return String(v??'').toLowerCase().normalize('NFD').replace(/[\u0300-\u036f]/g,'').replace(/[^a-z0-9]+/g,' ').replace(/\s+/g,' ').trim()}function plain(v){let d=document.createElement('div');d.innerHTML=String(v??'');return d.textContent||''}function optName(c){return OPTIONS.find(x=>x[0]===c)?.[1]||''}function all(){return OPTIONS.flatMap(([c])=>(data[c]||[]).map(r=>({...r,__option:c})))}function base(){if(language==='es')return './';if(location.hostname.endsWith('.github.io'))return`https://${location.hostname.split('.')[0]}.github.io/parametros-emisor-en/`;return'../parametros-emisor-en/'}function route(c){return`${base()}data/${audience}/op${c}.json`}async function read(c){try{let r=await fetch(`${route(c)}?v=${Date.now()}`,{cache:'no-store'});if(r.status===404)return[];let x=await r.json();return Array.isArray(x)?x:[]}catch(e){return[]}async function load(){let pairs=await Promise.all(OPTIONS.map(async([c])=>[c,await read(c)]));data=Object.fromEntries(pairs);menu();render()}function menu(){$('menu').innerHTML=`<button class="op ${option==='all'?'active':''}" data-op="all">${language==='es'?'Todas':'All'}</button>`+OPTIONS.map(([c,n])=>`<button class="op ${option===c?'active':''}" data-op="${c}">Op. ${c} · ${esc(n)}</button>`).join('')}$('menu').onclick=e=>{let b=e.target.closest('[data-op]');if(b){option=b.dataset.op;menu();render()};function visible(){let q=norm($('search').value),n=norm($('fName').value),p=norm($('fProduct').value),c=norm($('fCountry').value),baseRows=q||option==='all'?all():(data[option]||[]).map(r=>({...r,__option:option}));return baseRows.filter(r=>(!q||norm(FIELDS.map(k=>plain(r[k])).join(' ')).includes(q))&&(!n||norm(r.nombre).includes(n))&&(!p||norm(r.producto).includes(p))&&(!c||norm(r.pais).includes(c)))}function highlight(v){let s=esc(plain(v)||'—'),q=$('search').value.trim();if(!q)return s;let x=q.replace(/[.*+?^${}()|[\]\\]/g,'\\$&');return s.replace(new RegExp(`(${x})`,'gi'),'<mark>$1</mark>')}['search','fName','fProduct','fCountry'].forEach(id=>$(id).oninput=render);function clearFilters(){['search','fName','fProduct','fCountry'].forEach(id=>$(id).value='');render()} 
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+    <meta charset="UTF-8"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+    <title>Parámetros del Emisor - Editor V7</title> 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
+    <style> 
+        :root { --naranja:#ff6c0c; --gris:#4f4f4f; --fondo:#f2f2f2; --borde:#d9d9d9; --rojo:#b42318; --verde:#217346; } 
+        * { box-sizing:border-box; } 
+        body { margin:0; background:var(--fondo); color:#333; font-family:"Segoe UI",Arial,sans-serif; } 
+        button,input,textarea,select { font:inherit; } 
+        button { cursor:pointer; } 
+        .encabezado { display:flex; justify-content:space-between; align-items:center; gap:10px; flex-wrap:wrap; padding:10px 20px; background:#fff; border-bottom:1px solid var(--borde); } 
+        h1 { margin:0; color:var(--naranja); font-size:34px; font-weight:300; } 
+        .acciones,.pestanas { display:flex; gap:7px; flex-wrap:wrap; } 
+        .boton { padding:9px 12px; border:0; border-radius:8px; background:var(--gris); color:#fff; font-weight:750; } 
+        .boton-naranja,.activa { background:var(--naranja)!important; } 
+        .boton-rojo { background:var(--rojo); } 
+        .pestanas { padding:9px 20px; background:#fff; border-bottom:1px solid var(--borde); } 
+        .pestana { padding:9px 20px; border:1px solid #ccc; border-radius:999px; background:#fff; color:var(--gris); font-weight:800; } 
+        .menu { display:grid; grid-template-columns:repeat(10,minmax(0,1fr)); gap:4px; padding:7px 20px; background:#fafafa; border-bottom:1px solid var(--borde); } 
+        .opcion { height:25px; overflow:hidden; padding:3px 5px; border:1px solid #ccc; border-radius:14px; background:#fff; color:var(--gris); font-size:9.5px; font-weight:750; text-overflow:ellipsis; white-space:nowrap; } 
+        .opcion.activa { color:#fff; border-color:var(--naranja); } 
+        .filtros { display:grid; grid-template-columns:2fr 1fr 1fr 1fr auto; gap:8px; padding:11px 20px; } 
+        input,textarea,select,.editable { width:100%; padding:9px; border:1px solid var(--borde); border-radius:7px; background:#fff; } 
+        textarea { min-height:88px; resize:vertical; } 
+        .editable { min-height:100px; white-space:pre-wrap; outline:none; } 
+        .editable:focus { border-color:var(--naranja); box-shadow:0 0 0 2px #ff6c0c22; } 
+        .estado,.titulo { padding:5px 20px; } 
+        .estado { color:#666; font-size:13px; } 
+        .estado.ok { color:var(--verde); } 
+        .estado.error { color:var(--rojo); } 
+        .titulo { margin:0; color:#444; font-size:25px; font-weight:400; } 
+        .contenido { padding:9px 20px 70px; } 
+        .ficha { margin-bottom:13px; background:#fff; border:1px solid var(--borde); box-shadow:0 2px 7px #0001; } 
+        .cabecera-ficha { display:grid; grid-template-columns:140px 1fr auto; border-bottom:1px solid var(--borde); } 
+        .codigo { display:flex; align-items:center; justify-content:center; padding:9px; background:#5a5a5a; color:#fff; font-weight:800; } 
+        .nombre { padding:9px 14px; color:var(--naranja); font-size:24px; font-weight:300; outline:none; } 
+        .nombre[contenteditable="true"]:focus,.editable-ficha:focus { background:#fff; box-shadow:inset 0 0 0 2px #ff6c0c38; } 
+        .editable-ficha { min-height:52px; outline:none; cursor:text; } 
+        .acciones-ficha { display:flex; align-items:center; gap:5px; padding:6px; } 
+        .acciones-ficha .boton { padding:6px 8px; font-size:11px; } 
+        .cuadricula { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; padding:11px; } 
+        .campo { min-height:95px; padding:9px; background:#fafafa; border:1px solid #e5e5e5; border-top:4px solid #bbb; } 
+        .campo.ejemplo { background:#fff5ec; } 
+        .etiqueta { margin-bottom:7px; color:#444; font-size:11px; font-weight:850; text-transform:uppercase; } 
+        .texto { line-height:1.36; white-space:pre-wrap; } 
+        .dependencia-inline { min-height:54px; padding:5px; border-radius:5px; outline:none; cursor:text; } 
+        .dependencia-inline:hover { background:#fff; box-shadow:inset 0 0 0 1px #ffd1ad; } 
+        .dependencia-inline:focus { background:#fff; box-shadow:inset 0 0 0 2px #ff6c0c38; } 
+        mark { padding:0 1px; border-radius:2px; background:#fff176; color:#000; } 
+        .dep-ref-inline { padding:0 2px; border-bottom:2px solid var(--naranja); border-radius:3px; background:#fff0c2; color:#8a3b00; font-weight:800; text-decoration:none; } 
+        .vacio { padding:24px; background:#fff; border:1px dashed var(--borde); text-align:center; } 
+        .modal { position:fixed; inset:0; z-index:100; display:flex; align-items:center; justify-content:center; padding:15px; background:#0009; } 
+        .modal[hidden] { display:none; } 
+        .ventana { width:min(920px,100%); max-height:94vh; overflow:auto; padding:17px; border-radius:13px; background:#fff; } 
+        .ventana-cabecera { display:flex; justify-content:space-between; align-items:center; } 
+        .ventana-cabecera h2 { margin:0; color:var(--naranja); font-weight:400; } 
+        .formulario { display:grid; grid-template-columns:1fr 1fr; gap:11px; margin-top:11px; } 
+        .formulario label { color:#444; font-size:12px; font-weight:800; } 
+        .completo,.acciones-formulario { grid-column:1/-1; } 
+        .acciones-formulario { display:flex; justify-content:flex-end; gap:8px; } 
+        .ayuda { margin:4px 0; color:#666; font-size:11px; } 
+        .menu-contextual,.tarjeta-flotante { position:fixed; z-index:160; display:none; padding:11px; background:#fff; border:1px solid var(--borde); border-radius:12px; box-shadow:0 14px 38px #0005; } 
+        .menu-contextual { width:380px; max-width:calc(100vw - 24px); padding:18px; border-radius:18px; background:#fff; } 
+        .menu-contextual strong { display:block; margin-bottom:3px; color:#333; font-size:18px; line-height:1.15; } 
+        .menu-contextual > .ayuda { margin-bottom:10px; color:#777; font-size:16px; } 
+        .menu-contextual input { height:42px; margin-bottom:14px; border-radius:10px; font-size:14px; } 
+        .resultados-dependencia { max-height:340px; overflow-y:auto; padding-right:5px; scrollbar-color:#8b8b8b transparent; } 
+        .resultado-dependencia { display:block; width:100%; margin:6px 0; padding:6px; border:1px solid #ddd; border-radius:12px; background:#fafafa; color:#111; text-align:left; font-size:13px; line-height:1.35; } 
+        .resultado-dependencia:hover { border-color:#ffb47f; background:#fff8f3; } 
+        .resultado-dependencia strong { display:inline; color:var(--naranja); font-size:15px; } 
+        .resultado-dependencia small { color:#111; font-size:15px; } 
+        .tarjeta-flotante { width:520px; max-width:calc(100vw - 24px); max-height:440px; overflow:auto; font-size:14px; } 
+        .vista-previa-campo { padding:7px 0; border-bottom:1px solid #eee; line-height:1.35; } 
+        .vista-previa-campo b { display:block; color:var(--gris); margin-bottom:2px; } 
+        .tarjeta-flotante h4 { margin:0; color:var(--naranja); font-size:16px; } 
+        .acciones-flotantes { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; } 
+        .toast { position:fixed; right:18px; bottom:18px; z-index:180; padding:12px 15px; border-radius:9px; background:#222; color:#fff; } 
+        .toast.error { background:var(--rojo); } 
+        [hidden] { display:none!important; } 
+        @media(max-width:1050px){.menu{grid-template-columns:repeat(8,1fr)}.cuadricula{grid-template-columns:1fr 1fr}} 
+        @media(max-width:700px){.menu{grid-template-columns:repeat(4,1fr)}.filtros,.cuadricula,.formulario{grid-template-columns:1fr}.completo,.acciones-formulario{grid-column:auto}.cabecera-ficha{grid-template-columns:90px 1fr}.acciones-ficha{grid-column:1/-1}} 
+    </style> 
+</head> 
+<body> 
+    <header class="encabezado"> 
+        <h1>Parámetros del Emisor</h1> 
+        <div class="acciones"> 
+            <button class="boton boton-naranja" onclick="nuevoRegistro()">Nuevo registro</button> 
+            <button class="boton" onclick="seleccionarJSON()">Importar JSON</button> 
+            <button class="boton" onclick="seleccionarExcel()">Importar Excel</button> 
+            <button class="boton boton-naranja" onclick="exportarJSON()">Exportar JSON</button> 
+            <button class="boton" onclick="exportarWord()">Exportar Word B/N</button> 
+            <button id="botonGuardar" class="boton boton-naranja" onclick="guardarCambios()" disabled>Guardar cambios</button> 
+        </div> 
+    </header> 
+    <section class="pestanas"> 
+        <button id="externo" class="pestana activa" onclick="cambiarAmbito('externo')">Externo</button> 
+        <button id="interno" class="pestana" onclick="cambiarAmbito('interno')">Interno</button> 
+    </section> 
+    <nav id="menu" class="menu"></nav> 
+    <section class="filtros"> 
+        <input id="buscar" placeholder="Buscar por palabra clave en TODAS las opciones"> 
+        <input id="filtrarNombre" placeholder="Filtrar nombre"> 
+        <input id="filtrarProducto" placeholder="Filtrar producto"> 
+        <input id="filtrarPais" placeholder="Filtrar país"> 
+        <button class="boton" onclick="limpiarFiltros()">Limpiar filtros</button> 
+    </section> 
+    <div id="estado" class="estado"></div> 
+    <h2 id="titulo" class="titulo"></h2> 
+    <main id="contenido" class="contenido"></main> 
+    <input id="archivoJSON" type="file" accept=".json" hidden> 
+    <input id="archivoExcel" type="file" accept=".xlsx,.xls" hidden> 
  
-let dirty=new Set(),token=localStorage.getItem('peToken')||'',labels={};function repo(){let owner=location.hostname.endsWith('.github.io')?location.hostname.split('.')[0]:(localStorage.getItem('peOwner')||'');return{owner,name:language==='es'?'parametros-emisor':'parametros-emisor-en',branch:'main'}}function mark(c){dirty.add(c);$('saveBtn').disabled=false;$('status').textContent=`Cambios pendientes: ${[...dirty].map(x=>'op'+x).join(', ')}`;}function field(label,c,i,k,v,cls=''){return`<div class="field ${cls}"><div class="label">${label}</div><div class="text" contenteditable="true" data-c="${c}" data-i="${i}" data-k="${k}">${esc(plain(v))}</div></div>`}function locate(r){return(data[r.__option]||[]).findIndex(x=>(x.id&&x.id===r.id)||x.nombre===r.nombre)}function render(){let a=visible();$('title').textContent=option==='all'?'Todas':`Op. ${option} · ${optName(option)}`;$('content').innerHTML=a.length?a.map(r=>{let c=r.__option,i=locate(r);return`<article class="card"><div class="head"><div class="code">Op. ${c}</div><div class="name" contenteditable="true" data-c="${c}" data-i="${i}" data-k="nombre">${esc(r.nombre)}</div><div class="card-actions"><button class="btn red" data-del="${c}|${i}">Eliminar</button></div></div><div class="grid">${field('Producto',c,i,'producto',r.producto)}${field('País',c,i,'pais',r.pais)}${field('Valores',c,i,'valores',r.valores)}${field('Qué hace',c,i,'que',r.que)}${field('Cómo funciona',c,i,'como',r.como)}${field('Dependencias',c,i,'dependencias',r.dependencias)}${field('Cuándo aplica',c,i,'cuando',r.cuando)}${field('Ejemplo',c,i,'ejemplo',r.ejemplo,'example')}${field('Notas',c,i,'notas',r.notas)}</div></article>`}).join(''):'<div class="empty">Sin registros</div>';$('status').textContent=`${a.length} registro(s)`}$('content').oninput=e=>{let el=e.target.closest('[data-k]');if(!el)return;let r=data[el.dataset.c]?.[+el.dataset.i];if(r){r[el.dataset.k]=el.innerText.trim();mark(el.dataset.c)}};$('content').onclick=e=>{let b=e.target.closest('[data-del]');if(b){let[c,i]=b.dataset.del.split('|');if(confirm('¿Eliminar?')){data[c].splice(+i,1);mark(c);render()}}};function setLanguage(v){language=v;$('esBtn').classList.toggle('active',v==='es');$('enBtn').classList.toggle('active',v==='en');$('sysTitle').textContent=v==='es'?'Parámetros del Emisor · Editor':'Issuer Parameters · Editor';dirty.clear();$('saveBtn').disabled=true;loadLabels().then(load)}function setAudience(v){audience=v;$('ext').classList.toggle('active',v==='externo');$('int').classList.toggle('active',v==='interno');load()}function newRecord(){let c=option==='all'?'05':option;$('recordForm').reset();$('code').innerHTML=OPTIONS.map(([x,n])=>`<option value="${x}" ${x===c?'selected':''}>Op. ${x} · ${n}</option>`).join('');$('recordModal').hidden=false}function closeModal(id){$(id).hidden=true}$('recordForm').onsubmit=e=>{e.preventDefault();let c=$('code').value,r={id:crypto.randomUUID(),codigo:c};FIELDS.forEach(k=>r[k]=$(k)?.value.trim()||'');data[c]||=[];let key=x=>[norm(x.nombre),norm(x.producto),norm(x.pais)].join('|');if(data[c].some(x=>key(x)===key(r)))return alert('Duplicado omitido');data[c].unshift(r);mark(c);closeModal('recordModal');render()};function pickExcel(){if(option==='all')return alert('Seleccione una opción');$('excel').value='';$('excel').click()}$('excel').onchange=async e=>{let wb=XLSX.read(await e.target.files[0].arrayBuffer(),{type:'array'}),rows=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{defval:''}),map=k=>Object.keys(rows[0]||{}).find(h=>norm(h).includes(k));let added=0,keys=new Set((data[option]||[]).map(x=>[norm(x.nombre),norm(x.producto),norm(x.pais)].join('|')));for(let x of rows){let r={id:crypto.randomUUID(),codigo:option,nombre:x[map('nombre del parametro')]||'',producto:x[map('producto')]||'',pais:x[map('pais')]||'',valores:x[map('valores permitidos')]||'',que:x[map('que hace')]||'',como:x[map('como funciona')]||'',dependencias:x[map('dependencias')]||'',cuando:x[map('cuando aplica')]||'',ejemplo:x[map('ejemplo funcional')]||'',notas:x[map('notas visibles')]||''},k=[norm(r.nombre),norm(r.producto),norm(r.pais)].join('|');if(r.nombre&&!keys.has(k)){data[option].push(r);keys.add(k);added++}}if(added)mark(option);render();alert(`${added} nuevos agregados`)}; 
-function auth(){if(!token){token=prompt('Token de GitHub:')||'';if(token)localStorage.setItem('peToken',token)}return token}function headers(){return{Accept:'application/vnd.github+json',Authorization:'Bearer '+token,'X-GitHub-Api-Version':'2022-11-28'}}function b64(s){let a=new TextEncoder().encode(s),b='';for(let i=0;i<a.length;i+=32768)b+=String.fromCharCode(...a.subarray(i,i+32768));return btoa(b)}async function put(path,obj){if(!auth())throw Error('Falta token');let r=repo(),api=`https://api.github.com/repos/${r.owner}/${r.name}/contents/${path}`,g=await fetch(api+'?ref='+r.branch,{headers:headers()}),sha;if(g.ok)sha=(await g.json()).sha;let body={message:'Actualizar '+path,content:b64(JSON.stringify(obj,null,2)+' 
-'),branch:r.branch};if(sha)body.sha=sha;let out=await fetch(api,{method:'PUT',headers:{...headers(),'Content-Type':'application/json'},body:JSON.stringify(body)});if(!out.ok)throw Error(await out.text())}async function saveChanges(){if(!dirty.size)return;try{$('saveBtn').disabled=true;for(let c of dirty)await put(`data/${audience}/op${c}.json`,data[c]);dirty.clear();$('status').textContent='Guardado correctamente';}catch(e){$('status').textContent=e.message;$('saveBtn').disabled=false}}const DEFAULT_LABELS={title:'Issuer Parameters',subtitle:'Functional parameter reference',search:'Search across all options',name:'Name',product:'Product',country:'Country',values:'Allowed Values',what:'What does it do?',how:'How does it work?',dependencies:'Dependencies / Rules',when:'When does it apply?',example:'Functional Example',notes:'Customer-visible Notes'};async function loadLabels(){labels={...DEFAULT_LABELS};if(language==='en'){try{let r=await fetch(base()+'data/config/labels.json?v='+Date.now());if(r.ok)labels={...labels,...await r.json()}}catch(e){}}}function openLabels(){if(language!=='en')return alert('Seleccione English para corregir sus etiquetas.');$('labelsGrid').innerHTML=Object.entries(labels).map(([k,v])=>`<label>${k}<input data-label="${k}" value="${esc(v)}"></label>`).join('');$('labelsModal').hidden=false}async function applyLabels(){document.querySelectorAll('[data-label]').forEach(x=>labels[x.dataset.label]=x.value.trim());try{await put('data/config/labels.json',labels);closeModal('labelsModal');alert('Etiquetas publicadas. El visor inglés las leerá al recargar.')}catch(e){alert(e.message)}}document.addEventListener('DOMContentLoaded',async()=>{if(!repo().owner){let o=prompt('Usuario propietario de GitHub:')||'';localStorage.setItem('peOwner',o)}await loadLabels();load()}); 
-</script></body></html> 
+    <div id="modalRegistro" class="modal" hidden> 
+        <section class="ventana"> 
+            <div class="ventana-cabecera"> 
+                <h2 id="tituloFormulario">Nuevo registro</h2> 
+                <button class="boton" onclick="cerrarFormulario()">Cerrar</button> 
+            </div> 
+            <form id="formulario" class="formulario"> 
+                <input id="indiceEdicion" type="hidden" value="-1"> 
+                <input id="opcionOrigen" type="hidden"> 
+                <label>Opción<select id="codigo"></select></label> 
+                <label>Nombre del Parámetro<input id="nombre" required></label> 
+                <label>Producto<input id="producto"></label> 
+                <label>País<input id="pais"></label> 
+                <label class="completo">Valores Permitidos<textarea id="valores"></textarea></label> 
+                <label class="completo">¿Qué hace el parámetro?<textarea id="que"></textarea></label> 
+                <label class="completo">¿Cómo funciona?<textarea id="como"></textarea></label> 
+                <label class="completo"> 
+                    Dependencias / Reglas 
+                    <div id="dependencias" class="editable" contenteditable="true"></div> 
+                    <p class="ayuda">Marque una porción de texto y haga clic derecho. Se abrirá el buscador de parámetros.</p> 
+                </label> 
+                <label class="completo">¿Cuándo aplica?<textarea id="cuando"></textarea></label> 
+                <label class="completo">Ejemplo Funcional<textarea id="ejemplo"></textarea></label> 
+                <label class="completo">Notas Visibles al Cliente<textarea id="notas"></textarea></label> 
+                <div class="acciones-formulario"> 
+                    <button type="button" class="boton" onclick="cerrarFormulario()">Cancelar</button> 
+                    <button class="boton boton-naranja">Guardar</button> 
+                </div> 
+            </form> 
+        </section> 
+    </div> 
+    <div id="modalGitHub" class="modal" hidden> 
+        <section class="ventana" style="width:min(520px,100%)"> 
+            <div class="ventana-cabecera"><h2>Conectar con GitHub</h2><button class="boton" onclick="cerrarGitHub()">Cerrar</button></div> 
+            <div class="formulario"> 
+                <div class="completo"><b>Repositorio detectado</b><div id="repositorioDetectado" class="editable" style="min-height:auto;margin-top:5px" contenteditable="false"></div></div> 
+                <label class="completo">Token de GitHub<input id="githubToken" type="password" autocomplete="off" placeholder="Pegue el token una sola vez por sesión"></label> 
+                <p class="ayuda completo">Después de conectar, el botón Guardar cambios actualizará los JSON. El visor usa esos mismos archivos.</p> 
+                <div class="acciones-formulario"><button class="boton" type="button" onclick="cerrarGitHub()">Cancelar</button><button class="boton boton-naranja" type="button" onclick="conectarYGuardar()">Conectar y guardar</button></div> 
+            </div> 
+        </section> 
+    </div> 
+    <div id="menuDependencias" class="menu-contextual"></div> 
+    <div id="tarjetaDependencia" class="tarjeta-flotante"></div> 
+    <div id="toast" class="toast" hidden></div> 
+ 
+    <script> 
+        "use strict"; 
+        const OPCIONES=[["05","Consultar"],["12","Trabajar con"],["13","Moneda"],["14","Clasificación"],["15","Membresías"],["16","Cargos Auto"],["17","Ciclos"],["18","Tipo Cliente"],["19","Renovación"],["20","Pólizas"],["21","Mensajes"],["22","Sorteos"],["23","Estados"],["24","Clases"],["25","Trasiego"],["26","Cargos I.V."],["27","Corporativo"],["28","Skip Pay"],["29","Diseño"],["30","Extrafin."],["31","Limpiar"],["32","Tipo Cta."],["33","Costos"],["34","Estados Cta."],["35","Excepciones"],["36","Origen"],["38","No Intereses"],["39","Excep."],["40","Documentos"],["42","Prepago"],["44","Reducc."],["45","Vence Pago"],["46","Copia"],["47","Deterioro"],["48","Prospecto"],["49","Renov. Tarj."],["50","Renov. Emisor"],["52","Rangos"],["53","Tecnología"]]; 
+        const CAMPOS=["codigo","nombre","producto","pais","valores","que","como","dependencias","cuando","ejemplo","notas"]; 
+        const $=id=>document.getElementById(id); 
+        let ambito="externo",opcion="05",datos={},seleccionDependencia=null,elementoDependenciaActivo=null,ocultarTarjeta=null,cambiosPendientes=new Set(); 
+        let github={url:"",propietario:"",repositorio:"",rama:"main",token:""}; 
+        function escapar(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));} 
+        function normalizar(v){return String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();} 
+        function textoHTML(v){const d=document.createElement("div");d.innerHTML=String(v??"");return d.textContent||"";} 
+        function nombreOpcion(c){return OPCIONES.find(x=>x[0]===c)?.[1]||"Sin nombre";} 
+        function ruta(c){return `data/${ambito}/op${c}.json`;} 
+        function todos(){return OPCIONES.flatMap(([c])=>(datos[c]||[]).map(r=>({...r,__opcion:c})));} 
+        function aviso(m,error=false){$("toast").textContent=m;$("toast").className="toast"+(error?" error":"");$("toast").hidden=false;clearTimeout(aviso.t);aviso.t=setTimeout(()=>$("toast").hidden=true,3500);} 
+        function construirMenu(){$("menu").innerHTML=`<button class="opcion ${opcion==="todas"?"activa":""}" data-opcion="todas">Todas</button>`+OPCIONES.map(([c,n])=>`<button class="opcion ${opcion===c?"activa":""}" data-opcion="${c}" title="Op. ${c} · ${escapar(n)}">Op. ${c} · ${escapar(n)}</button>`).join("");} 
+        $("menu").addEventListener("click",e=>{const b=e.target.closest("[data-opcion]");if(!b)return;opcion=b.dataset.opcion;construirMenu();renderizar();}); 
+        function opcionesFormulario(c){$("codigo").innerHTML=OPCIONES.map(([x,n])=>`<option value="${x}" ${x===c?"selected":""}>Op. ${x} · ${escapar(n)}</option>`).join("");} 
+        async function leer(c){try{const r=await fetch(`./${ruta(c)}?v=${Date.now()}`,{cache:"no-store"});if(r.status===404)return[];if(!r.ok)throw new Error(`${ruta(c)} (${r.status})`);const x=await r.json();return Array.isArray(x)?x:[];}catch(e){console.warn(e);return[];}} 
+        async function cargarTodo(){$("estado").textContent="Cargando todas las opciones...";const pares=await Promise.all(OPCIONES.map(async([c])=>[c,await leer(c)]));datos=Object.fromEntries(pares);renderizar();$("estado").className="estado ok";$("estado").textContent=`${ambito==="externo"?"Externo":"Interno"} · ${todos().length} registros cargados.`;} 
+        async function cambiarAmbito(v){ambito=v;$("externo").classList.toggle("activa",v==="externo");$("interno").classList.toggle("activa",v==="interno");await cargarTodo();} 
+        function registrosVisibles(){const q=normalizar($("buscar").value),n=normalizar($("filtrarNombre").value),p=normalizar($("filtrarProducto").value),c=normalizar($("filtrarPais").value);const base=q||opcion==="todas"?todos():(datos[opcion]||[]).map(r=>({...r,__opcion:opcion}));return base.filter(r=>(!q||normalizar(CAMPOS.map(k=>textoHTML(r[k])).join(" ")).includes(q))&&(!n||normalizar(r.nombre).includes(n))&&(!p||normalizar(r.producto).includes(p))&&(!c||normalizar(r.pais).includes(c)));} 
+        function resaltar(v){let s=escapar(textoHTML(v)||"—"),q=$("buscar").value.trim();if(!q)return s;const partes=q.split(/\s+/).filter(Boolean).sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));return partes.length?s.replace(new RegExp(`(${partes.join("|")})`,"gi"),"<mark>$1</mark>"):s;} 
+        function dependenciaVisible(v){let html=String(v||"—");if(!/<a\b/i.test(html))html=escapar(html);return html;} 
+        function campoEditable(t,c,i,k,v,clase=""){return `<div class="campo ${clase}"><div class="etiqueta">${t}</div><div class="texto editable-ficha" contenteditable="true" data-campo="${k}" data-opcion="${c}" data-indice="${i}">${escapar(textoHTML(v)||"")}</div></div>`;} 
+        function campoDependencia(c,i,v){return `<div class="campo"><div class="etiqueta">Dependencias / Reglas</div><div class="texto dependencia-inline" contenteditable="true" data-dep-opcion="${c}" data-dep-indice="${i}" title="Edite directamente. Seleccione texto y haga clic derecho para vincularlo.">${dependenciaVisible(v)}</div><div class="ayuda">Edición directa · seleccione texto y haga clic derecho para vincular.</div></div>`;} 
+        function indiceReal(r){return (datos[r.__opcion]||[]).findIndex(x=>(x.id&&x.id===r.id)||(!x.id&&x.nombre===r.nombre&&x.producto===r.producto&&x.pais===r.pais));} 
+        function renderizar(){const a=registrosVisibles(),hayBusqueda=Boolean(normalizar($("buscar").value));$("titulo").textContent=hayBusqueda?"Resultados en todas las opciones":opcion==="todas"?"Todas las opciones":`Opción ${opcion} ${nombreOpcion(opcion)}`;$("contenido").innerHTML=a.length?a.map(r=>{const c=r.__opcion,i=indiceReal(r);return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${escapar(r.nombre||"")}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">Duplicar</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">Eliminar</button></div></div><div class="cuadricula">${campoEditable("Producto",c,i,"producto",r.producto)}${campoEditable("País",c,i,"pais",r.pais)}${campoEditable("Valores Permitidos",c,i,"valores",r.valores)}${campoEditable("¿Qué hace?",c,i,"que",r.que||r.descripcion)}${campoEditable("¿Cómo funciona?",c,i,"como",r.como)}${campoDependencia(c,i,r.dependencias||r.dep)}${campoEditable("¿Cuándo aplica?",c,i,"cuando",r.cuando)}${campoEditable("Ejemplo Funcional",c,i,"ejemplo",r.ejemplo,"ejemplo")}${campoEditable("Notas Visibles al Cliente",c,i,"notas",r.notas)}</div></article>`;}).join(""):'<div class="vacio">No hay registros para mostrar.</div>';$("estado").textContent=`Mostrando ${a.length} registro(s).`;} 
+        $("contenido").addEventListener("click",e=>{for(const tipo of ["duplicar","eliminar"]){const b=e.target.closest(`[data-${tipo}]`);if(!b)continue;const [c,i]=b.dataset[tipo].split("|");({duplicar:duplicarRegistro,eliminar:eliminarRegistro}[tipo])(c,Number(i));return;}const a=e.target.closest(".dep-ref-inline");if(a){e.preventDefault();abrirRelacionado(a.dataset.target);}}); 
+        ["buscar","filtrarNombre","filtrarProducto","filtrarPais"].forEach(id=>$(id).addEventListener("input",renderizar)); 
+        function limpiarFiltros(){["buscar","filtrarNombre","filtrarProducto","filtrarPais"].forEach(id=>$(id).value="");renderizar();} 
+        function nuevoRegistro(){const c=opcion==="todas"?"05":opcion;$("formulario").reset();$("indiceEdicion").value=-1;$("opcionOrigen").value=c;opcionesFormulario(c);$("dependencias").innerHTML="";$("tituloFormulario").textContent="Nuevo registro";$("modalRegistro").hidden=false;} 
+        function editarRegistro(c,i){const r=datos[c]?.[i];if(!r)return;$("formulario").reset();$("indiceEdicion").value=i;$("opcionOrigen").value=c;opcionesFormulario(c);["nombre","producto","pais","valores","que","como","cuando","ejemplo","notas"].forEach(k=>$(k).value=r[k]??"");$("dependencias").innerHTML=r.dependencias||r.dep||"";$("tituloFormulario").textContent="Editar registro";$("modalRegistro").hidden=false;} 
+        function cerrarFormulario(){$("modalRegistro").hidden=true;cerrarMenuDependencias();} 
+        function clave(r,c){return [c,normalizar(r.nombre),normalizar(r.producto),normalizar(r.pais)].join("|");} 
+        function existe(r,c,omitir=-1){return(datos[c]||[]).some((x,i)=>i!==omitir&&clave(x,c)===clave(r,c));} 
+        $("formulario").addEventListener("submit",e=>{e.preventDefault();const i=Number($("indiceEdicion").value),origen=$("opcionOrigen").value,destino=$("codigo").value,anterior=i>=0?datos[origen][i]:null,ahora=new Date().toISOString();const r={id:anterior?.id||crypto.randomUUID(),codigo:destino,nombre:$("nombre").value.trim(),producto:$("producto").value.trim(),pais:$("pais").value.trim(),valores:$("valores").value.trim(),que:$("que").value.trim(),como:$("como").value.trim(),dependencias:$("dependencias").innerHTML.trim(),cuando:$("cuando").value.trim(),ejemplo:$("ejemplo").value.trim(),notas:$("notas").value.trim(),creadoEn:anterior?.creadoEn||ahora,actualizadoEn:ahora};if(!r.nombre)return aviso("Nombre es obligatorio.",true);if(existe(r,destino,origen===destino?i:-1))return aviso("El registro ya existe.",true);if(i>=0)datos[origen].splice(i,1);datos[destino]||=[];datos[destino].unshift(r);cerrarFormulario();renderizar();marcarCambio(origen);if(destino!==origen)marcarCambio(destino);}); 
+        function duplicarRegistro(c,i){const r=structuredClone(datos[c][i]);r.id=crypto.randomUUID();r.nombre=(r.nombre||"Sin nombre")+" - Copia";r.creadoEn=r.actualizadoEn=new Date().toISOString();datos[c].splice(i+1,0,r);renderizar();marcarCambio(c);editarRegistro(c,i+1);} 
+        function eliminarRegistro(c,i){if(confirm(`¿Eliminar ${datos[c][i].nombre||"este registro"}?`)){datos[c].splice(i,1);renderizar();marcarCambio(c);}} 
+ 
+        function detectarRepositorio(){ 
+            const host=location.hostname.toLowerCase(); 
+            if(host.endsWith(".github.io")){ 
+                const propietario=host.split(".")[0]; 
+                const repositorio=location.pathname.split("/").filter(Boolean)[0]||"parametros-emisor"; 
+                return {propietario,repositorio,rama:"main"}; 
+            } 
+            const guardado=localStorage.getItem("peRepositorio"); 
+            if(guardado){try{return JSON.parse(guardado);}catch(error){console.warn(error);}} 
+            return null; 
+        } 
+        function marcarCambio(c){ 
+            cambiosPendientes.add(c); 
+            $("botonGuardar").disabled=false; 
+            $("estado").className="estado"; 
+            $("estado").textContent=`Cambios pendientes en ${[...cambiosPendientes].map(x=>"op"+x).join(", ")}.`; 
+        } 
+        function configurarGitHub(){ 
+            const detectado=detectarRepositorio(); 
+            if(!detectado){ 
+                const entrada=prompt("No fue posible detectar el repositorio. Pegue una vez owner/repository:",""); 
+                if(!entrada)return null; 
+                const partes=entrada.replace(/^https:\/\/github\.com\//i,"").replace(/\/$/,"").split("/"); 
+                if(partes.length<2){aviso("Use el formato usuario/repositorio.",true);return null;} 
+                github={propietario:partes[0],repositorio:partes[1].replace(/\.git$/i,""),rama:"main",token:""}; 
+                localStorage.setItem("peRepositorio",JSON.stringify({propietario:github.propietario,repositorio:github.repositorio,rama:"main"})); 
+            }else{ 
+                github={...detectado,token:sessionStorage.getItem("peToken")||""}; 
+            } 
+            $("repositorioDetectado").textContent=`${github.propietario}/${github.repositorio} · rama ${github.rama}`; 
+            $("githubToken").value=github.token; 
+            $("modalGitHub").hidden=false; 
+            return github; 
+        } 
+        function cerrarGitHub(){$("modalGitHub").hidden=true;} 
+        function cabecerasGitHub(){return {Accept:"application/vnd.github+json",Authorization:`Bearer ${github.token}`,"X-GitHub-Api-Version":"2022-11-28"};} 
+        async function conectarYGuardar(){ 
+            github.token=$("githubToken").value.trim(); 
+            if(!github.token)return aviso("Pegue el token.",true); 
+            sessionStorage.setItem("peToken",github.token); 
+            try{ 
+                const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:cabecerasGitHub()}); 
+                if(!r.ok)throw new Error(`No se pudo abrir ${github.propietario}/${github.repositorio} (${r.status}). Revise que el token tenga acceso al repositorio.`); 
+                cerrarGitHub(); 
+                await guardarCambios(); 
+            }catch(error){aviso(error.message,true);} 
+        } 
+        async function guardarCambios(){ 
+            if(!cambiosPendientes.size)return aviso("No hay cambios pendientes."); 
+            const detectado=detectarRepositorio(); 
+            if(!github.propietario&&detectado)github={...detectado,token:sessionStorage.getItem("peToken")||""}; 
+            if(!github.propietario||!github.token){configurarGitHub();return;} 
+            $("botonGuardar").disabled=true; 
+            const opciones=[...cambiosPendientes]; 
+            let guardadas=0; 
+            try{ 
+                for(const c of opciones){await guardarOpcion(c);cambiosPendientes.delete(c);guardadas++;} 
+                $("estado").className="estado ok"; 
+                $("estado").textContent=`${guardadas} archivo(s) guardado(s). El visor leerá estos mismos JSON.`; 
+                aviso("Cambios guardados y publicados para el visor."); 
+            }catch(error){ 
+                $("estado").className="estado error"; 
+                $("estado").textContent=error.message; 
+                aviso(error.message,true); 
+            }finally{$("botonGuardar").disabled=cambiosPendientes.size===0;} 
+        } 
+        function base64Unicode(s){const a=new TextEncoder().encode(s);let b="";for(let i=0;i<a.length;i+=32768)b+=String.fromCharCode(...a.subarray(i,i+32768));return btoa(b);} 
+        async function guardarOpcion(c){ 
+            const p=ruta(c),api=`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`,h=cabecerasGitHub(); 
+            $("estado").className="estado";$("estado").textContent=`Guardando ${p}...`; 
+            let sha; 
+            const actual=await fetch(`${api}?ref=${encodeURIComponent(github.rama)}`,{headers:h}); 
+            if(actual.ok)sha=(await actual.json()).sha; 
+            else if(actual.status!==404)throw new Error(`No se pudo leer ${p} (${actual.status}).`); 
+            const body={message:`Actualizar ${p} desde Editor`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama}; 
+            if(sha)body.sha=sha; 
+            const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)}); 
+            if(!r.ok){const detalle=await r.text();if(r.status===403)throw new Error(`El token puede abrir el repositorio, pero no puede escribir ${p}. Cree o edite un token con acceso a este repositorio y Repository permissions > Contents > Read and write. Detalle de GitHub: ${detalle}`);throw new Error(`GitHub rechazó ${p} (${r.status}): ${detalle}`);} 
+        } 
+ 
+        function obtenerSeleccion(el){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return null;const r=s.getRangeAt(0);if(!el.contains(r.commonAncestorContainer))return null;return {rango:r.cloneRange(),texto:r.toString()};} 
+        function abrirMenuDependencias(e,el){ 
+            e.preventDefault(); 
+            e.stopPropagation(); 
+            const sel=obtenerSeleccion(el); 
+            if(!sel){alert("Primero marque una porción de texto dentro de Dependencias / Reglas y luego haga clic derecho.");return;} 
+            seleccionDependencia=sel; 
+            elementoDependenciaActivo=el; 
+            const menu=$("menuDependencias"); 
+            menu.style.display="block"; 
+            menu.style.left=Math.min(e.clientX,window.innerWidth-390)+"px"; 
+            menu.style.top=Math.min(e.clientY,window.innerHeight-360)+"px"; 
+            menu.innerHTML=`<strong>Vincular texto seleccionado</strong><div class="ayuda">Texto: ${escapar(sel.texto)}</div><input id="buscarDependencia" placeholder="Buscar parámetro u opción..."><div id="resultadosDependencia" class="resultados-dependencia"></div>`; 
+            $("buscarDependencia").addEventListener("input",()=>mostrarResultadosDependencia($("buscarDependencia").value)); 
+            mostrarResultadosDependencia(sel.texto); 
+            setTimeout(()=>$("buscarDependencia").focus(),0); 
+        } 
+        $("dependencias").addEventListener("contextmenu",e=>abrirMenuDependencias(e,$("dependencias"))); 
+        $("contenido").addEventListener("contextmenu",e=>{ 
+            const el=e.target.closest(".dependencia-inline"); 
+            if(el)abrirMenuDependencias(e,el); 
+        }); 
+        $("contenido").addEventListener("input",e=>{ 
+            const el=e.target.closest("[data-campo]"); 
+            if(!el)return; 
+            const c=el.dataset.opcion,i=Number(el.dataset.indice),k=el.dataset.campo,r=datos[c]?.[i]; 
+            if(!r)return; 
+            r[k]=el.innerText.trim(); 
+            r.actualizadoEn=new Date().toISOString(); 
+            marcarCambio(c); 
+        }); 
+        $("contenido").addEventListener("input",e=>{ 
+            const el=e.target.closest(".dependencia-inline"); 
+            if(!el)return; 
+            const c=el.dataset.depOpcion,i=Number(el.dataset.depIndice),r=datos[c]?.[i]; 
+            if(!r)return; 
+            r.dependencias=el.innerHTML.trim(); 
+            r.actualizadoEn=new Date().toISOString(); 
+            marcarCambio(c); 
+        }); 
+        function puntaje(q,r){const palabras=normalizar(q).split(" ").filter(x=>x.length>2),texto=normalizar(CAMPOS.map(k=>textoHTML(r[k])).join(" "));return palabras.reduce((s,x)=>s+(texto.includes(x)?1:0),0);} 
+        function mostrarResultadosDependencia(q){const arr=todos().map(r=>({r,p:puntaje(q,r)})).filter(x=>x.p>0||!normalizar(q)).sort((a,b)=>b.p-a.p).slice(0,10);$("resultadosDependencia").innerHTML=arr.length?arr.map(({r})=>`<button class="resultado-dependencia" data-vincular="${escapar(r.id||"")}" data-opcion="${r.__opcion}" data-nombre="${escapar(r.nombre)}"><strong>Op. ${r.__opcion} · ${escapar(r.nombre)}</strong><br><small>${escapar(r.que||r.como||"Sin descripción")}</small></button>`).join(""):'<div class="ayuda">No hay coincidencias. Escriba otra búsqueda.</div>';} 
+        $("menuDependencias").addEventListener("click",e=>{const b=e.target.closest("[data-vincular]");if(!b)return;e.preventDefault();e.stopPropagation();if(!seleccionDependencia)return;const id=b.dataset.vincular||`op${b.dataset.opcion}-${normalizar(b.dataset.nombre).replaceAll(" ","-")}`;const a=document.createElement("a");a.href="#";a.className="dep-ref-inline";a.dataset.target=id;try{a.appendChild(seleccionDependencia.rango.extractContents());seleccionDependencia.rango.insertNode(a);a.after(document.createTextNode(""));}catch(error){aviso("No se pudo crear el vínculo. Vuelva a seleccionar el texto.",true);}if(elementoDependenciaActivo?.classList.contains("dependencia-inline")){ 
+                const c=elementoDependenciaActivo.dataset.depOpcion,i=Number(elementoDependenciaActivo.dataset.depIndice),registro=datos[c]?.[i]; 
+                if(registro){registro.dependencias=elementoDependenciaActivo.innerHTML.trim();registro.actualizadoEn=new Date().toISOString();marcarCambio(c);} 
+            } 
+            cerrarMenuDependencias();}); 
+        function cerrarMenuDependencias(){$("menuDependencias").style.display="none";seleccionDependencia=null;elementoDependenciaActivo=null;} 
+        document.addEventListener("pointerdown",e=>{if(!$("menuDependencias").contains(e.target)&&!e.target.closest("#dependencias"))cerrarMenuDependencias();}); 
+        function encontrarRelacionado(id){return todos().find(r=>r.id===id||`op${r.__opcion}-${normalizar(r.nombre).replaceAll(" ","-")}`===id);} 
+        document.addEventListener("mouseover",e=>{ 
+            const a=e.target.closest?.(".dep-ref-inline");if(!a)return;clearTimeout(ocultarTarjeta);const r=encontrarRelacionado(a.dataset.target);if(!r)return; 
+            const h=$("tarjetaDependencia"),rect=a.getBoundingClientRect();h.style.display="block";h.style.left=Math.min(rect.left,window.innerWidth-535)+"px";h.style.top=Math.min(rect.bottom+8,window.innerHeight-455)+"px"; 
+            const fila=(t,v)=>`<div class="vista-previa-campo"><b>${t}</b>${escapar(textoHTML(v)||"—")}</div>`; 
+            h.innerHTML=`<h4>${escapar(r.nombre)}</h4><p>Opción ${r.__opcion} ${escapar(nombreOpcion(r.__opcion))}</p>${fila("Producto",r.producto)}${fila("País",r.pais)}${fila("Valores",r.valores)}${fila("Qué hace",r.que)}${fila("Cómo funciona",r.como)}${fila("Dependencias / Reglas",r.dependencias||r.dep)}${fila("Cuándo aplica",r.cuando)}${fila("Ejemplo",r.ejemplo)}${fila("Notas",r.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-nueva-pestana="${escapar(a.dataset.target)}">Abrir en nueva pestaña</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`; 
+        }); 
+        document.addEventListener("mouseout",e=>{if(e.target.closest?.(".dep-ref-inline"))ocultarTarjeta=setTimeout(()=>$("tarjetaDependencia").style.display="none",450);}); 
+        $("tarjetaDependencia").addEventListener("mouseenter",()=>clearTimeout(ocultarTarjeta)); 
+        $("tarjetaDependencia").addEventListener("mouseleave",()=>$("tarjetaDependencia").style.display="none"); 
+        $("tarjetaDependencia").addEventListener("click",e=>{const nueva=e.target.closest("[data-nueva-pestana]"),quitar=e.target.closest("[data-quitar-relacion]");if(nueva)abrirNuevaPestana(nueva.dataset.nuevaPestana);if(quitar){$("dependencias").querySelectorAll("a.dep-ref-inline").forEach(a=>{if(a.dataset.target===quitar.dataset.quitarRelacion)a.replaceWith(document.createTextNode(a.textContent));});$("tarjetaDependencia").style.display="none";}}); 
+        function abrirNuevaPestana(id){ 
+            const r=encontrarRelacionado(id);if(!r)return aviso("No se encontró la ficha relacionada.",true); 
+            const fila=(t,v)=>`<section><b>${t}</b><div>${escapar(textoHTML(v)||"—")}</div></section>`; 
+            const pagina=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapar(r.nombre)}</title><style>body{margin:0;background:#f2f2f2;font-family:Segoe UI,Arial;color:#333}.ficha{max-width:850px;margin:30px auto;background:#fff;border:1px solid #d9d9d9;padding:24px}.codigo{background:#595959;color:#fff;padding:10px;font-weight:800}.nombre{color:#ff6c0c;font-size:30px;margin:16px 0}section{padding:12px 0;border-bottom:1px solid #ddd;line-height:1.4}section b{display:block;color:#4f4f4f;margin-bottom:4px}</style></head><body><article class="ficha"><div class="codigo">Op. ${r.__opcion} · ${escapar(nombreOpcion(r.__opcion))}</div><h1 class="nombre">${escapar(r.nombre)}</h1>${fila("Producto",r.producto)}${fila("País",r.pais)}${fila("Valores Permitidos",r.valores)}${fila("¿Qué hace?",r.que)}${fila("¿Cómo funciona?",r.como)}${fila("Dependencias / Reglas",r.dependencias||r.dep)}${fila("¿Cuándo aplica?",r.cuando)}${fila("Ejemplo Funcional",r.ejemplo)}${fila("Notas Visibles al Cliente",r.notas)}</article></body></html>`; 
+            const url=URL.createObjectURL(new Blob([pagina],{type:"text/html"}));const w=window.open(url,"_blank");if(!w)aviso("El navegador bloqueó la nueva pestaña.",true);setTimeout(()=>URL.revokeObjectURL(url),60000); 
+        } 
+        function abrirRelacionado(id){const r=encontrarRelacionado(id);if(!r)return aviso("No se encontró la ficha relacionada.",true);opcion=r.__opcion;construirMenu();$("buscar").value=r.nombre;cerrarFormulario();renderizar();window.scrollTo({top:0,behavior:"smooth"});} 
+ 
+        function seleccionarJSON(){$("archivoJSON").value="";$("archivoJSON").click();} 
+        function seleccionarExcel(){$("archivoExcel").value="";$("archivoExcel").click();} 
+        function importarUnicos(filas,c){datos[c]||=[];const existentes=new Set(datos[c].map(r=>clave(r,c)));let nuevos=0,duplicados=0,ignorados=0;for(let r of filas){r={...r,codigo:c,nombre:String(r.nombre||"").trim()};if(!r.nombre){ignorados++;continue;}const k=clave(r,c);if(existentes.has(k)){duplicados++;continue;}r.id=r.id||crypto.randomUUID();r.creadoEn=r.creadoEn||new Date().toISOString();r.actualizadoEn=new Date().toISOString();datos[c].push(r);existentes.add(k);nuevos++;}renderizar();if(nuevos)marcarCambio(c);aviso(`${nuevos} nuevos agregados · ${duplicados} duplicados omitidos · ${ignorados} filas ignoradas.`);} 
+        $("archivoJSON").addEventListener("change",async e=>{if(opcion==="todas")return aviso("Seleccione una opción antes de importar.",true);try{const x=JSON.parse(await e.target.files[0].text());if(!Array.isArray(x))throw new Error("El JSON debe contener una lista.");importarUnicos(x,opcion);}catch(error){aviso(error.message,true);}}); 
+        function filaEncabezados(filas){return filas.findIndex(r=>Array.isArray(r)&&r.some(c=>normalizar(c).includes("nombre del parametro")));} 
+        function mapaColumnas(h){const defs={nombre:["nombre del parametro"],producto:["producto"],pais:["pais"],valores:["valores permitidos"],que:["que hace el parametro","que hace"],como:["como funciona"],dependencias:["dependencias reglas","dependencias"],cuando:["cuando aplica"],ejemplo:["ejemplo funcional"],notas:["notas visibles al cliente","notas"]},m={};h.forEach((x,i)=>{const n=normalizar(x);Object.entries(defs).forEach(([k,a])=>{if(m[k]===undefined&&a.some(v=>n===v||n.includes(v)))m[k]=i;});});return m;} 
+        $("archivoExcel").addEventListener("change",async e=>{if(opcion==="todas")return aviso("Seleccione una opción antes de importar.",true);try{const wb=XLSX.read(await e.target.files[0].arrayBuffer(),{type:"array"}),filas=XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]],{header:1,defval:"",raw:false}),i=filaEncabezados(filas);if(i<0)throw new Error("No se encontró Nombre del Parámetro.");const m=mapaColumnas(filas[i]),get=(r,k)=>String(r[m[k]]??"").trim(),items=filas.slice(i+1).map(r=>({nombre:get(r,"nombre"),producto:get(r,"producto"),pais:get(r,"pais"),valores:get(r,"valores"),que:get(r,"que"),como:get(r,"como"),dependencias:get(r,"dependencias"),cuando:get(r,"cuando"),ejemplo:get(r,"ejemplo"),notas:get(r,"notas")}));importarUnicos(items,opcion);}catch(error){aviso(error.message,true);}}); 
+        function descargar(texto,nombre,tipo){const u=URL.createObjectURL(new Blob([texto],{type:tipo})),a=document.createElement("a");a.href=u;a.download=nombre;a.click();URL.revokeObjectURL(u);} 
+        function exportarJSON(){const x=opcion==="todas"?Object.fromEntries(OPCIONES.map(([c])=>[c,datos[c]||[]])):datos[opcion]||[];descargar(JSON.stringify(x,null,2)+"\n",`${ambito}_${opcion}.json`,"application/json");} 
+        function exportarWord(){const a=registrosVisibles();if(!a.length)return aviso("No hay registros visibles.",true);const fichas=a.map(r=>`<h2>Op. ${escapar(r.__opcion)} - ${escapar(r.nombre)}</h2><table><tr><th>PRODUCTO</th><th>PAÍS</th><th>VALORES PERMITIDOS</th></tr><tr><td>${escapar(r.producto)}</td><td>${escapar(r.pais)}</td><td>${escapar(r.valores)}</td></tr><tr><th>¿QUÉ HACE?</th><th>¿CÓMO FUNCIONA?</th><th>DEPENDENCIAS / REGLAS</th></tr><tr><td>${escapar(r.que)}</td><td>${escapar(r.como)}</td><td>${escapar(textoHTML(r.dependencias))}</td></tr><tr><th>¿CUÁNDO APLICA?</th><th>EJEMPLO FUNCIONAL</th><th>NOTAS VISIBLES AL CLIENTE</th></tr><tr><td>${escapar(r.cuando)}</td><td>${escapar(r.ejemplo)}</td><td>${escapar(r.notas)}</td></tr></table>`).join("");const doc=`<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#000}h2{color:#000;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:20px}th,td{border:1px solid #000;padding:7px;vertical-align:top}th{background:#fff;color:#000}</style></head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`;descargar("\ufeff"+doc,`${ambito}_${opcion}.doc`,"application/msword");} 
+        window.addEventListener("beforeunload",e=>{if(cambiosPendientes.size){e.preventDefault();e.returnValue="";}}); 
+        document.addEventListener("DOMContentLoaded",async()=>{construirMenu();opcionesFormulario("05");const detectado=detectarRepositorio();if(detectado)github={...detectado,token:sessionStorage.getItem("peToken")||""};await cargarTodo();}); 
+    </script> 
+</body> 
+</html> 
