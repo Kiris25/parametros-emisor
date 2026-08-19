@@ -1,12 +1,60 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <title>Parámetros Emisor - Editor</title>
-</head>
-<body>
-
-<h1>Parámetros Emisor - Editor</h1>
-
-</body>
-</html>
+<!DOCTYPE html> 
+<html lang="es"> 
+<head> 
+<meta charset="UTF-8"> 
+<meta name="viewport" content="width=device-width, initial-scale=1.0"> 
+<title>Parámetros Emisor - Editor V1</title> 
+<style> 
+:root{--naranja:#ff6c0c;--gris:#4f4f4f;--fondo:#f2f2f2;--borde:#d9d9d9;--verde:#217346;--rojo:#b42318} 
+*{box-sizing:border-box}body{margin:0;background:var(--fondo);font-family:Segoe UI,Arial,sans-serif;color:#333} 
+header{background:#fff;padding:18px 24px;border-bottom:1px solid var(--borde);display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap} 
+h1{margin:0;color:var(--naranja);font-size:32px;font-weight:300}.sub{color:#666;font-size:13px;margin-top:4px} 
+nav,.barra{display:flex;gap:10px;flex-wrap:wrap;background:#fff;padding:12px 24px;border-bottom:1px solid var(--borde)} 
+.opciones{background:#f8f8f8}.btn{border:1px solid #c8c8c8;border-radius:999px;padding:10px 16px;background:#fff;color:var(--gris);font-weight:700;cursor:pointer}.btn:hover{border-color:var(--naranja)} 
+.btn.activo{background:var(--gris);border-color:var(--gris);color:#fff}.btn.op.activo{background:var(--naranja);border-color:var(--naranja)} 
+.btn-primario,.btn-guardar{border:0;border-radius:8px;padding:11px 16px;color:#fff;font-weight:700;cursor:pointer}.btn-primario{background:var(--naranja)}.btn-guardar{background:var(--verde)}.btn-peligro{background:var(--rojo);color:#fff;border:0;border-radius:7px;padding:8px 11px;cursor:pointer}.btn-sec{background:var(--gris);color:#fff;border:0;border-radius:8px;padding:11px 16px;font-weight:700;cursor:pointer} 
+.config{display:grid;grid-template-columns:repeat(3,minmax(140px,1fr));gap:10px;padding:14px 24px;background:#fff;border-bottom:1px solid var(--borde)} 
+.config label,.form label{font-weight:700;color:var(--gris);font-size:13px}.config input,.form input,.form textarea{width:100%;margin-top:5px;border:1px solid var(--borde);border-radius:8px;padding:10px;font:inherit}.form textarea{min-height:90px;resize:vertical} 
+.estado{padding:12px 24px;color:#666;font-size:14px}.estado.ok{color:var(--verde)}.estado.error{color:var(--rojo)} 
+main{padding:0 24px 60px}.panel{background:#fff;border:1px solid var(--borde);border-radius:12px;padding:18px;box-shadow:0 2px 7px #00000012}.panel-top{display:flex;justify-content:space-between;gap:12px;align-items:center;flex-wrap:wrap}.panel h2{margin:0;color:var(--naranja);font-weight:400} 
+.form{display:grid;grid-template-columns:repeat(2,minmax(220px,1fr));gap:14px;margin-top:18px}.completo{grid-column:1/-1}.acciones{grid-column:1/-1;display:flex;gap:10px;justify-content:flex-end;flex-wrap:wrap} 
+.lista{margin-top:24px;display:grid;gap:12px}.card{border:1px solid var(--borde);border-radius:10px;padding:15px;background:#fff}.card-top{display:flex;justify-content:space-between;gap:10px;align-items:flex-start}.card h3{margin:0;color:var(--naranja);font-weight:500}.card p{margin:8px 0}.label{font-weight:700;color:var(--gris)}.card-actions{display:flex;gap:8px;flex-wrap:wrap}.vacio{text-align:center;padding:24px;color:#666;border:1px dashed var(--borde);border-radius:10px} 
+.toast{position:fixed;right:20px;bottom:20px;max-width:420px;background:#222;color:#fff;padding:13px 16px;border-radius:9px;box-shadow:0 8px 30px #0004}.toast.error{background:var(--rojo)}[hidden]{display:none!important} 
+@media(max-width:760px){.config,.form{grid-template-columns:1fr}.completo{grid-column:auto}header,nav,.barra,.config,main,.estado{padding-left:14px;padding-right:14px}h1{font-size:26px}} 
+</style> 
+</head> 
+<body> 
+<header><div><h1>Parámetros Emisor - Editor V1</h1><div class="sub">Crear, editar, eliminar y publicar registros en GitHub.</div></div><a href="./index.html" class="btn">Abrir visor</a></header> 
+<nav><button id="btnExterno" class="btn activo" onclick="cambiarAmbito('externo')">Externo</button><button id="btnInterno" class="btn" onclick="cambiarAmbito('interno')">Interno</button></nav> 
+<nav class="opciones"><button id="btnOp05" class="btn op activo" onclick="cambiarOpcion('op05')">Opción 5</button><button id="btnOp12" class="btn op" onclick="cambiarOpcion('op12')">Opción 12</button></nav> 
+<section class="config"><label>Propietario de GitHub<input id="propietario" placeholder="Ejemplo: nombre-usuario"></label><label>Repositorio<input id="repositorio" value="parametros-emisor"></label><label>Rama<input id="rama" value="main"></label></section> 
+<section class="barra"><button class="btn-sec" onclick="cargarDatos()">Recargar desde GitHub Pages</button><button class="btn-guardar" onclick="publicarEnGitHub()">Guardar en GitHub</button></section> 
+<div id="estado" class="estado">Cargando datos...</div> 
+<main><section class="panel"><div class="panel-top"><h2 id="tituloFormulario">Nuevo registro</h2><button class="btn-primario" onclick="nuevoRegistro()">+ Crear registro</button></div> 
+<form id="formulario" class="form"><input id="indiceEdicion" type="hidden" value="-1"><label>Código<input id="codigo" required></label><label>Nombre<input id="nombre" required></label><label>Producto<input id="producto"></label><label>País<input id="pais"></label><label class="completo">Descripción<textarea id="descripcion"></textarea></label><div class="acciones"><button type="button" class="btn-sec" onclick="cancelarEdicion()">Cancelar</button><button type="submit" class="btn-primario">Guardar en borrador</button></div></form> 
+<div id="lista" class="lista"></div></section></main><div id="toast" class="toast" hidden></div> 
+<script> 
+'use strict'; 
+let ambitoActual='externo',opcionActual='op05',datosActuales=[]; 
+const $=id=>document.getElementById(id); 
+function rutaActual(){return `data/${ambitoActual}/${opcionActual}.json`} 
+function codigoOpcion(){return opcionActual==='op05'?'05':'12'} 
+function escapar(v){return String(v??'').replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;').replaceAll('"','&quot;').replaceAll("'",'&#039;')} 
+function mostrarToast(texto,error=false){const t=$('toast');t.textContent=texto;t.className='toast'+(error?' error':'');t.hidden=false;clearTimeout(mostrarToast.timer);mostrarToast.timer=setTimeout(()=>t.hidden=true,3500)} 
+function guardarConfig(){localStorage.setItem('parametrosEmisorGitHub',JSON.stringify({propietario:$('propietario').value.trim(),repositorio:$('repositorio').value.trim(),rama:$('rama').value.trim()}))} 
+function cargarConfig(){try{const c=JSON.parse(localStorage.getItem('parametrosEmisorGitHub')||'{}');$('propietario').value=c.propietario||'';$('repositorio').value=c.repositorio||'parametros-emisor';$('rama').value=c.rama||'main'}catch(e){console.error(e)}} 
+function cambiarAmbito(v){ambitoActual=v;$('btnExterno').classList.toggle('activo',v==='externo');$('btnInterno').classList.toggle('activo',v==='interno');cancelarEdicion();cargarDatos()} 
+function cambiarOpcion(v){opcionActual=v;$('btnOp05').classList.toggle('activo',v==='op05');$('btnOp12').classList.toggle('activo',v==='op12');cancelarEdicion();cargarDatos()} 
+async function cargarDatos(){const estado=$('estado');estado.className='estado';estado.textContent='Cargando '+rutaActual()+'...';try{const r=await fetch('./'+rutaActual()+'?v='+Date.now(),{cache:'no-store'});if(!r.ok)throw new Error('No fue posible leer el archivo ('+r.status+').');const d=await r.json();if(!Array.isArray(d))throw new Error('El JSON no contiene una lista válida.');datosActuales=d;renderizar();estado.className='estado ok';estado.textContent=`${rutaActual()} · ${d.length} registro(s) cargado(s).`}catch(e){datosActuales=[];renderizar();estado.className='estado error';estado.textContent=e.message;mostrarToast(e.message,true)}} 
+function renderizar(){const lista=$('lista');if(!datosActuales.length){lista.innerHTML='<div class="vacio">No hay registros para esta combinación.</div>';return}lista.innerHTML=datosActuales.map((r,i)=>`<article class="card"><div class="card-top"><h3>${escapar(r.nombre||'Sin nombre')}</h3><div class="card-actions"><button class="btn" onclick="editarRegistro(${i})">Editar</button><button class="btn-peligro" onclick="eliminarRegistro(${i})">Eliminar</button></div></div><p><span class="label">Código:</span> ${escapar(r.codigo||codigoOpcion())}</p><p><span class="label">Producto:</span> ${escapar(r.producto||'')}</p><p><span class="label">País:</span> ${escapar(r.pais||'')}</p><p><span class="label">Descripción:</span> ${escapar(r.descripcion||'')}</p></article>`).join('')} 
+function nuevoRegistro(){cancelarEdicion();$('tituloFormulario').textContent='Nuevo registro';$('codigo').value=codigoOpcion();$('nombre').focus()} 
+function editarRegistro(i){const r=datosActuales[i];$('indiceEdicion').value=i;$('codigo').value=r.codigo??codigoOpcion();$('nombre').value=r.nombre??'';$('producto').value=r.producto??'';$('pais').value=r.pais??'';$('descripcion').value=r.descripcion??'';$('tituloFormulario').textContent='Editar registro';window.scrollTo({top:0,behavior:'smooth'})} 
+function cancelarEdicion(){$('formulario').reset();$('indiceEdicion').value='-1';$('codigo').value=codigoOpcion();$('tituloFormulario').textContent='Nuevo registro'} 
+$('formulario').addEventListener('submit',e=>{e.preventDefault();const r={codigo:$('codigo').value.trim()||codigoOpcion(),nombre:$('nombre').value.trim(),producto:$('producto').value.trim(),pais:$('pais').value.trim(),descripcion:$('descripcion').value.trim()};const i=Number($('indiceEdicion').value);if(i>=0)datosActuales[i]=r;else datosActuales.unshift(r);renderizar();cancelarEdicion();mostrarToast('Cambio agregado al borrador. Pulse Guardar en GitHub para publicarlo.')}); 
+function eliminarRegistro(i){const nombre=datosActuales[i]?.nombre||'este registro';if(!confirm('¿Eliminar '+nombre+'?'))return;datosActuales.splice(i,1);renderizar();cancelarEdicion();mostrarToast('Registro eliminado del borrador. Pulse Guardar en GitHub para publicarlo.')} 
+function base64Unicode(texto){const bytes=new TextEncoder().encode(texto);let bin='';for(let i=0;i<bytes.length;i+=32768)bin+=String.fromCharCode(...bytes.subarray(i,i+32768));return btoa(bin)} 
+async function publicarEnGitHub(){guardarConfig();const owner=$('propietario').value.trim(),repo=$('repositorio').value.trim(),branch=$('rama').value.trim()||'main';if(!owner||!repo){mostrarToast('Complete Propietario de GitHub y Repositorio.',true);return}const token=prompt('Pegue el token de GitHub. Se usará una sola vez y no se guardará.');if(!token?.trim())return;const path=rutaActual(),api=`https://api.github.com/repos/${encodeURIComponent(owner)}/${encodeURIComponent(repo)}/contents/${path}`;const headers={Accept:'application/vnd.github+json',Authorization:'Bearer '+token.trim(),'X-GitHub-Api-Version':'2022-11-28'};try{$('estado').textContent='Publicando '+path+'...';let sha;const actual=await fetch(api+'?ref='+encodeURIComponent(branch),{headers});if(actual.ok)sha=(await actual.json()).sha;else if(actual.status!==404)throw new Error('GitHub rechazó la lectura ('+actual.status+').');const body={message:`Actualizar ${path} desde Editor V1`,content:base64Unicode(JSON.stringify(datosActuales,null,2)+'\n'),branch};if(sha)body.sha=sha;const r=await fetch(api,{method:'PUT',headers:{...headers,'Content-Type':'application/json'},body:JSON.stringify(body)});if(!r.ok){const detalle=await r.text();throw new Error('GitHub rechazó el guardado ('+r.status+'). '+detalle)}$('estado').className='estado ok';$('estado').textContent=path+' guardado correctamente. El visor leerá este mismo archivo.';mostrarToast('Guardado en GitHub correctamente.')}catch(e){console.error(e);$('estado').className='estado error';$('estado').textContent=e.message;mostrarToast(e.message,true)}} 
+document.addEventListener('DOMContentLoaded',()=>{cargarConfig();['propietario','repositorio','rama'].forEach(id=>$(id).addEventListener('change',guardarConfig));cancelarEdicion();cargarDatos()}); 
+</script> 
+</body> 
+</html> 
