@@ -63,9 +63,15 @@
         .acciones-formulario { display:flex; justify-content:flex-end; gap:8px; } 
         .ayuda { margin:4px 0; color:#666; font-size:11px; } 
         .menu-contextual,.tarjeta-flotante { position:fixed; z-index:160; display:none; padding:11px; background:#fff; border:1px solid var(--borde); border-radius:12px; box-shadow:0 14px 38px #0005; } 
-        .menu-contextual { width:370px; max-width:calc(100vw - 24px); } 
-        .resultados-dependencia { max-height:250px; overflow:auto; } 
-        .resultado-dependencia { display:block; width:100%; margin:6px 0; padding:8px; border:1px solid #e6e6e6; border-radius:8px; background:#fafafa; text-align:left; } 
+        .menu-contextual { width:520px; max-width:calc(100vw - 24px); padding:18px; border-radius:18px; background:#fff; } 
+        .menu-contextual strong { display:block; margin-bottom:3px; color:#333; font-size:24px; line-height:1.15; } 
+        .menu-contextual > .ayuda { margin-bottom:10px; color:#777; font-size:16px; } 
+        .menu-contextual input { height:58px; margin-bottom:14px; border-radius:10px; font-size:18px; } 
+        .resultados-dependencia { max-height:340px; overflow-y:auto; padding-right:5px; scrollbar-color:#8b8b8b transparent; } 
+        .resultado-dependencia { display:block; width:100%; margin:9px 0; padding:12px; border:1px solid #ddd; border-radius:12px; background:#fafafa; color:#111; text-align:left; font-size:16px; line-height:1.35; } 
+        .resultado-dependencia:hover { border-color:#ffb47f; background:#fff8f3; } 
+        .resultado-dependencia strong { display:inline; color:var(--naranja); font-size:20px; } 
+        .resultado-dependencia small { color:#111; font-size:15px; } 
         .tarjeta-flotante { width:520px; max-width:calc(100vw - 24px); max-height:440px; overflow:auto; font-size:14px; } 
         .vista-previa-campo { padding:7px 0; border-bottom:1px solid #eee; line-height:1.35; } 
         .vista-previa-campo b { display:block; color:var(--gris); margin-bottom:2px; } 
@@ -270,7 +276,7 @@
             const body={message:`Actualizar ${p} desde Editor`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama}; 
             if(sha)body.sha=sha; 
             const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)}); 
-            if(!r.ok)throw new Error(`GitHub rechazó ${p} (${r.status}): ${await r.text()}`); 
+            if(!r.ok){const detalle=await r.text();if(r.status===403)throw new Error(`El token puede abrir el repositorio, pero no puede escribir ${p}. Cree o edite un token con acceso a este repositorio y Repository permissions > Contents > Read and write. Detalle de GitHub: ${detalle}`);throw new Error(`GitHub rechazó ${p} (${r.status}): ${detalle}`);} 
         } 
  
         function obtenerSeleccion(el){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return null;const r=s.getRangeAt(0);if(!el.contains(r.commonAncestorContainer))return null;return {rango:r.cloneRange(),texto:r.toString()};} 
