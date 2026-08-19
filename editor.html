@@ -87,7 +87,7 @@
             <button class="boton" onclick="seleccionarExcel()">Importar Excel</button> 
             <button class="boton boton-naranja" onclick="exportarJSON()">Exportar JSON</button> 
             <button class="boton" onclick="exportarWord()">Exportar Word B/N</button> 
-            <button class="boton" onclick="configurarGitHub()">Configurar GitHub</button> 
+            <button id="botonGuardar" class="boton boton-naranja" onclick="guardarCambios()" disabled>Guardar cambios</button> 
         </div> 
     </header> 
     <section class="pestanas"> 
@@ -140,14 +140,13 @@
         </section> 
     </div> 
     <div id="modalGitHub" class="modal" hidden> 
-        <section class="ventana" style="width:min(560px,100%)"> 
-            <div class="ventana-cabecera"><h2>Configurar GitHub</h2><button class="boton" onclick="cerrarGitHub()">Cerrar</button></div> 
+        <section class="ventana" style="width:min(520px,100%)"> 
+            <div class="ventana-cabecera"><h2>Conectar con GitHub</h2><button class="boton" onclick="cerrarGitHub()">Cerrar</button></div> 
             <div class="formulario"> 
-                <label class="completo">URL completa del repositorio<input id="githubUrl" placeholder="https://github.com/usuario/parametros-emisor"></label> 
-                <label>Rama<input id="githubRama" value="main"></label> 
-                <label>Token<input id="githubToken" type="password" autocomplete="off" placeholder="Fine-grained token"></label> 
-                <p class="ayuda completo">El token se mantiene solo durante esta sesión. Debe tener acceso de lectura y escritura a Contents en este repositorio.</p> 
-                <div class="acciones-formulario"><button class="boton" type="button" onclick="cerrarGitHub()">Cancelar</button><button class="boton boton-naranja" type="button" onclick="guardarConfiguracionGitHub()">Probar y guardar</button></div> 
+                <div class="completo"><b>Repositorio detectado</b><div id="repositorioDetectado" class="editable" style="min-height:auto;margin-top:5px" contenteditable="false"></div></div> 
+                <label class="completo">Token de GitHub<input id="githubToken" type="password" autocomplete="off" placeholder="Pegue el token una sola vez por sesión"></label> 
+                <p class="ayuda completo">Después de conectar, el botón Guardar cambios actualizará los JSON. El visor usa esos mismos archivos.</p> 
+                <div class="acciones-formulario"><button class="boton" type="button" onclick="cerrarGitHub()">Cancelar</button><button class="boton boton-naranja" type="button" onclick="conectarYGuardar()">Conectar y guardar</button></div> 
             </div> 
         </section> 
     </div> 
@@ -160,7 +159,7 @@
         const OPCIONES=[["05","Consultar"],["12","Trabajar con"],["13","Moneda"],["14","Clasificación"],["15","Membresías"],["16","Cargos Auto"],["17","Ciclos"],["18","Tipo Cliente"],["19","Renovación"],["20","Pólizas"],["21","Mensajes"],["22","Sorteos"],["23","Estados"],["24","Clases"],["25","Trasiego"],["26","Cargos I.V."],["27","Corporativo"],["28","Skip Pay"],["29","Diseño"],["30","Extrafin."],["31","Limpiar"],["32","Tipo Cta."],["33","Costos"],["34","Estados Cta."],["35","Excepciones"],["36","Origen"],["38","No Intereses"],["39","Excep."],["40","Documentos"],["42","Prepago"],["44","Reducc."],["45","Vence Pago"],["46","Copia"],["47","Deterioro"],["48","Prospecto"],["49","Renov. Tarj."],["50","Renov. Emisor"],["52","Rangos"],["53","Tecnología"]]; 
         const CAMPOS=["codigo","nombre","producto","pais","valores","que","como","dependencias","cuando","ejemplo","notas"]; 
         const $=id=>document.getElementById(id); 
-        let ambito="externo",opcion="05",datos={},temporizadores={},seleccionDependencia=null,elementoDependenciaActivo=null,ocultarTarjeta=null; 
+        let ambito="externo",opcion="05",datos={},seleccionDependencia=null,elementoDependenciaActivo=null,ocultarTarjeta=null,cambiosPendientes=new Set(); 
         let github={url:"",propietario:"",repositorio:"",rama:"main",token:""}; 
         function escapar(v){return String(v??"").replace(/[&<>"']/g,m=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[m]));} 
         function normalizar(v){return String(v??"").toLowerCase().normalize("NFD").replace(/[\u0300-\u036f]/g,"").replace(/[^a-z0-9]+/g," ").replace(/\s+/g," ").trim();} 
@@ -190,31 +189,89 @@
         function cerrarFormulario(){$("modalRegistro").hidden=true;cerrarMenuDependencias();} 
         function clave(r,c){return [c,normalizar(r.nombre),normalizar(r.producto),normalizar(r.pais)].join("|");} 
         function existe(r,c,omitir=-1){return(datos[c]||[]).some((x,i)=>i!==omitir&&clave(x,c)===clave(r,c));} 
-        $("formulario").addEventListener("submit",e=>{e.preventDefault();const i=Number($("indiceEdicion").value),origen=$("opcionOrigen").value,destino=$("codigo").value,anterior=i>=0?datos[origen][i]:null,ahora=new Date().toISOString();const r={id:anterior?.id||crypto.randomUUID(),codigo:destino,nombre:$("nombre").value.trim(),producto:$("producto").value.trim(),pais:$("pais").value.trim(),valores:$("valores").value.trim(),que:$("que").value.trim(),como:$("como").value.trim(),dependencias:$("dependencias").innerHTML.trim(),cuando:$("cuando").value.trim(),ejemplo:$("ejemplo").value.trim(),notas:$("notas").value.trim(),creadoEn:anterior?.creadoEn||ahora,actualizadoEn:ahora};if(!r.nombre)return aviso("Nombre es obligatorio.",true);if(existe(r,destino,origen===destino?i:-1))return aviso("El registro ya existe.",true);if(i>=0)datos[origen].splice(i,1);datos[destino]||=[];datos[destino].unshift(r);cerrarFormulario();renderizar();programarGuardado(origen);if(destino!==origen)programarGuardado(destino);}); 
-        function duplicarRegistro(c,i){const r=structuredClone(datos[c][i]);r.id=crypto.randomUUID();r.nombre=(r.nombre||"Sin nombre")+" - Copia";r.creadoEn=r.actualizadoEn=new Date().toISOString();datos[c].splice(i+1,0,r);renderizar();programarGuardado(c);editarRegistro(c,i+1);} 
-        function eliminarRegistro(c,i){if(confirm(`¿Eliminar ${datos[c][i].nombre||"este registro"}?`)){datos[c].splice(i,1);renderizar();programarGuardado(c);}} 
+        $("formulario").addEventListener("submit",e=>{e.preventDefault();const i=Number($("indiceEdicion").value),origen=$("opcionOrigen").value,destino=$("codigo").value,anterior=i>=0?datos[origen][i]:null,ahora=new Date().toISOString();const r={id:anterior?.id||crypto.randomUUID(),codigo:destino,nombre:$("nombre").value.trim(),producto:$("producto").value.trim(),pais:$("pais").value.trim(),valores:$("valores").value.trim(),que:$("que").value.trim(),como:$("como").value.trim(),dependencias:$("dependencias").innerHTML.trim(),cuando:$("cuando").value.trim(),ejemplo:$("ejemplo").value.trim(),notas:$("notas").value.trim(),creadoEn:anterior?.creadoEn||ahora,actualizadoEn:ahora};if(!r.nombre)return aviso("Nombre es obligatorio.",true);if(existe(r,destino,origen===destino?i:-1))return aviso("El registro ya existe.",true);if(i>=0)datos[origen].splice(i,1);datos[destino]||=[];datos[destino].unshift(r);cerrarFormulario();renderizar();marcarCambio(origen);if(destino!==origen)marcarCambio(destino);}); 
+        function duplicarRegistro(c,i){const r=structuredClone(datos[c][i]);r.id=crypto.randomUUID();r.nombre=(r.nombre||"Sin nombre")+" - Copia";r.creadoEn=r.actualizadoEn=new Date().toISOString();datos[c].splice(i+1,0,r);renderizar();marcarCambio(c);editarRegistro(c,i+1);} 
+        function eliminarRegistro(c,i){if(confirm(`¿Eliminar ${datos[c][i].nombre||"este registro"}?`)){datos[c].splice(i,1);renderizar();marcarCambio(c);}} 
  
+        function detectarRepositorio(){ 
+            const host=location.hostname.toLowerCase(); 
+            if(host.endsWith(".github.io")){ 
+                const propietario=host.split(".")[0]; 
+                const repositorio=location.pathname.split("/").filter(Boolean)[0]||"parametros-emisor"; 
+                return {propietario,repositorio,rama:"main"}; 
+            } 
+            const guardado=localStorage.getItem("peRepositorio"); 
+            if(guardado){try{return JSON.parse(guardado);}catch(error){console.warn(error);}} 
+            return null; 
+        } 
+        function marcarCambio(c){ 
+            cambiosPendientes.add(c); 
+            $("botonGuardar").disabled=false; 
+            $("estado").className="estado"; 
+            $("estado").textContent=`Cambios pendientes en ${[...cambiosPendientes].map(x=>"op"+x).join(", ")}.`; 
+        } 
         function configurarGitHub(){ 
-            $("githubUrl").value=sessionStorage.getItem("peRepoUrl")||github.url||""; 
-            $("githubRama").value=sessionStorage.getItem("peRama")||github.rama||"main"; 
-            $("githubToken").value=github.token||""; 
+            const detectado=detectarRepositorio(); 
+            if(!detectado){ 
+                const entrada=prompt("No fue posible detectar el repositorio. Pegue una vez owner/repository:",""); 
+                if(!entrada)return null; 
+                const partes=entrada.replace(/^https:\/\/github\.com\//i,"").replace(/\/$/,"").split("/"); 
+                if(partes.length<2){aviso("Use el formato usuario/repositorio.",true);return null;} 
+                github={propietario:partes[0],repositorio:partes[1].replace(/\.git$/i,""),rama:"main",token:""}; 
+                localStorage.setItem("peRepositorio",JSON.stringify({propietario:github.propietario,repositorio:github.repositorio,rama:"main"})); 
+            }else{ 
+                github={...detectado,token:sessionStorage.getItem("peToken")||""}; 
+            } 
+            $("repositorioDetectado").textContent=`${github.propietario}/${github.repositorio} · rama ${github.rama}`; 
+            $("githubToken").value=github.token; 
             $("modalGitHub").hidden=false; 
+            return github; 
         } 
         function cerrarGitHub(){$("modalGitHub").hidden=true;} 
-        async function guardarConfiguracionGitHub(){ 
-            const url=$("githubUrl").value.trim().replace(/\/$/,""); 
-            const m=url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/i); 
-            if(!m)return aviso("La URL del repositorio no tiene un formato válido.",true); 
-            github={url,propietario:m[1],repositorio:m[2],rama:$("githubRama").value.trim()||"main",token:$("githubToken").value.trim()}; 
-            if(!github.token)return aviso("Debe indicar el token.",true); 
-            sessionStorage.setItem("peRepoUrl",github.url);sessionStorage.setItem("peRama",github.rama); 
-            try{const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:cabecerasGitHub()});if(!r.ok)throw new Error(`GitHub no permitió abrir el repositorio (${r.status}). Revise URL, cuenta y permisos del token.`);cerrarGitHub();aviso(`Conexión correcta con ${github.propietario}/${github.repositorio}.`);}catch(e){aviso(e.message,true);} 
-        } 
-        async function asegurarGitHub(){if(github.propietario&&github.repositorio&&github.token)return true;configurarGitHub();return false;} 
         function cabecerasGitHub(){return {Accept:"application/vnd.github+json",Authorization:`Bearer ${github.token}`,"X-GitHub-Api-Version":"2022-11-28"};} 
-        function programarGuardado(c){clearTimeout(temporizadores[c]);$("estado").textContent=`Guardando automáticamente op${c}...`;temporizadores[c]=setTimeout(()=>guardarOpcion(c),900);} 
+        async function conectarYGuardar(){ 
+            github.token=$("githubToken").value.trim(); 
+            if(!github.token)return aviso("Pegue el token.",true); 
+            sessionStorage.setItem("peToken",github.token); 
+            try{ 
+                const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:cabecerasGitHub()}); 
+                if(!r.ok)throw new Error(`No se pudo abrir ${github.propietario}/${github.repositorio} (${r.status}). Revise que el token tenga acceso al repositorio.`); 
+                cerrarGitHub(); 
+                await guardarCambios(); 
+            }catch(error){aviso(error.message,true);} 
+        } 
+        async function guardarCambios(){ 
+            if(!cambiosPendientes.size)return aviso("No hay cambios pendientes."); 
+            const detectado=detectarRepositorio(); 
+            if(!github.propietario&&detectado)github={...detectado,token:sessionStorage.getItem("peToken")||""}; 
+            if(!github.propietario||!github.token){configurarGitHub();return;} 
+            $("botonGuardar").disabled=true; 
+            const opciones=[...cambiosPendientes]; 
+            let guardadas=0; 
+            try{ 
+                for(const c of opciones){await guardarOpcion(c);cambiosPendientes.delete(c);guardadas++;} 
+                $("estado").className="estado ok"; 
+                $("estado").textContent=`${guardadas} archivo(s) guardado(s). El visor leerá estos mismos JSON.`; 
+                aviso("Cambios guardados y publicados para el visor."); 
+            }catch(error){ 
+                $("estado").className="estado error"; 
+                $("estado").textContent=error.message; 
+                aviso(error.message,true); 
+            }finally{$("botonGuardar").disabled=cambiosPendientes.size===0;} 
+        } 
         function base64Unicode(s){const a=new TextEncoder().encode(s);let b="";for(let i=0;i<a.length;i+=32768)b+=String.fromCharCode(...a.subarray(i,i+32768));return btoa(b);} 
-        async function guardarOpcion(c){if(!await asegurarGitHub()){aviso("Complete la ventana Configurar GitHub y pulse Probar y guardar.",true);return;}const p=ruta(c),api=`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`,h=cabecerasGitHub();try{$("estado").className="estado";$("estado").textContent=`Guardando ${p}...`;const repo=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:h});if(!repo.ok)throw new Error(`No se pudo acceder al repositorio (${repo.status}). Revise la URL y que el token pertenezca a una cuenta con acceso.`);let sha;const actual=await fetch(`${api}?ref=${encodeURIComponent(github.rama)}`,{headers:h});if(actual.ok)sha=(await actual.json()).sha;else if(actual.status!==404)throw new Error(`No se pudo leer ${p} (${actual.status}).`);const body={message:`Actualizar ${p} automáticamente`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama};if(sha)body.sha=sha;const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok){const detalle=await r.text();throw new Error(`Guardado rechazado (${r.status}). ${detalle}`);}$("estado").className="estado ok";$("estado").textContent=`${p} guardado automáticamente.`;}catch(e){$("estado").className="estado error";$("estado").textContent=e.message;aviso(e.message,true);}} 
+        async function guardarOpcion(c){ 
+            const p=ruta(c),api=`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`,h=cabecerasGitHub(); 
+            $("estado").className="estado";$("estado").textContent=`Guardando ${p}...`; 
+            let sha; 
+            const actual=await fetch(`${api}?ref=${encodeURIComponent(github.rama)}`,{headers:h}); 
+            if(actual.ok)sha=(await actual.json()).sha; 
+            else if(actual.status!==404)throw new Error(`No se pudo leer ${p} (${actual.status}).`); 
+            const body={message:`Actualizar ${p} desde Editor`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama}; 
+            if(sha)body.sha=sha; 
+            const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)}); 
+            if(!r.ok)throw new Error(`GitHub rechazó ${p} (${r.status}): ${await r.text()}`); 
+        } 
  
         function obtenerSeleccion(el){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return null;const r=s.getRangeAt(0);if(!el.contains(r.commonAncestorContainer))return null;return {rango:r.cloneRange(),texto:r.toString()};} 
         function abrirMenuDependencias(e,el){ 
@@ -245,7 +302,7 @@
             if(!r)return; 
             r[k]=el.innerText.trim(); 
             r.actualizadoEn=new Date().toISOString(); 
-            programarGuardado(c); 
+            marcarCambio(c); 
         }); 
         $("contenido").addEventListener("input",e=>{ 
             const el=e.target.closest(".dependencia-inline"); 
@@ -254,13 +311,13 @@
             if(!r)return; 
             r.dependencias=el.innerHTML.trim(); 
             r.actualizadoEn=new Date().toISOString(); 
-            programarGuardado(c); 
+            marcarCambio(c); 
         }); 
         function puntaje(q,r){const palabras=normalizar(q).split(" ").filter(x=>x.length>2),texto=normalizar(CAMPOS.map(k=>textoHTML(r[k])).join(" "));return palabras.reduce((s,x)=>s+(texto.includes(x)?1:0),0);} 
         function mostrarResultadosDependencia(q){const arr=todos().map(r=>({r,p:puntaje(q,r)})).filter(x=>x.p>0||!normalizar(q)).sort((a,b)=>b.p-a.p).slice(0,10);$("resultadosDependencia").innerHTML=arr.length?arr.map(({r})=>`<button class="resultado-dependencia" data-vincular="${escapar(r.id||"")}" data-opcion="${r.__opcion}" data-nombre="${escapar(r.nombre)}"><strong>Op. ${r.__opcion} · ${escapar(r.nombre)}</strong><br><small>${escapar(r.que||r.como||"Sin descripción")}</small></button>`).join(""):'<div class="ayuda">No hay coincidencias. Escriba otra búsqueda.</div>';} 
         $("menuDependencias").addEventListener("click",e=>{const b=e.target.closest("[data-vincular]");if(!b)return;e.preventDefault();e.stopPropagation();if(!seleccionDependencia)return;const id=b.dataset.vincular||`op${b.dataset.opcion}-${normalizar(b.dataset.nombre).replaceAll(" ","-")}`;const a=document.createElement("a");a.href="#";a.className="dep-ref-inline";a.dataset.target=id;try{a.appendChild(seleccionDependencia.rango.extractContents());seleccionDependencia.rango.insertNode(a);a.after(document.createTextNode(""));}catch(error){aviso("No se pudo crear el vínculo. Vuelva a seleccionar el texto.",true);}if(elementoDependenciaActivo?.classList.contains("dependencia-inline")){ 
                 const c=elementoDependenciaActivo.dataset.depOpcion,i=Number(elementoDependenciaActivo.dataset.depIndice),registro=datos[c]?.[i]; 
-                if(registro){registro.dependencias=elementoDependenciaActivo.innerHTML.trim();registro.actualizadoEn=new Date().toISOString();programarGuardado(c);} 
+                if(registro){registro.dependencias=elementoDependenciaActivo.innerHTML.trim();registro.actualizadoEn=new Date().toISOString();marcarCambio(c);} 
             } 
             cerrarMenuDependencias();}); 
         function cerrarMenuDependencias(){$("menuDependencias").style.display="none";seleccionDependencia=null;elementoDependenciaActivo=null;} 
@@ -286,7 +343,7 @@
  
         function seleccionarJSON(){$("archivoJSON").value="";$("archivoJSON").click();} 
         function seleccionarExcel(){$("archivoExcel").value="";$("archivoExcel").click();} 
-        function importarUnicos(filas,c){datos[c]||=[];const existentes=new Set(datos[c].map(r=>clave(r,c)));let nuevos=0,duplicados=0,ignorados=0;for(let r of filas){r={...r,codigo:c,nombre:String(r.nombre||"").trim()};if(!r.nombre){ignorados++;continue;}const k=clave(r,c);if(existentes.has(k)){duplicados++;continue;}r.id=r.id||crypto.randomUUID();r.creadoEn=r.creadoEn||new Date().toISOString();r.actualizadoEn=new Date().toISOString();datos[c].push(r);existentes.add(k);nuevos++;}renderizar();if(nuevos)programarGuardado(c);aviso(`${nuevos} nuevos agregados · ${duplicados} duplicados omitidos · ${ignorados} filas ignoradas.`);} 
+        function importarUnicos(filas,c){datos[c]||=[];const existentes=new Set(datos[c].map(r=>clave(r,c)));let nuevos=0,duplicados=0,ignorados=0;for(let r of filas){r={...r,codigo:c,nombre:String(r.nombre||"").trim()};if(!r.nombre){ignorados++;continue;}const k=clave(r,c);if(existentes.has(k)){duplicados++;continue;}r.id=r.id||crypto.randomUUID();r.creadoEn=r.creadoEn||new Date().toISOString();r.actualizadoEn=new Date().toISOString();datos[c].push(r);existentes.add(k);nuevos++;}renderizar();if(nuevos)marcarCambio(c);aviso(`${nuevos} nuevos agregados · ${duplicados} duplicados omitidos · ${ignorados} filas ignoradas.`);} 
         $("archivoJSON").addEventListener("change",async e=>{if(opcion==="todas")return aviso("Seleccione una opción antes de importar.",true);try{const x=JSON.parse(await e.target.files[0].text());if(!Array.isArray(x))throw new Error("El JSON debe contener una lista.");importarUnicos(x,opcion);}catch(error){aviso(error.message,true);}}); 
         function filaEncabezados(filas){return filas.findIndex(r=>Array.isArray(r)&&r.some(c=>normalizar(c).includes("nombre del parametro")));} 
         function mapaColumnas(h){const defs={nombre:["nombre del parametro"],producto:["producto"],pais:["pais"],valores:["valores permitidos"],que:["que hace el parametro","que hace"],como:["como funciona"],dependencias:["dependencias reglas","dependencias"],cuando:["cuando aplica"],ejemplo:["ejemplo funcional"],notas:["notas visibles al cliente","notas"]},m={};h.forEach((x,i)=>{const n=normalizar(x);Object.entries(defs).forEach(([k,a])=>{if(m[k]===undefined&&a.some(v=>n===v||n.includes(v)))m[k]=i;});});return m;} 
@@ -294,7 +351,8 @@
         function descargar(texto,nombre,tipo){const u=URL.createObjectURL(new Blob([texto],{type:tipo})),a=document.createElement("a");a.href=u;a.download=nombre;a.click();URL.revokeObjectURL(u);} 
         function exportarJSON(){const x=opcion==="todas"?Object.fromEntries(OPCIONES.map(([c])=>[c,datos[c]||[]])):datos[opcion]||[];descargar(JSON.stringify(x,null,2)+"\n",`${ambito}_${opcion}.json`,"application/json");} 
         function exportarWord(){const a=registrosVisibles();if(!a.length)return aviso("No hay registros visibles.",true);const fichas=a.map(r=>`<h2>Op. ${escapar(r.__opcion)} - ${escapar(r.nombre)}</h2><table><tr><th>PRODUCTO</th><th>PAÍS</th><th>VALORES PERMITIDOS</th></tr><tr><td>${escapar(r.producto)}</td><td>${escapar(r.pais)}</td><td>${escapar(r.valores)}</td></tr><tr><th>¿QUÉ HACE?</th><th>¿CÓMO FUNCIONA?</th><th>DEPENDENCIAS / REGLAS</th></tr><tr><td>${escapar(r.que)}</td><td>${escapar(r.como)}</td><td>${escapar(textoHTML(r.dependencias))}</td></tr><tr><th>¿CUÁNDO APLICA?</th><th>EJEMPLO FUNCIONAL</th><th>NOTAS VISIBLES AL CLIENTE</th></tr><tr><td>${escapar(r.cuando)}</td><td>${escapar(r.ejemplo)}</td><td>${escapar(r.notas)}</td></tr></table>`).join("");const doc=`<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#000}h2{color:#000;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:20px}th,td{border:1px solid #000;padding:7px;vertical-align:top}th{background:#fff;color:#000}</style></head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`;descargar("\ufeff"+doc,`${ambito}_${opcion}.doc`,"application/msword");} 
-        document.addEventListener("DOMContentLoaded",async()=>{construirMenu();opcionesFormulario("05");github.url=sessionStorage.getItem("peRepoUrl")||"";github.rama=sessionStorage.getItem("peRama")||"main";if(github.url){const m=github.url.replace(/\/$/,"").match(/^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/i);if(m){github.propietario=m[1];github.repositorio=m[2];}}await cargarTodo();}); 
+        window.addEventListener("beforeunload",e=>{if(cambiosPendientes.size){e.preventDefault();e.returnValue="";}}); 
+        document.addEventListener("DOMContentLoaded",async()=>{construirMenu();opcionesFormulario("05");const detectado=detectarRepositorio();if(detectado)github={...detectado,token:sessionStorage.getItem("peToken")||""};await cargarTodo();}); 
     </script> 
 </body> 
 </html> 
