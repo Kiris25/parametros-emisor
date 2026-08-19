@@ -36,7 +36,9 @@
         .ficha { margin-bottom:13px; background:#fff; border:1px solid var(--borde); box-shadow:0 2px 7px #0001; } 
         .cabecera-ficha { display:grid; grid-template-columns:140px 1fr auto; border-bottom:1px solid var(--borde); } 
         .codigo { display:flex; align-items:center; justify-content:center; padding:9px; background:#5a5a5a; color:#fff; font-weight:800; } 
-        .nombre { padding:9px 14px; color:var(--naranja); font-size:24px; font-weight:300; } 
+        .nombre { padding:9px 14px; color:var(--naranja); font-size:24px; font-weight:300; outline:none; } 
+        .nombre[contenteditable="true"]:focus,.editable-ficha:focus { background:#fff; box-shadow:inset 0 0 0 2px #ff6c0c38; } 
+        .editable-ficha { min-height:52px; outline:none; cursor:text; } 
         .acciones-ficha { display:flex; align-items:center; gap:5px; padding:6px; } 
         .acciones-ficha .boton { padding:6px 8px; font-size:11px; } 
         .cuadricula { display:grid; grid-template-columns:repeat(3,1fr); gap:9px; padding:11px; } 
@@ -64,7 +66,9 @@
         .menu-contextual { width:370px; max-width:calc(100vw - 24px); } 
         .resultados-dependencia { max-height:250px; overflow:auto; } 
         .resultado-dependencia { display:block; width:100%; margin:6px 0; padding:8px; border:1px solid #e6e6e6; border-radius:8px; background:#fafafa; text-align:left; } 
-        .tarjeta-flotante { width:380px; max-width:calc(100vw - 24px); font-size:12px; } 
+        .tarjeta-flotante { width:520px; max-width:calc(100vw - 24px); max-height:440px; overflow:auto; font-size:14px; } 
+        .vista-previa-campo { padding:7px 0; border-bottom:1px solid #eee; line-height:1.35; } 
+        .vista-previa-campo b { display:block; color:var(--gris); margin-bottom:2px; } 
         .tarjeta-flotante h4 { margin:0; color:var(--naranja); font-size:16px; } 
         .acciones-flotantes { display:flex; gap:7px; flex-wrap:wrap; margin-top:8px; } 
         .toast { position:fixed; right:18px; bottom:18px; z-index:180; padding:12px 15px; border-radius:9px; background:#222; color:#fff; } 
@@ -135,6 +139,18 @@
             </form> 
         </section> 
     </div> 
+    <div id="modalGitHub" class="modal" hidden> 
+        <section class="ventana" style="width:min(560px,100%)"> 
+            <div class="ventana-cabecera"><h2>Configurar GitHub</h2><button class="boton" onclick="cerrarGitHub()">Cerrar</button></div> 
+            <div class="formulario"> 
+                <label class="completo">URL completa del repositorio<input id="githubUrl" placeholder="https://github.com/usuario/parametros-emisor"></label> 
+                <label>Rama<input id="githubRama" value="main"></label> 
+                <label>Token<input id="githubToken" type="password" autocomplete="off" placeholder="Fine-grained token"></label> 
+                <p class="ayuda completo">El token se mantiene solo durante esta sesión. Debe tener acceso de lectura y escritura a Contents en este repositorio.</p> 
+                <div class="acciones-formulario"><button class="boton" type="button" onclick="cerrarGitHub()">Cancelar</button><button class="boton boton-naranja" type="button" onclick="guardarConfiguracionGitHub()">Probar y guardar</button></div> 
+            </div> 
+        </section> 
+    </div> 
     <div id="menuDependencias" class="menu-contextual"></div> 
     <div id="tarjetaDependencia" class="tarjeta-flotante"></div> 
     <div id="toast" class="toast" hidden></div> 
@@ -162,11 +178,11 @@
         function registrosVisibles(){const q=normalizar($("buscar").value),n=normalizar($("filtrarNombre").value),p=normalizar($("filtrarProducto").value),c=normalizar($("filtrarPais").value);const base=q||opcion==="todas"?todos():(datos[opcion]||[]).map(r=>({...r,__opcion:opcion}));return base.filter(r=>(!q||normalizar(CAMPOS.map(k=>textoHTML(r[k])).join(" ")).includes(q))&&(!n||normalizar(r.nombre).includes(n))&&(!p||normalizar(r.producto).includes(p))&&(!c||normalizar(r.pais).includes(c)));} 
         function resaltar(v){let s=escapar(textoHTML(v)||"—"),q=$("buscar").value.trim();if(!q)return s;const partes=q.split(/\s+/).filter(Boolean).sort((a,b)=>b.length-a.length).map(x=>x.replace(/[.*+?^${}()|[\]\\]/g,"\\$&"));return partes.length?s.replace(new RegExp(`(${partes.join("|")})`,"gi"),"<mark>$1</mark>"):s;} 
         function dependenciaVisible(v){let html=String(v||"—");if(!/<a\b/i.test(html))html=escapar(html);return html;} 
-        function campo(t,v,clase=""){return `<div class="campo ${clase}"><div class="etiqueta">${t}</div><div class="texto">${resaltar(v)}</div></div>`;} 
+        function campoEditable(t,c,i,k,v,clase=""){return `<div class="campo ${clase}"><div class="etiqueta">${t}</div><div class="texto editable-ficha" contenteditable="true" data-campo="${k}" data-opcion="${c}" data-indice="${i}">${escapar(textoHTML(v)||"")}</div></div>`;} 
         function campoDependencia(c,i,v){return `<div class="campo"><div class="etiqueta">Dependencias / Reglas</div><div class="texto dependencia-inline" contenteditable="true" data-dep-opcion="${c}" data-dep-indice="${i}" title="Edite directamente. Seleccione texto y haga clic derecho para vincularlo.">${dependenciaVisible(v)}</div><div class="ayuda">Edición directa · seleccione texto y haga clic derecho para vincular.</div></div>`;} 
         function indiceReal(r){return (datos[r.__opcion]||[]).findIndex(x=>(x.id&&x.id===r.id)||(!x.id&&x.nombre===r.nombre&&x.producto===r.producto&&x.pais===r.pais));} 
-        function renderizar(){const a=registrosVisibles(),hayBusqueda=Boolean(normalizar($("buscar").value));$("titulo").textContent=hayBusqueda?"Resultados en todas las opciones":opcion==="todas"?"Todas las opciones":`Opción ${opcion} ${nombreOpcion(opcion)}`;$("contenido").innerHTML=a.length?a.map(r=>{const c=r.__opcion,i=indiceReal(r);return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre">${resaltar(r.nombre)}</div><div class="acciones-ficha"><button class="boton" data-editar="${c}|${i}">Editar</button><button class="boton" data-duplicar="${c}|${i}">Duplicar</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">Eliminar</button></div></div><div class="cuadricula">${campo("Producto",r.producto)}${campo("País",r.pais)}${campo("Valores Permitidos",r.valores)}${campo("¿Qué hace?",r.que||r.descripcion)}${campo("¿Cómo funciona?",r.como)}${campoDependencia(c,i,r.dependencias||r.dep)}${campo("¿Cuándo aplica?",r.cuando)}${campo("Ejemplo Funcional",r.ejemplo,"ejemplo")}${campo("Notas Visibles al Cliente",r.notas)}</div></article>`;}).join(""):'<div class="vacio">No hay registros para mostrar.</div>';$("estado").textContent=`Mostrando ${a.length} registro(s).`;} 
-        $("contenido").addEventListener("click",e=>{for(const tipo of ["editar","duplicar","eliminar"]){const b=e.target.closest(`[data-${tipo}]`);if(!b)continue;const [c,i]=b.dataset[tipo].split("|");({editar:editarRegistro,duplicar:duplicarRegistro,eliminar:eliminarRegistro}[tipo])(c,Number(i));return;}const a=e.target.closest(".dep-ref-inline");if(a){e.preventDefault();abrirRelacionado(a.dataset.target);}}); 
+        function renderizar(){const a=registrosVisibles(),hayBusqueda=Boolean(normalizar($("buscar").value));$("titulo").textContent=hayBusqueda?"Resultados en todas las opciones":opcion==="todas"?"Todas las opciones":`Opción ${opcion} ${nombreOpcion(opcion)}`;$("contenido").innerHTML=a.length?a.map(r=>{const c=r.__opcion,i=indiceReal(r);return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${escapar(r.nombre||"")}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">Duplicar</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">Eliminar</button></div></div><div class="cuadricula">${campoEditable("Producto",c,i,"producto",r.producto)}${campoEditable("País",c,i,"pais",r.pais)}${campoEditable("Valores Permitidos",c,i,"valores",r.valores)}${campoEditable("¿Qué hace?",c,i,"que",r.que||r.descripcion)}${campoEditable("¿Cómo funciona?",c,i,"como",r.como)}${campoDependencia(c,i,r.dependencias||r.dep)}${campoEditable("¿Cuándo aplica?",c,i,"cuando",r.cuando)}${campoEditable("Ejemplo Funcional",c,i,"ejemplo",r.ejemplo,"ejemplo")}${campoEditable("Notas Visibles al Cliente",c,i,"notas",r.notas)}</div></article>`;}).join(""):'<div class="vacio">No hay registros para mostrar.</div>';$("estado").textContent=`Mostrando ${a.length} registro(s).`;} 
+        $("contenido").addEventListener("click",e=>{for(const tipo of ["duplicar","eliminar"]){const b=e.target.closest(`[data-${tipo}]`);if(!b)continue;const [c,i]=b.dataset[tipo].split("|");({duplicar:duplicarRegistro,eliminar:eliminarRegistro}[tipo])(c,Number(i));return;}const a=e.target.closest(".dep-ref-inline");if(a){e.preventDefault();abrirRelacionado(a.dataset.target);}}); 
         ["buscar","filtrarNombre","filtrarProducto","filtrarPais"].forEach(id=>$(id).addEventListener("input",renderizar)); 
         function limpiarFiltros(){["buscar","filtrarNombre","filtrarProducto","filtrarPais"].forEach(id=>$(id).value="");renderizar();} 
         function nuevoRegistro(){const c=opcion==="todas"?"05":opcion;$("formulario").reset();$("indiceEdicion").value=-1;$("opcionOrigen").value=c;opcionesFormulario(c);$("dependencias").innerHTML="";$("tituloFormulario").textContent="Nuevo registro";$("modalRegistro").hidden=false;} 
@@ -178,13 +194,27 @@
         function duplicarRegistro(c,i){const r=structuredClone(datos[c][i]);r.id=crypto.randomUUID();r.nombre=(r.nombre||"Sin nombre")+" - Copia";r.creadoEn=r.actualizadoEn=new Date().toISOString();datos[c].splice(i+1,0,r);renderizar();programarGuardado(c);editarRegistro(c,i+1);} 
         function eliminarRegistro(c,i){if(confirm(`¿Eliminar ${datos[c][i].nombre||"este registro"}?`)){datos[c].splice(i,1);renderizar();programarGuardado(c);}} 
  
-        function configurarGitHub(){const actual=sessionStorage.getItem("peRepoUrl")||github.url||"";const url=prompt("Pegue la URL completa del repositorio de GitHub. Ejemplo: https://github.com/usuario/parametros-emisor",actual);if(!url)return;const m=url.trim().replace(/\/$/,"").match(/^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/i);if(!m){aviso("La URL del repositorio no tiene un formato válido.",true);return;}github.url=url.trim();github.propietario=m[1];github.repositorio=m[2];github.rama=prompt("Rama del repositorio:",sessionStorage.getItem("peRama")||"main")||"main";github.token=prompt("Token de GitHub. Se conservará únicamente durante esta sesión.","")||"";if(!github.token){aviso("No se indicó el token.",true);return;}sessionStorage.setItem("peRepoUrl",github.url);sessionStorage.setItem("peRama",github.rama);verificarRepositorio();} 
-        async function asegurarGitHub(){if(github.propietario&&github.repositorio&&github.token)return true;configurarGitHub();return Boolean(github.propietario&&github.repositorio&&github.token);} 
+        function configurarGitHub(){ 
+            $("githubUrl").value=sessionStorage.getItem("peRepoUrl")||github.url||""; 
+            $("githubRama").value=sessionStorage.getItem("peRama")||github.rama||"main"; 
+            $("githubToken").value=github.token||""; 
+            $("modalGitHub").hidden=false; 
+        } 
+        function cerrarGitHub(){$("modalGitHub").hidden=true;} 
+        async function guardarConfiguracionGitHub(){ 
+            const url=$("githubUrl").value.trim().replace(/\/$/,""); 
+            const m=url.match(/^https:\/\/github\.com\/([^/]+)\/([^/]+?)(?:\.git)?$/i); 
+            if(!m)return aviso("La URL del repositorio no tiene un formato válido.",true); 
+            github={url,propietario:m[1],repositorio:m[2],rama:$("githubRama").value.trim()||"main",token:$("githubToken").value.trim()}; 
+            if(!github.token)return aviso("Debe indicar el token.",true); 
+            sessionStorage.setItem("peRepoUrl",github.url);sessionStorage.setItem("peRama",github.rama); 
+            try{const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:cabecerasGitHub()});if(!r.ok)throw new Error(`GitHub no permitió abrir el repositorio (${r.status}). Revise URL, cuenta y permisos del token.`);cerrarGitHub();aviso(`Conexión correcta con ${github.propietario}/${github.repositorio}.`);}catch(e){aviso(e.message,true);} 
+        } 
+        async function asegurarGitHub(){if(github.propietario&&github.repositorio&&github.token)return true;configurarGitHub();return false;} 
         function cabecerasGitHub(){return {Accept:"application/vnd.github+json",Authorization:`Bearer ${github.token}`,"X-GitHub-Api-Version":"2022-11-28"};} 
-        async function verificarRepositorio(){try{const r=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:cabecerasGitHub()});if(!r.ok)throw new Error(`GitHub no permitió abrir el repositorio (${r.status}). Revise URL, cuenta del token y acceso al repositorio.`);aviso(`Conexión correcta con ${github.propietario}/${github.repositorio}.`);}catch(e){aviso(e.message,true);}} 
         function programarGuardado(c){clearTimeout(temporizadores[c]);$("estado").textContent=`Guardando automáticamente op${c}...`;temporizadores[c]=setTimeout(()=>guardarOpcion(c),900);} 
         function base64Unicode(s){const a=new TextEncoder().encode(s);let b="";for(let i=0;i<a.length;i+=32768)b+=String.fromCharCode(...a.subarray(i,i+32768));return btoa(b);} 
-        async function guardarOpcion(c){if(!await asegurarGitHub()){aviso("Falta configurar GitHub.",true);return;}const p=ruta(c),api=`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`,h=cabecerasGitHub();try{$("estado").className="estado";$("estado").textContent=`Guardando ${p}...`;const repo=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:h});if(!repo.ok)throw new Error(`No se pudo acceder al repositorio (${repo.status}). Revise la URL y que el token pertenezca a una cuenta con acceso.`);let sha;const actual=await fetch(`${api}?ref=${encodeURIComponent(github.rama)}`,{headers:h});if(actual.ok)sha=(await actual.json()).sha;else if(actual.status!==404)throw new Error(`No se pudo leer ${p} (${actual.status}).`);const body={message:`Actualizar ${p} automáticamente`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama};if(sha)body.sha=sha;const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok){const detalle=await r.text();throw new Error(`Guardado rechazado (${r.status}). ${detalle}`);}$("estado").className="estado ok";$("estado").textContent=`${p} guardado automáticamente.`;}catch(e){$("estado").className="estado error";$("estado").textContent=e.message;aviso(e.message,true);}} 
+        async function guardarOpcion(c){if(!await asegurarGitHub()){aviso("Complete la ventana Configurar GitHub y pulse Probar y guardar.",true);return;}const p=ruta(c),api=`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`,h=cabecerasGitHub();try{$("estado").className="estado";$("estado").textContent=`Guardando ${p}...`;const repo=await fetch(`https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`,{headers:h});if(!repo.ok)throw new Error(`No se pudo acceder al repositorio (${repo.status}). Revise la URL y que el token pertenezca a una cuenta con acceso.`);let sha;const actual=await fetch(`${api}?ref=${encodeURIComponent(github.rama)}`,{headers:h});if(actual.ok)sha=(await actual.json()).sha;else if(actual.status!==404)throw new Error(`No se pudo leer ${p} (${actual.status}).`);const body={message:`Actualizar ${p} automáticamente`,content:base64Unicode(JSON.stringify(datos[c],null,2)+"\n"),branch:github.rama};if(sha)body.sha=sha;const r=await fetch(api,{method:"PUT",headers:{...h,"Content-Type":"application/json"},body:JSON.stringify(body)});if(!r.ok){const detalle=await r.text();throw new Error(`Guardado rechazado (${r.status}). ${detalle}`);}$("estado").className="estado ok";$("estado").textContent=`${p} guardado automáticamente.`;}catch(e){$("estado").className="estado error";$("estado").textContent=e.message;aviso(e.message,true);}} 
  
         function obtenerSeleccion(el){const s=window.getSelection();if(!s||!s.rangeCount||s.isCollapsed)return null;const r=s.getRangeAt(0);if(!el.contains(r.commonAncestorContainer))return null;return {rango:r.cloneRange(),texto:r.toString()};} 
         function abrirMenuDependencias(e,el){ 
@@ -209,6 +239,15 @@
             if(el)abrirMenuDependencias(e,el); 
         }); 
         $("contenido").addEventListener("input",e=>{ 
+            const el=e.target.closest("[data-campo]"); 
+            if(!el)return; 
+            const c=el.dataset.opcion,i=Number(el.dataset.indice),k=el.dataset.campo,r=datos[c]?.[i]; 
+            if(!r)return; 
+            r[k]=el.innerText.trim(); 
+            r.actualizadoEn=new Date().toISOString(); 
+            programarGuardado(c); 
+        }); 
+        $("contenido").addEventListener("input",e=>{ 
             const el=e.target.closest(".dependencia-inline"); 
             if(!el)return; 
             const c=el.dataset.depOpcion,i=Number(el.dataset.depIndice),r=datos[c]?.[i]; 
@@ -227,11 +266,22 @@
         function cerrarMenuDependencias(){$("menuDependencias").style.display="none";seleccionDependencia=null;elementoDependenciaActivo=null;} 
         document.addEventListener("pointerdown",e=>{if(!$("menuDependencias").contains(e.target)&&!e.target.closest("#dependencias"))cerrarMenuDependencias();}); 
         function encontrarRelacionado(id){return todos().find(r=>r.id===id||`op${r.__opcion}-${normalizar(r.nombre).replaceAll(" ","-")}`===id);} 
-        document.addEventListener("mouseover",e=>{const a=e.target.closest?.(".dep-ref-inline");if(!a)return;clearTimeout(ocultarTarjeta);const r=encontrarRelacionado(a.dataset.target);if(!r)return;const h=$("tarjetaDependencia"),rect=a.getBoundingClientRect();h.style.display="block";h.style.left=Math.min(rect.left,window.innerWidth-395)+"px";h.style.top=Math.min(rect.bottom+8,window.innerHeight-280)+"px";h.innerHTML=`<h4>${escapar(r.nombre)}</h4><p>Op. ${r.__opcion} · ${escapar(r.producto||"Producto no indicado")} · ${escapar(r.pais||"País no indicado")}</p><p>${escapar(r.que||r.como||r.notas||"Sin descripción")}</p><div class="acciones-flotantes"><button class="boton boton-naranja" data-abrir-relacion="${escapar(a.dataset.target)}">Abrir ficha</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`;}); 
+        document.addEventListener("mouseover",e=>{ 
+            const a=e.target.closest?.(".dep-ref-inline");if(!a)return;clearTimeout(ocultarTarjeta);const r=encontrarRelacionado(a.dataset.target);if(!r)return; 
+            const h=$("tarjetaDependencia"),rect=a.getBoundingClientRect();h.style.display="block";h.style.left=Math.min(rect.left,window.innerWidth-535)+"px";h.style.top=Math.min(rect.bottom+8,window.innerHeight-455)+"px"; 
+            const fila=(t,v)=>`<div class="vista-previa-campo"><b>${t}</b>${escapar(textoHTML(v)||"—")}</div>`; 
+            h.innerHTML=`<h4>${escapar(r.nombre)}</h4><p>Opción ${r.__opcion} ${escapar(nombreOpcion(r.__opcion))}</p>${fila("Producto",r.producto)}${fila("País",r.pais)}${fila("Valores",r.valores)}${fila("Qué hace",r.que)}${fila("Cómo funciona",r.como)}${fila("Dependencias / Reglas",r.dependencias||r.dep)}${fila("Cuándo aplica",r.cuando)}${fila("Ejemplo",r.ejemplo)}${fila("Notas",r.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-nueva-pestana="${escapar(a.dataset.target)}">Abrir en nueva pestaña</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`; 
+        }); 
         document.addEventListener("mouseout",e=>{if(e.target.closest?.(".dep-ref-inline"))ocultarTarjeta=setTimeout(()=>$("tarjetaDependencia").style.display="none",450);}); 
         $("tarjetaDependencia").addEventListener("mouseenter",()=>clearTimeout(ocultarTarjeta)); 
         $("tarjetaDependencia").addEventListener("mouseleave",()=>$("tarjetaDependencia").style.display="none"); 
-        $("tarjetaDependencia").addEventListener("click",e=>{const abrir=e.target.closest("[data-abrir-relacion]"),quitar=e.target.closest("[data-quitar-relacion]");if(abrir)abrirRelacionado(abrir.dataset.abrirRelacion);if(quitar){$("dependencias").querySelectorAll("a.dep-ref-inline").forEach(a=>{if(a.dataset.target===quitar.dataset.quitarRelacion)a.replaceWith(document.createTextNode(a.textContent));});$("tarjetaDependencia").style.display="none";}}); 
+        $("tarjetaDependencia").addEventListener("click",e=>{const nueva=e.target.closest("[data-nueva-pestana]"),quitar=e.target.closest("[data-quitar-relacion]");if(nueva)abrirNuevaPestana(nueva.dataset.nuevaPestana);if(quitar){$("dependencias").querySelectorAll("a.dep-ref-inline").forEach(a=>{if(a.dataset.target===quitar.dataset.quitarRelacion)a.replaceWith(document.createTextNode(a.textContent));});$("tarjetaDependencia").style.display="none";}}); 
+        function abrirNuevaPestana(id){ 
+            const r=encontrarRelacionado(id);if(!r)return aviso("No se encontró la ficha relacionada.",true); 
+            const fila=(t,v)=>`<section><b>${t}</b><div>${escapar(textoHTML(v)||"—")}</div></section>`; 
+            const pagina=`<!doctype html><html lang="es"><head><meta charset="utf-8"><title>${escapar(r.nombre)}</title><style>body{margin:0;background:#f2f2f2;font-family:Segoe UI,Arial;color:#333}.ficha{max-width:850px;margin:30px auto;background:#fff;border:1px solid #d9d9d9;padding:24px}.codigo{background:#595959;color:#fff;padding:10px;font-weight:800}.nombre{color:#ff6c0c;font-size:30px;margin:16px 0}section{padding:12px 0;border-bottom:1px solid #ddd;line-height:1.4}section b{display:block;color:#4f4f4f;margin-bottom:4px}</style></head><body><article class="ficha"><div class="codigo">Op. ${r.__opcion} · ${escapar(nombreOpcion(r.__opcion))}</div><h1 class="nombre">${escapar(r.nombre)}</h1>${fila("Producto",r.producto)}${fila("País",r.pais)}${fila("Valores Permitidos",r.valores)}${fila("¿Qué hace?",r.que)}${fila("¿Cómo funciona?",r.como)}${fila("Dependencias / Reglas",r.dependencias||r.dep)}${fila("¿Cuándo aplica?",r.cuando)}${fila("Ejemplo Funcional",r.ejemplo)}${fila("Notas Visibles al Cliente",r.notas)}</article></body></html>`; 
+            const url=URL.createObjectURL(new Blob([pagina],{type:"text/html"}));const w=window.open(url,"_blank");if(!w)aviso("El navegador bloqueó la nueva pestaña.",true);setTimeout(()=>URL.revokeObjectURL(url),60000); 
+        } 
         function abrirRelacionado(id){const r=encontrarRelacionado(id);if(!r)return aviso("No se encontró la ficha relacionada.",true);opcion=r.__opcion;construirMenu();$("buscar").value=r.nombre;cerrarFormulario();renderizar();window.scrollTo({top:0,behavior:"smooth"});} 
  
         function seleccionarJSON(){$("archivoJSON").value="";$("archivoJSON").click();} 
