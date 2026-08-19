@@ -501,20 +501,38 @@
     <header class="encabezado"> 
       <h1 id="tituloPrincipal">Parámetros del Emisor</h1> 
       <div class="acciones"> 
-        <button class="boton boton-naranja" onclick="nuevoRegistro()"> 
+        <button 
+          id="btnNuevo" 
+          class="boton boton-naranja" 
+          onclick="nuevoRegistro()" 
+        > 
           Nuevo registro 
         </button> 
-        <button class="boton" onclick="seleccionarJSON()">Importar JSON</button> 
-        <button class="boton" onclick="seleccionarExcel()"> 
+        <button id="btnImportarJSON" class="boton" onclick="seleccionarJSON()"> 
+          Importar JSON 
+        </button> 
+        <button 
+          id="btnImportarExcel" 
+          class="boton" 
+          onclick="seleccionarExcel()" 
+        > 
           Importar Excel 
         </button> 
-        <button class="boton boton-naranja" onclick="exportarJSON()"> 
+        <button 
+          id="btnExportarJSON" 
+          class="boton boton-naranja" 
+          onclick="exportarJSON()" 
+        > 
           Exportar JSON 
         </button> 
-        <button class="boton" onclick="exportarWord()"> 
+        <button id="btnExportarWord" class="boton" onclick="exportarWord()"> 
           Exportar Word B/N 
         </button> 
-        <button id="botonEtiquetas" class="boton" onclick="abrirEtiquetas()"> 
+        <button 
+          id="botonEtiquetas" 
+          class="boton boton-naranja" 
+          onclick="abrirEtiquetas()" 
+        > 
           Etiquetas en inglés 
         </button> 
         <button 
@@ -560,7 +578,9 @@
       <input id="filtrarNombre" placeholder="Filtrar nombre" /> 
       <input id="filtrarProducto" placeholder="Filtrar producto" /> 
       <input id="filtrarPais" placeholder="Filtrar país" /> 
-      <button class="boton" onclick="limpiarFiltros()">Limpiar filtros</button> 
+      <button id="btnLimpiar" class="boton" onclick="limpiarFiltros()"> 
+        Limpiar filtros 
+      </button> 
     </section> 
     <div id="estado" class="estado"></div> 
     <h2 id="titulo" class="titulo"></h2> 
@@ -787,6 +807,97 @@
         sinSugerencias: 
           "I did not find enough matches. Try more specific terms.", 
       }; 
+      const textosEditor = { 
+        es: { 
+          titulo: "Parámetros del Emisor", 
+          nuevo: "Nuevo registro", 
+          importarJSON: "Importar JSON", 
+          importarExcel: "Importar Excel", 
+          exportarJSON: "Exportar JSON", 
+          exportarWord: "Exportar Word B/N", 
+          etiquetas: "Corregir etiquetas en inglés", 
+          guardar: "Guardar cambios", 
+          externo: "Externo", 
+          interno: "Interno", 
+          buscar: "Buscar por palabra clave en TODAS las opciones", 
+          filtrarNombre: "Filtrar nombre", 
+          filtrarProducto: "Filtrar producto", 
+          filtrarPais: "Filtrar país", 
+          limpiar: "Limpiar filtros", 
+          todas: "Todas", 
+          resultados: "Resultados en todas las opciones", 
+          opcion: "Opción", 
+          producto: "Producto", 
+          pais: "País", 
+          valores: "Valores Permitidos", 
+          que: "¿Qué hace?", 
+          como: "¿Cómo funciona?", 
+          dependencias: "Dependencias / Reglas", 
+          cuando: "¿Cuándo aplica?", 
+          ejemplo: "Ejemplo Funcional", 
+          notas: "Notas Visibles al Cliente", 
+          duplicar: "Duplicar", 
+          eliminar: "Eliminar", 
+        }, 
+        en: { 
+          titulo: "Issuer Parameters", 
+          nuevo: "New record", 
+          importarJSON: "Import JSON", 
+          importarExcel: "Import Excel", 
+          exportarJSON: "Export JSON", 
+          exportarWord: "Export Word B/W", 
+          etiquetas: "Correct English labels", 
+          guardar: "Save changes", 
+          externo: "External", 
+          interno: "Internal", 
+          buscar: "Search by keyword across ALL options", 
+          filtrarNombre: "Filter by name", 
+          filtrarProducto: "Filter by product", 
+          filtrarPais: "Filter by country", 
+          limpiar: "Clear filters", 
+          todas: "All", 
+          resultados: "Results across all options", 
+          opcion: "Option", 
+          producto: "Product", 
+          pais: "Country", 
+          valores: "Allowed Values", 
+          que: "What does it do?", 
+          como: "How does it work?", 
+          dependencias: "Dependencies / Rules", 
+          cuando: "When does it apply?", 
+          ejemplo: "Functional Example", 
+          notas: "Customer-visible Notes", 
+          duplicar: "Duplicate", 
+          eliminar: "Delete", 
+        }, 
+      }; 
+ 
+      function textoEditor(clave) { 
+        if (idiomaEditor === "en" && etiquetasIngles[clave]) 
+          return etiquetasIngles[clave]; 
+        return ( 
+          textosEditor[idiomaEditor][clave] || textosEditor.es[clave] || clave 
+        ); 
+      } 
+ 
+      function aplicarIdiomaEditor() { 
+        $("tituloPrincipal").textContent = textoEditor("titulo"); 
+        $("btnNuevo").textContent = textoEditor("nuevo"); 
+        $("btnImportarJSON").textContent = textoEditor("importarJSON"); 
+        $("btnImportarExcel").textContent = textoEditor("importarExcel"); 
+        $("btnExportarJSON").textContent = textoEditor("exportarJSON"); 
+        $("btnExportarWord").textContent = textoEditor("exportarWord"); 
+        $("botonEtiquetas").textContent = textoEditor("etiquetas"); 
+        $("botonGuardar").textContent = textoEditor("guardar"); 
+        $("externo").textContent = textoEditor("externo"); 
+        $("interno").textContent = textoEditor("interno"); 
+        $("buscar").placeholder = textoEditor("buscar"); 
+        $("filtrarNombre").placeholder = textoEditor("filtrarNombre"); 
+        $("filtrarProducto").placeholder = textoEditor("filtrarProducto"); 
+        $("filtrarPais").placeholder = textoEditor("filtrarPais"); 
+        $("btnLimpiar").textContent = textoEditor("limpiar"); 
+      } 
+ 
       function escapar(v) { 
         return String(v ?? "").replace( 
           /[&<>"']/g, 
@@ -842,7 +953,7 @@
       } 
       function construirMenu() { 
         $("menu").innerHTML = 
-          `<button class="opcion ${opcion === "todas" ? "activa" : ""}" data-opcion="todas">Todas</button>` + 
+          `<button class="opcion ${opcion === "todas" ? "activa" : ""}" data-opcion="todas">${textoEditor("todas")}</button>` + 
           OPCIONES.map( 
             ([c, n]) => 
               `<button class="opcion ${opcion === c ? "activa" : ""}" data-opcion="${c}" title="Op. ${c} · ${escapar(n)}">Op. ${c} · ${escapar(n)}</button>`, 
@@ -936,7 +1047,7 @@
         return `<div class="campo ${clase}"><div class="etiqueta">${t}</div><div class="texto editable-ficha" contenteditable="true" data-campo="${k}" data-opcion="${c}" data-indice="${i}">${escapar(textoHTML(v) || "")}</div></div>`; 
       } 
       function campoDependencia(c, i, v) { 
-        return `<div class="campo"><div class="etiqueta">Dependencias / Reglas</div><div class="texto dependencia-inline" contenteditable="true" data-dep-opcion="${c}" data-dep-indice="${i}" title="Edite directamente. Seleccione texto y haga clic derecho para vincularlo.">${dependenciaVisible(v)}</div><div class="ayuda">Edición directa · seleccione texto y haga clic derecho para vincular.</div></div>`; 
+        return `<div class="campo"><div class="etiqueta">${textoEditor("dependencias")}</div><div class="texto dependencia-inline" contenteditable="true" data-dep-opcion="${c}" data-dep-indice="${i}" title="Edite directamente. Seleccione texto y haga clic derecho para vincularlo.">${dependenciaVisible(v)}</div><div class="ayuda">Edición directa · seleccione texto y haga clic derecho para vincular.</div></div>`; 
       } 
       function indiceReal(r) { 
         return (datos[r.__opcion] || []).findIndex( 
@@ -952,16 +1063,16 @@
         const a = registrosVisibles(), 
           hayBusqueda = Boolean(normalizar($("buscar").value)); 
         $("titulo").textContent = hayBusqueda 
-          ? "Resultados en todas las opciones" 
+          ? textoEditor("resultados") 
           : opcion === "todas" 
-            ? "Todas las opciones" 
-            : `Opción ${opcion} ${nombreOpcion(opcion)}`; 
+            ? textoEditor("todas") 
+            : `${textoEditor("opcion")} ${opcion} ${nombreOpcion(opcion)}`; 
         $("contenido").innerHTML = a.length 
           ? a 
               .map((r) => { 
                 const c = r.__opcion, 
                   i = indiceReal(r); 
-                return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${escapar(r.nombre || "")}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">Duplicar</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">Eliminar</button></div></div><div class="cuadricula">${campoEditable("Producto", c, i, "producto", r.producto)}${campoEditable("País", c, i, "pais", r.pais)}${campoEditable("Valores Permitidos", c, i, "valores", r.valores)}${campoEditable("¿Qué hace?", c, i, "que", r.que || r.descripcion)}${campoEditable("¿Cómo funciona?", c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable("¿Cuándo aplica?", c, i, "cuando", r.cuando)}${campoEditable("Ejemplo Funcional", c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable("Notas Visibles al Cliente", c, i, "notas", r.notas)}</div></article>`; 
+                return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${escapar(r.nombre || "")}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${campoEditable(textoEditor("producto"), c, i, "producto", r.producto)}${campoEditable(textoEditor("pais"), c, i, "pais", r.pais)}${campoEditable(textoEditor("valores"), c, i, "valores", r.valores)}${campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)}${campoEditable(textoEditor("como"), c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)}${campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
               }) 
               .join("") 
           : '<div class="vacio">No hay registros para mostrar.</div>'; 
@@ -1569,20 +1680,18 @@
           if (i < 0) throw new Error("No se encontró Nombre del Parámetro."); 
           const m = mapaColumnas(filas[i]), 
             get = (r, k) => String(r[m[k]] ?? "").trim(), 
-            items = filas 
-              .slice(i + 1) 
-              .map((r) => ({ 
-                nombre: get(r, "nombre"), 
-                producto: get(r, "producto"), 
-                pais: get(r, "pais"), 
-                valores: get(r, "valores"), 
-                que: get(r, "que"), 
-                como: get(r, "como"), 
-                dependencias: get(r, "dependencias"), 
-                cuando: get(r, "cuando"), 
-                ejemplo: get(r, "ejemplo"), 
-                notas: get(r, "notas"), 
-              })); 
+            items = filas.slice(i + 1).map((r) => ({ 
+              nombre: get(r, "nombre"), 
+              producto: get(r, "producto"), 
+              pais: get(r, "pais"), 
+              valores: get(r, "valores"), 
+              que: get(r, "que"), 
+              como: get(r, "como"), 
+              dependencias: get(r, "dependencias"), 
+              cuando: get(r, "cuando"), 
+              ejemplo: get(r, "ejemplo"), 
+              notas: get(r, "notas"), 
+            })); 
           importarUnicos(items, opcion); 
         } catch (error) { 
           aviso(error.message, true); 
@@ -1634,10 +1743,10 @@
         idiomaEditor = nuevoIdioma; 
         $("botonES").classList.toggle("seleccionado", nuevoIdioma === "es"); 
         $("botonEN").classList.toggle("seleccionado", nuevoIdioma === "en"); 
-        $("tituloPrincipal").textContent = 
-          nuevoIdioma === "es" ? "Parámetros del Emisor" : "Issuer Parameters"; 
         $("botonEtiquetas").style.display = 
           nuevoIdioma === "en" ? "inline-block" : "none"; 
+        if (nuevoIdioma === "en") await cargarEtiquetas(); 
+        aplicarIdiomaEditor(); 
         github = { 
           url: "", 
           propietario: "", 
@@ -1697,6 +1806,8 @@
             etiquetasIngles, 
           ); 
           cerrarEtiquetas(); 
+          aplicarIdiomaEditor(); 
+          renderizar(); 
           aviso("Etiquetas inglesas publicadas para el visor."); 
         } catch (error) { 
           aviso(error.message, true); 
@@ -1739,6 +1850,7 @@
         construirMenu(); 
         opcionesFormulario("05"); 
         $("botonEtiquetas").style.display = "none"; 
+        aplicarIdiomaEditor(); 
         const detectado = detectarRepositorio(); 
         if (detectado) 
           github = { 
