@@ -158,9 +158,7 @@
         display: grid; 
         grid-template-columns: 2fr repeat(3, 1fr) auto; 
         gap: 8px; 
-        padding: 12px 22px;        background: var(--fondo); 
-        border-bottom: 1px solid var(--borde); 
-        box-shadow: 0 4px 10px #00000012; 
+        padding: 12px 22px; 
       } 
  
       input, 
@@ -389,40 +387,11 @@
         font-size: 11px; 
       } 
  
-      .tarjeta-flotante { 
-        position: fixed; 
-        z-index: 160; 
-        display: none; 
-        width: 520px; 
-        max-width: calc(100vw - 24px); 
-        max-height: 440px; 
-        overflow: auto; 
-        padding: 12px; 
-        background: white; 
-        border: 1px solid var(--borde); 
-        border-radius: 12px; 
-        box-shadow: 0 14px 38px #0005; 
-        font-size: 14px; 
-      } 
-      .tarjeta-flotante h4 { 
-        margin: 0; 
-        color: var(--naranja); 
-        font-size: 18px; 
-      } 
-      .vista-previa-campo { 
-        padding: 7px 0; 
-        border-bottom: 1px solid #eee; 
-        line-height: 1.35; 
-        white-space: pre-wrap; 
-      } 
-      .vista-previa-campo b { 
-        display: block; 
-        margin-bottom: 2px; 
-        color: var(--gris); 
-      } 
-      .acciones-flotantes { 
-        margin-top: 10px; 
-      } 
+      .tarjeta-flotante { position: fixed; z-index: 160; display: none; width: 520px; max-width: calc(100vw - 24px); max-height: 440px; overflow: auto; padding: 12px; background: white; border: 1px solid var(--borde); border-radius: 12px; box-shadow: 0 14px 38px #0005; font-size: 14px; } 
+      .tarjeta-flotante h4 { margin: 0; color: var(--naranja); font-size: 18px; } 
+      .vista-previa-campo { padding: 7px 0; border-bottom: 1px solid #eee; line-height: 1.35; white-space: pre-wrap; } 
+      .vista-previa-campo b { display: block; margin-bottom: 2px; color: var(--gris); } 
+      .acciones-flotantes { margin-top: 10px; } 
       @media (max-width: 1050px) { 
         .menu-opciones { 
           grid-template-columns: repeat(8, 1fr); 
@@ -538,6 +507,7 @@
       </div> 
     </aside> 
     <div id="tarjetaDependencia" class="tarjeta-flotante"></div> 
+ 
     <script> 
       "use strict"; 
  
@@ -686,6 +656,49 @@
       const $ = (id) => document.getElementById(id); 
  
       let idioma = "es"; 
+      let modoFicha = false; 
+      let fichaSolicitada = ""; 
+      function claveFicha(registro) { 
+        return registro.id || 
+          `op${registro.__opcion || registro.codigo}-${normalizar(registro.nombre).replaceAll(" ", "-")}`; 
+      } 
+      function prepararModoFicha() { 
+        const parametros = new URLSearchParams(location.search); 
+        if (parametros.get("modo") !== "ficha") return; 
+        modoFicha = true; 
+        idioma = parametros.get("idioma") === "en" ? "en" : "es"; 
+        ambito = parametros.get("ambito") === "interno" ? "interno" : "externo"; 
+        opcion = parametros.get("opcion") || "05"; 
+        fichaSolicitada = parametros.get("id") || ""; 
+      } 
+      function aplicarModoFicha() { 
+        if (!modoFicha) return; 
+        document.querySelector(".encabezado")?.setAttribute("hidden", ""); 
+        document.querySelector(".pestanas")?.setAttribute("hidden", ""); 
+        $("menuOpciones")?.setAttribute("hidden", ""); 
+        document.querySelector(".filtros")?.setAttribute("hidden", ""); 
+        $("estado")?.setAttribute("hidden", ""); 
+        $("tituloOpcion")?.setAttribute("hidden", ""); 
+        $("botonPreguntas")?.setAttribute("hidden", ""); 
+      } 
+      function abrirFichaURL(registro) { 
+        const url = new URL(location.href); 
+        url.search = ""; 
+        url.hash = ""; 
+        url.searchParams.set("modo", "ficha"); 
+        url.searchParams.set("idioma", idioma); 
+        url.searchParams.set("ambito", ambito); 
+        url.searchParams.set("opcion", registro.__opcion || registro.codigo || opcion); 
+        url.searchParams.set("id", claveFicha(registro)); 
+        window.open(url.href, "_blank", "noopener"); 
+      } 
+      function encontrarRelacionado(id) { 
+        return todosLosRegistros().find((registro) => 
+          registro.id === id || claveFicha(registro) === id || 
+          `op${registro.__opcion}-${normalizar(registro.nombre).replaceAll(" ", "-")}` === id 
+        ); 
+      } 
+ 
       let etiquetasPersonalizadas = {}; 
       let ambito = "externo"; 
       let opcion = "05"; 
@@ -868,6 +881,9 @@
       }); 
  
       function registrosVisibles() { 
+        if (modoFicha) { 
+          return todosLosRegistros().filter((registro) => claveFicha(registro) === fichaSolicitada); 
+        } 
         const general = normalizar($("buscar").value); 
         const nombre = normalizar($("filtrarNombre").value); 
         const producto = normalizar($("filtrarProducto").value); 
@@ -909,52 +925,11 @@
           : contenido; 
       } 
  
-      function resaltarHTML(valor) { 
-        const contenedor = document.createElement("div"); 
-        contenedor.innerHTML = String(valor || "—"); 
-        const consulta = $("buscar").value.trim(); 
-        if (!consulta) return contenedor.innerHTML; 
-        const partes = consulta 
-          .split(/\s+/) 
-          .filter(Boolean) 
-          .sort((a, b) => b.length - a.length) 
-          .map((parte) => parte.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); 
-        if (!partes.length) return contenedor.innerHTML; 
-        const expresion = new RegExp(`(${partes.join("|")})`, "gi"); 
-        const caminante = document.createTreeWalker( 
-          contenedor, 
-          NodeFilter.SHOW_TEXT, 
-        ); 
-        const nodos = []; 
-        while (caminante.nextNode()) nodos.push(caminante.currentNode); 
-        nodos.forEach((nodo) => { 
-          if (!expresion.test(nodo.nodeValue || "")) { 
-            expresion.lastIndex = 0; 
-            return; 
-          } 
-          expresion.lastIndex = 0; 
-          const fragmento = document.createDocumentFragment(); 
-          let ultimo = 0; 
-          (nodo.nodeValue || "").replace(expresion, (coincidencia, _grupo, indice) => { 
-            fragmento.appendChild( 
-              document.createTextNode(nodo.nodeValue.slice(ultimo, indice)), 
-            ); 
-            const marca = document.createElement("mark"); 
-            marca.textContent = coincidencia; 
-            fragmento.appendChild(marca); 
-            ultimo = indice + coincidencia.length; 
-            return coincidencia; 
-          }); 
-          fragmento.appendChild(document.createTextNode(nodo.nodeValue.slice(ultimo))); 
-          nodo.replaceWith(fragmento); 
-        }); 
-        return contenedor.innerHTML; 
-      } 
       function campo(etiqueta, valor, clase = "", dependencia = false) { 
         return ` 
                 <div class="campo ${clase}"> 
                     <div class="etiqueta">${etiqueta}</div> 
-                    <div class="texto">${dependencia ? resaltarHTML(valor) : resaltar(valor)}</div> 
+                    <div class="texto">${dependencia ? String(valor || "—") : resaltar(valor)}</div> 
                 </div> 
             `; 
       } 
@@ -1128,113 +1103,11 @@
         if (separador < 0) return; 
         const codigo = boton.dataset.recomendacion.slice(0, separador); 
         const identificador = boton.dataset.recomendacion.slice(separador + 1); 
-        const registro = (datos[codigo] || []).find( 
-          (item) => claveRegistro(item) === identificador, 
-        ); 
+        const registro = (datos[codigo] || []).find((item) => claveRegistro(item) === identificador); 
         if (!registro) return; 
-        abrirNuevaPestanaVisor(claveRegistro({ ...registro, __opcion: codigo })); 
+        abrirFichaURL({ ...registro, __opcion: codigo }); 
       }); 
-      function base64Unicode(valor) { 
-        const bytes = new TextEncoder().encode(valor); 
-        let binario = ""; 
-        for (let i = 0; i < bytes.length; i += 32768) { 
-          binario += String.fromCharCode(...bytes.subarray(i, i + 32768)); 
-        } 
-        return btoa(binario); 
-      } 
-      function encontrarRelacionado(id) { 
-        return todosLosRegistros().find( 
-          (registro) => 
-            registro.id === id || 
-            `op${registro.__opcion}-${normalizar(registro.nombre).replaceAll(" ", "-")}` === id || 
-            claveRegistro(registro) === id, 
-        ); 
-      } 
-      function textosFicha() { 
-        const t = textosActivos(); 
-        return { 
-          producto: t.productoCampo, 
-          pais: t.paisCampo, 
-          valores: t.valores, 
-          que: t.que, 
-          como: t.como, 
-          dependencias: t.dependencias, 
-          cuando: t.cuando, 
-          ejemplo: t.ejemplo, 
-          notas: t.notas, 
-          abrir: idioma === "en" ? "Open in new tab" : "Abrir en nueva pestaña", 
-        }; 
-      } 
-      function paginaFichaInteractiva(registroInicial, textos) { 
-        const registros = todosLosRegistros().map((registro) => ({ ...registro })); 
-        const codificado = base64Unicode( 
-          JSON.stringify({ registros, inicial: registroInicial, textos }), 
-        ); 
-        return "<!doctype html>\n<html lang=\"__LANG__\">\n<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>__TITLE__</title>\n<style>:root{--o:#ff6c0c;--g:#4f4f4f;--bg:#f2f2f2;--br:#d9d9d9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#333;font-family:Segoe UI,Arial,sans-serif}.ficha{max-width:900px;margin:30px auto;background:#fff;border:1px solid var(--br);box-shadow:0 2px 7px #00000012}.codigo{padding:12px 18px;background:#595959;color:#fff;font-weight:800}.nombre{margin:0;padding:18px;border-bottom:1px solid var(--br);color:var(--o);font-size:30px;font-weight:300}.campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px}.campo{min-height:95px;padding:12px;background:#fafafa;border:1px solid #e5e5e5;border-top:4px solid #bbb;line-height:1.4;white-space:pre-wrap}.campo b{display:block;margin-bottom:7px;color:#444;font-size:11px;text-transform:uppercase}.dep-ref-inline{padding:0 2px;border-bottom:2px solid var(--o);border-radius:3px;background:#fff0c2;color:#8a3b00;font-weight:800;text-decoration:none;cursor:pointer}.vista{position:fixed;z-index:50;display:none;width:520px;max-width:calc(100vw - 24px);max-height:440px;overflow:auto;padding:12px;background:#fff;border:1px solid var(--br);border-radius:12px;box-shadow:0 14px 38px #0005}.vista h4{margin:0;color:var(--o);font-size:18px}.fila{padding:7px 0;border-bottom:1px solid #eee;white-space:pre-wrap}.fila b{display:block;color:var(--g);margin-bottom:2px}.boton{margin-top:10px;padding:9px 12px;border:0;border-radius:8px;background:var(--o);color:#fff;font-weight:800;cursor:pointer}@media(max-width:700px){.ficha{margin:0}.campos{grid-template-columns:1fr}}</style></head>\n<body><main id=\"app\"></main><aside id=\"vista\" class=\"vista\"></aside>\n<script>\"use strict\";const paquete=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(\"__DATA__\"),function(c){return c.charCodeAt(0)})));const registros=paquete.registros,textos=paquete.textos;const esc=function(v){return String(v==null?\"\":v).replace(/[&<>\"']/g,function(m){return{\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",\"\\\"\":\"&quot;\",\"'\":\"&#039;\"}[m]})};const plano=function(v){const d=document.createElement(\"div\");d.innerHTML=String(v==null?\"\":v);return d.textContent||\"\"};const normalizar=function(v){return String(v==null?\"\":v).toLowerCase().normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g,\"\").replace(/[^a-z0-9]+/g,\" \").trim()};const clave=function(r){return r.id||(\"op\"+r.__opcion+\"-\"+normalizar(r.nombre).replaceAll(\" \",\"-\"))};const buscar=function(id){return registros.find(function(r){return r.id===id||clave(r)===id||(\"op\"+r.__opcion+\"-\"+normalizar(r.nombre).replaceAll(\" \",\"-\"))===id})};const campo=function(t,v,html){return '<section class=\"campo\"><b>'+esc(t)+'</b><div>'+(html?String(v||\"—\"):esc(plano(v)||\"—\"))+'</div></section>'};function render(r){document.getElementById(\"app\").innerHTML='<article class=\"ficha\"><div class=\"codigo\">Op. '+esc(r.__opcion||r.codigo||\"\")+'</div><h1 class=\"nombre\">'+esc(r.nombre||\"\")+'</h1><div class=\"campos\">'+campo(textos.producto,r.producto)+campo(textos.pais,r.pais)+campo(textos.valores,r.valores)+campo(textos.que,r.que||r.descripcion)+campo(textos.como,r.como)+campo(textos.dependencias,r.dependencias||r.dep,true)+campo(textos.cuando,r.cuando)+campo(textos.ejemplo,r.ejemplo)+campo(textos.notas,r.notas)+'</div></article>'}function mostrar(a){const r=buscar(a.dataset.target);if(!r)return;const v=document.getElementById(\"vista\"),rect=a.getBoundingClientRect();const fila=function(t,x){return '<div class=\"fila\"><b>'+esc(t)+'</b>'+esc(plano(x)||\"—\")+'</div>'};v.innerHTML='<h4>'+esc(r.nombre)+'</h4><p>Op. '+esc(r.__opcion||r.codigo||\"\")+'</p>'+fila(textos.producto,r.producto)+fila(textos.pais,r.pais)+fila(textos.valores,r.valores)+fila(textos.que,r.que)+fila(textos.como,r.como)+fila(textos.dependencias,r.dependencias||r.dep)+fila(textos.cuando,r.cuando)+fila(textos.ejemplo,r.ejemplo)+fila(textos.notas,r.notas)+'<button class=\"boton\" data-abrir=\"'+esc(clave(r))+'\">'+esc(textos.abrir)+'</button>';v.style.display=\"block\";v.style.left=Math.max(6,Math.min(rect.left,innerWidth-v.offsetWidth-12))+\"px\";v.style.top=Math.max(6,Math.min(rect.bottom+8,innerHeight-v.offsetHeight-12))+\"px\"}document.addEventListener(\"mouseover\",function(e){const a=e.target.closest&&e.target.closest(\".dep-ref-inline\");if(a)mostrar(a)});document.addEventListener(\"click\",function(e){const a=e.target.closest&&e.target.closest(\".dep-ref-inline\");if(a){e.preventDefault();mostrar(a)}const b=e.target.closest&&e.target.closest(\"[data-abrir]\");if(b){const r=buscar(b.dataset.abrir);if(r){const w=open(\"\",\"_blank\");if(w){w.document.open();w.document.write(document.documentElement.outerHTML);w.document.close();w.location.hash=encodeURIComponent(clave(r))}}}});window.addEventListener(\"message\",function(e){if(e.data&&e.data.tipo===\"mostrar\"){const r=buscar(e.data.id);if(r)render(r)}});document.addEventListener(\"pointerdown\",function(e){const v=document.getElementById(\"vista\");if(!v.contains(e.target)&&!(e.target.closest&&e.target.closest(\".dep-ref-inline\")))v.style.display=\"none\"});const objetivo=decodeURIComponent(location.hash.slice(1));render(buscar(objetivo)||paquete.inicial);<\\/script></body></html>" 
-          .replaceAll("__LANG__", idioma) 
-          .replaceAll("__TITLE__", escapar(registroInicial.nombre || "")) 
-          .replace("__DATA__", codificado); 
-      } 
-      function abrirNuevaPestanaVisor(id) { 
-        const registro = encontrarRelacionado(id); 
-        if (!registro) return; 
-        const ventana = window.open("", "_blank"); 
-        if (!ventana) { 
-          alert( 
-            idioma === "en" 
-              ? "The browser blocked the new tab." 
-              : "El navegador bloqueó la nueva pestaña.", 
-          ); 
-          return; 
-        } 
-        ventana.document.open(); 
-        ventana.document.write( 
-          paginaFichaInteractiva(registro, textosFicha()), 
-        ); 
-        ventana.document.close(); 
-      } 
-      function mostrarVistaPrevia(enlace) { 
-        const registro = encontrarRelacionado(enlace.dataset.target); 
-        if (!registro) return; 
-        const t = textosFicha(); 
-        const panel = $("tarjetaDependencia"); 
-        const rect = enlace.getBoundingClientRect(); 
-        const fila = (etiqueta, valor) => 
-          `<div class="vista-previa-campo"><b>${escapar(etiqueta)}</b>${escapar(textoPlano(valor) || "—")}</div>`; 
-        panel.innerHTML = `<h4>${escapar(registro.nombre || "")}</h4><p>Op. ${escapar(registro.__opcion || registro.codigo || "")}</p>${fila(t.producto, registro.producto)}${fila(t.pais, registro.pais)}${fila(t.valores, registro.valores)}${fila(t.que, registro.que)}${fila(t.como, registro.como)}${fila(t.dependencias, registro.dependencias || registro.dep)}${fila(t.cuando, registro.cuando)}${fila(t.ejemplo, registro.ejemplo)}${fila(t.notas, registro.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-abrir-relacion="${escapar(claveRegistro(registro))}">${escapar(t.abrir)}</button></div>`; 
-        panel.style.display = "block"; 
-        panel.style.left = Math.max( 
-          6, 
-          Math.min(rect.left, window.innerWidth - panel.offsetWidth - 12), 
-        ) + "px"; 
-        panel.style.top = Math.max( 
-          6, 
-          Math.min(rect.bottom + 8, window.innerHeight - panel.offsetHeight - 12), 
-        ) + "px"; 
-      } 
-      document.addEventListener("mouseover", (evento) => { 
-        const enlace = evento.target.closest?.(".dep-ref-inline"); 
-        if (enlace) mostrarVistaPrevia(enlace); 
-      }); 
-      document.addEventListener("click", (evento) => { 
-        const enlace = evento.target.closest?.(".dep-ref-inline"); 
-        if (enlace) { 
-          evento.preventDefault(); 
-          mostrarVistaPrevia(enlace); 
-        } 
-        const abrir = evento.target.closest?.("[data-abrir-relacion]"); 
-        if (abrir) abrirNuevaPestanaVisor(abrir.dataset.abrirRelacion); 
-      }); 
-      document.addEventListener("pointerdown", (evento) => { 
-        const panel = $("tarjetaDependencia"); 
-        if ( 
-          panel.style.display === "block" && 
-          !panel.contains(evento.target) && 
-          !evento.target.closest?.(".dep-ref-inline") 
-        ) { 
-          panel.style.display = "none"; 
-        } 
-      }); 
+ 
       function alternarPreguntas(forzar) { 
         const panel = $("panelPreguntas"); 
         panel.hidden = typeof forzar === "boolean" ? !forzar : !panel.hidden; 
@@ -1281,11 +1154,13 @@
       } 
  
       document.addEventListener("DOMContentLoaded", async () => { 
+        prepararModoFicha(); 
         await cargarEtiquetasPersonalizadas(); 
         aplicarTextos(); 
         construirMenu(); 
         activarArrastre(); 
         await cargarDatos(); 
+        aplicarModoFicha(); 
       }); 
     </script> 
   </body> 
