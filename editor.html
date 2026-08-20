@@ -1008,6 +1008,11 @@
         await cargarTodo(); 
       } 
       function registrosVisibles() { 
+        if (modoFicha) { 
+          return todos().filter( 
+            (registro) => claveFicha(registro) === fichaSolicitada, 
+          ); 
+        } 
         const q = normalizar($("buscar").value), 
           n = normalizar($("filtrarNombre").value), 
           p = normalizar($("filtrarProducto").value), 
@@ -1138,7 +1143,6 @@
         const a = e.target.closest(".dep-ref-inline"); 
         if (a) { 
           e.preventDefault(); 
-          abrirRelacionado(a.dataset.target); 
         } 
       }); 
       ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
@@ -1621,40 +1625,66 @@
           aviso("Vínculo eliminado. Guarde los cambios para publicarlo."); 
         } 
       }); 
-      function paginaFichaInteractiva(registroInicial, textos) { 
-        const registros = todos().map((registro) => ({ ...registro })); 
-        const codificado = base64Unicode( 
-          JSON.stringify({ registros, inicial: registroInicial, textos }), 
+      let modoFicha = false; 
+      let fichaSolicitada = ""; 
+ 
+      function claveFicha(registro) { 
+        return ( 
+          registro.id || 
+          `op${registro.__opcion || registro.codigo}-${normalizar(registro.nombre).replaceAll(" ", "-")}` 
         ); 
-        return "<!doctype html>\n<html lang=\"__LANG__\">\n<head><meta charset=\"utf-8\"><meta name=\"viewport\" content=\"width=device-width,initial-scale=1\"><title>__TITLE__</title>\n<style>:root{--o:#ff6c0c;--g:#4f4f4f;--bg:#f2f2f2;--br:#d9d9d9}*{box-sizing:border-box}body{margin:0;background:var(--bg);color:#333;font-family:Segoe UI,Arial,sans-serif}.ficha{max-width:900px;margin:30px auto;background:#fff;border:1px solid var(--br);box-shadow:0 2px 7px #00000012}.codigo{padding:12px 18px;background:#595959;color:#fff;font-weight:800}.nombre{margin:0;padding:18px;border-bottom:1px solid var(--br);color:var(--o);font-size:30px;font-weight:300}.campos{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:10px;padding:14px}.campo{min-height:95px;padding:12px;background:#fafafa;border:1px solid #e5e5e5;border-top:4px solid #bbb;line-height:1.4;white-space:pre-wrap}.campo b{display:block;margin-bottom:7px;color:#444;font-size:11px;text-transform:uppercase}.dep-ref-inline{padding:0 2px;border-bottom:2px solid var(--o);border-radius:3px;background:#fff0c2;color:#8a3b00;font-weight:800;text-decoration:none;cursor:pointer}.vista{position:fixed;z-index:50;display:none;width:520px;max-width:calc(100vw - 24px);max-height:440px;overflow:auto;padding:12px;background:#fff;border:1px solid var(--br);border-radius:12px;box-shadow:0 14px 38px #0005}.vista h4{margin:0;color:var(--o);font-size:18px}.fila{padding:7px 0;border-bottom:1px solid #eee;white-space:pre-wrap}.fila b{display:block;color:var(--g);margin-bottom:2px}.boton{margin-top:10px;padding:9px 12px;border:0;border-radius:8px;background:var(--o);color:#fff;font-weight:800;cursor:pointer}@media(max-width:700px){.ficha{margin:0}.campos{grid-template-columns:1fr}}</style></head>\n<body><main id=\"app\"></main><aside id=\"vista\" class=\"vista\"></aside>\n<script>\"use strict\";const paquete=JSON.parse(new TextDecoder().decode(Uint8Array.from(atob(\"__DATA__\"),function(c){return c.charCodeAt(0)})));const registros=paquete.registros,textos=paquete.textos;const esc=function(v){return String(v==null?\"\":v).replace(/[&<>\"']/g,function(m){return{\"&\":\"&amp;\",\"<\":\"&lt;\",\">\":\"&gt;\",\"\\\"\":\"&quot;\",\"'\":\"&#039;\"}[m]})};const plano=function(v){const d=document.createElement(\"div\");d.innerHTML=String(v==null?\"\":v);return d.textContent||\"\"};const normalizar=function(v){return String(v==null?\"\":v).toLowerCase().normalize(\"NFD\").replace(/[\\u0300-\\u036f]/g,\"\").replace(/[^a-z0-9]+/g,\" \").trim()};const clave=function(r){return r.id||(\"op\"+r.__opcion+\"-\"+normalizar(r.nombre).replaceAll(\" \",\"-\"))};const buscar=function(id){return registros.find(function(r){return r.id===id||clave(r)===id||(\"op\"+r.__opcion+\"-\"+normalizar(r.nombre).replaceAll(\" \",\"-\"))===id})};const campo=function(t,v,html){return '<section class=\"campo\"><b>'+esc(t)+'</b><div>'+(html?String(v||\"—\"):esc(plano(v)||\"—\"))+'</div></section>'};function render(r){document.getElementById(\"app\").innerHTML='<article class=\"ficha\"><div class=\"codigo\">Op. '+esc(r.__opcion||r.codigo||\"\")+'</div><h1 class=\"nombre\">'+esc(r.nombre||\"\")+'</h1><div class=\"campos\">'+campo(textos.producto,r.producto)+campo(textos.pais,r.pais)+campo(textos.valores,r.valores)+campo(textos.que,r.que||r.descripcion)+campo(textos.como,r.como)+campo(textos.dependencias,r.dependencias||r.dep,true)+campo(textos.cuando,r.cuando)+campo(textos.ejemplo,r.ejemplo)+campo(textos.notas,r.notas)+'</div></article>'}function mostrar(a){const r=buscar(a.dataset.target);if(!r)return;const v=document.getElementById(\"vista\"),rect=a.getBoundingClientRect();const fila=function(t,x){return '<div class=\"fila\"><b>'+esc(t)+'</b>'+esc(plano(x)||\"—\")+'</div>'};v.innerHTML='<h4>'+esc(r.nombre)+'</h4><p>Op. '+esc(r.__opcion||r.codigo||\"\")+'</p>'+fila(textos.producto,r.producto)+fila(textos.pais,r.pais)+fila(textos.valores,r.valores)+fila(textos.que,r.que)+fila(textos.como,r.como)+fila(textos.dependencias,r.dependencias||r.dep)+fila(textos.cuando,r.cuando)+fila(textos.ejemplo,r.ejemplo)+fila(textos.notas,r.notas)+'<button class=\"boton\" data-abrir=\"'+esc(clave(r))+'\">'+esc(textos.abrir)+'</button>';v.style.display=\"block\";v.style.left=Math.max(6,Math.min(rect.left,innerWidth-v.offsetWidth-12))+\"px\";v.style.top=Math.max(6,Math.min(rect.bottom+8,innerHeight-v.offsetHeight-12))+\"px\"}document.addEventListener(\"mouseover\",function(e){const a=e.target.closest&&e.target.closest(\".dep-ref-inline\");if(a)mostrar(a)});document.addEventListener(\"click\",function(e){const a=e.target.closest&&e.target.closest(\".dep-ref-inline\");if(a){e.preventDefault();mostrar(a)}const b=e.target.closest&&e.target.closest(\"[data-abrir]\");if(b){const r=buscar(b.dataset.abrir);if(r){const w=open(\"\",\"_blank\");if(w){w.document.open();w.document.write(document.documentElement.outerHTML);w.document.close();w.location.hash=encodeURIComponent(clave(r))}}}});window.addEventListener(\"message\",function(e){if(e.data&&e.data.tipo===\"mostrar\"){const r=buscar(e.data.id);if(r)render(r)}});document.addEventListener(\"pointerdown\",function(e){const v=document.getElementById(\"vista\");if(!v.contains(e.target)&&!(e.target.closest&&e.target.closest(\".dep-ref-inline\")))v.style.display=\"none\"});const objetivo=decodeURIComponent(location.hash.slice(1));render(buscar(objetivo)||paquete.inicial);<\\/script></body></html>" 
-          .replaceAll("__LANG__", idiomaEditor || "es") 
-          .replaceAll("__TITLE__", escapar(registroInicial.nombre || "")) 
-          .replace("__DATA__", codificado); 
       } 
+ 
+      function prepararModoFicha() { 
+        const parametros = new URLSearchParams(location.search); 
+        if (parametros.get("modo") !== "ficha") return; 
+        modoFicha = true; 
+        idiomaEditor = parametros.get("idioma") === "en" ? "en" : "es"; 
+        ambito = parametros.get("ambito") === "interno" ? "interno" : "externo"; 
+        opcion = parametros.get("opcion") || "05"; 
+        fichaSolicitada = parametros.get("id") || ""; 
+      } 
+ 
+      function aplicarModoFicha() { 
+        if (!modoFicha) return; 
+        document.querySelector(".encabezado")?.setAttribute("hidden", ""); 
+        document.querySelector(".pestanas")?.setAttribute("hidden", ""); 
+        $("menu")?.setAttribute("hidden", ""); 
+        document.querySelector(".filtros")?.setAttribute("hidden", ""); 
+        $("estado")?.setAttribute("hidden", ""); 
+        $("titulo")?.setAttribute("hidden", ""); 
+        document.querySelectorAll(".acciones-ficha").forEach((elemento) => { 
+          elemento.setAttribute("hidden", ""); 
+        }); 
+        document.querySelectorAll("[contenteditable='true']").forEach((elemento) => { 
+          elemento.setAttribute("contenteditable", "false"); 
+        }); 
+      } 
+ 
+      function abrirFichaURL(registro) { 
+        const url = new URL(location.href); 
+        url.search = ""; 
+        url.hash = ""; 
+        url.searchParams.set("modo", "ficha"); 
+        url.searchParams.set("idioma", idiomaEditor); 
+        url.searchParams.set("ambito", ambito); 
+        url.searchParams.set( 
+          "opcion", 
+          registro.__opcion || registro.codigo || opcion, 
+        ); 
+        url.searchParams.set("id", claveFicha(registro)); 
+        window.open(url.href, "_blank", "noopener"); 
+      } 
+ 
       function abrirNuevaPestana(id) { 
-        const r = encontrarRelacionado(id); 
-        if (!r) return aviso("No se encontró la ficha relacionada.", true); 
-        const t = { 
-          producto: textoEditor("producto"), 
-          pais: textoEditor("pais"), 
-          valores: textoEditor("valores"), 
-          que: textoEditor("que"), 
-          como: textoEditor("como"), 
-          dependencias: textoEditor("dependencias"), 
-          cuando: textoEditor("cuando"), 
-          ejemplo: textoEditor("ejemplo"), 
-          notas: textoEditor("notas"), 
-          abrir: idiomaEditor === "en" ? "Open in new tab" : "Abrir en nueva pestaña", 
-        }; 
-        const w = window.open("", "_blank"); 
-        if (!w) { 
-          aviso("El navegador bloqueó la nueva pestaña.", true); 
+        const registro = encontrarRelacionado(id); 
+        if (!registro) { 
+          aviso("No se encontró la ficha relacionada.", true); 
           return; 
         } 
-        w.document.open(); 
-        w.document.write(paginaFichaInteractiva(r, t)); 
-        w.document.close(); 
+        abrirFichaURL(registro); 
       } 
+ 
       function abrirRelacionado(id) { 
         const r = encontrarRelacionado(id); 
         if (!r) return aviso("No se encontró la ficha relacionada.", true); 
@@ -1929,6 +1959,11 @@
         } 
       }); 
       document.addEventListener("DOMContentLoaded", async () => { 
+        prepararModoFicha(); 
+        $("botonES").classList.toggle("seleccionado", idiomaEditor === "es"); 
+        $("botonEN").classList.toggle("seleccionado", idiomaEditor === "en"); 
+        $("externo").classList.toggle("activa", ambito === "externo"); 
+        $("interno").classList.toggle("activa", ambito === "interno"); 
         construirMenu(); 
         opcionesFormulario("05"); 
         $("botonEtiquetas").style.display = "none"; 
@@ -1940,9 +1975,11 @@
             token: localStorage.getItem("peToken") || "", 
           }; 
         await cargarTodo(); 
+        aplicarModoFicha(); 
       }); 
     </script> 
   </body> 
 </html> 
+ 
  
  
