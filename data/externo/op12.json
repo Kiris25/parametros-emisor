@@ -118,14 +118,14 @@
     "valores": "Porcentaje entre 0% y 100%.",
     "que": "Define qué porcentaje del costo de la membresía será cobrado.",
     "como": "El sistema calcula el monto a cobrar aplicando el porcentaje configurado sobre el valor total de la membresía.",
-    "dependencias": "Este parámetro solo tiene efecto si el <a href=\"#\" class=\"dep-ref-inline\" data-target=\"abb65a9e-9504-4bff-adde-9f4ab57bfebd\">cobro de membresía</a> está habilitado mediante el parámetro “<a href=\"#\" class=\"dep-ref-inline\" data-target=\"abb65a9e-9504-4bff-adde-9f4ab57bfebd\">Cobro de Membresía</a>” . Si dicho parámetro está desactivado, no se realiza ningún cobro, aunque el porcentaje sea mayor a 0%.",
+    "dependencias": "Este parámetro solo tiene efecto si el cobro de membresía está habilitado mediante el parámetro “<a href=\"#\" class=\"dep-ref-inline\" data-target=\"abb65a9e-9504-4bff-adde-9f4ab57bfebd\">Cobro de Membresía</a>” . Si dicho parámetro está desactivado, no se realiza ningún cobro, aunque el porcentaje sea mayor a 0%.",
     "cuando": "Cuando el sistema está configurado para generar cargos de membresía en la cuenta.",
     "ejemplo": "Si la membresía es de 100 y el porcentaje es 100%, se cobra el total. Si el porcentaje es 0%, no se cobra. Si el cobro de membresía está desactivado, no se cobra nada en ningún caso.",
     "notas": "Este parámetro permite definir estrategias comerciales, como cobros parciales o promociones. Sin embargo, su efecto depende de que el cobro de membresía esté activado.",
     "codigo": "12",
     "id": "f84500a3-5857-4e9b-a120-d63a992e0293",
     "creadoEn": "2026-08-20T12:37:29.446Z",
-    "actualizadoEn": "2026-08-20T12:39:31.894Z"
+    "actualizadoEn": "2026-08-20T13:06:53.117Z"
   },
   {
     "nombre": "Porcentaje Máximo de Adelantos",
