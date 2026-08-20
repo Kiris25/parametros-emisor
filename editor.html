@@ -1,1579 +1,1946 @@
-name=visor.html url=https://github.com/Kiris25/kiris-v2/blob/main/visor.html
-<!DOCTYPE html>
-<html lang="es">
-
-<head>
-  <meta charset="utf-8">
-  <meta content="width=device-width, initial-scale=1.0" name="viewport">
-  <title>Repositorio de Manuales KIRIS V2 | Visor</title>
-  <link href="css/estilos.css" rel="stylesheet">
-  
-  <style>
-    /* Complementa estilos del editor. La apariencia principal procede de css/estilos.css */
-
-    .viewer-meta {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px 14px;
-      align-items: center;
-    }
-
-    .viewer-meta span {
-      white-space: nowrap;
-    }
-
-    .filter-menu {
-      position: fixed;
-      z-index: 9999;
-      width: 270px;
-      max-height: 410px;
-      padding: 10px;
-      background: var(--fondo-ventana, #f9f9f9);
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-    }
-
-    .filter-menu-close {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      background: none;
-      border: none;
-      font-size: 20px;
-      cursor: pointer;
-      color: #999;
-      padding: 0;
-      width: 24px;
-      height: 24px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-    }
-
-    .filter-menu-close:hover {
-      color: #333;
-    }
-
-    .filter-options {
-      flex: 1;
-      overflow-y: auto;
-      display: flex;
-      flex-direction: column;
-      gap: 4px;
-    }
-
-    .filter-option {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 4px 8px;
-      cursor: pointer;
-      user-select: none;
-      font-size: 0.9em;
-    }
-
-    .filter-option:hover {
-      background: rgba(0, 0, 0, 0.05);
-      border-radius: 3px;
-    }
-
-    .filter-option input {
-      cursor: pointer;
-      margin: 0;
-    }
-
-    .viewer-only .editor-only,
-    .viewer-only .btn-danger,
-    .viewer-only [data-edit],
-    .viewer-only [data-delete] {
-      display: none !important;
-    }
-
-    .viewer-table {
-      width: 100%;
-      border-collapse: collapse;
-    }
-
-    .viewer-table th {
-      position: sticky;
-      top: 0;
-      background: var(--gris, #666);
-      color: #fff;
-      overflow: visible;
-      font-weight: bold;
-      padding: 8px;
-      text-align: left;
-      font-size: 0.9em;
-    }
-
-    .viewer-table td {
-      white-space: normal;
-      overflow-wrap: anywhere;
-      word-break: break-word;
-      padding: 8px;
-      border-bottom: 1px solid var(--borde-claro, #ddd);
-    }
-
-    .viewer-table tbody tr:hover {
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .viewer-table col {
-      width: auto;
-    }
-
-    .viewer-filter-input {
-      padding: 6px 8px;
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 3px;
-      font-size: 0.85em;
-      background: #f5f5f5;
-      cursor: pointer;
-    }
-
-    .viewer-filter-input:hover {
-      background: #f0f0f0;
-    }
-
-    .viewer-inline-filter {
-      position: fixed;
-      z-index: 10000;
-      background: #fff;
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 3px;
-      padding: 6px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
-    }
-
-    .viewer-inline-filter input {
-      width: 100%;
-      padding: 6px 8px;
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 3px;
-      font-size: 0.9em;
-    }
-
-    .detalle-produccion-modal {
-      position: fixed;
-      top: 0;
-      left: 0;
-      right: 0;
-      bottom: 0;
-      background: rgba(0, 0, 0, 0.5);
-      z-index: 9998;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      padding: 20px;
-    }
-
-    .detalle-produccion-contenedor {
-      background: #fff;
-      border-radius: 6px;
-      padding: 20px;
-      max-width: 95vw;
-      max-height: 95vh;
-      overflow: auto;
-      width: 100%;
-      box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
-    }
-
-    .detalle-produccion-header {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-bottom: 20px;
-      gap: 20px;
-    }
-
-    .detalle-produccion-header h3 {
-      margin: 0;
-      font-size: 1.3em;
-      color: var(--texto-oscuro, #333);
-    }
-
-    .detalle-produccion-busqueda {
-      display: flex;
-      gap: 10px;
-      margin-bottom: 15px;
-      flex-wrap: wrap;
-      align-items: center;
-    }
-
-    .detalle-produccion-busqueda input {
-      padding: 8px 12px;
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 3px;
-      font-size: 0.9em;
-      min-width: 200px;
-    }
-
-    .detalle-produccion-close {
-      background: #999;
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 3px;
-      cursor: pointer;
-      font-size: 0.9em;
-    }
-
-    .detalle-produccion-close:hover {
-      background: #666;
-    }
-
-    .detalle-produccion-tabla-contenedor {
-      overflow-x: auto;
-      border: 1px solid var(--borde-claro, #ddd);
-      border-radius: 3px;
-    }
-
-    .detalle-produccion-stats {
-      font-size: 0.85em;
-      color: #666;
-      margin-bottom: 10px;
-    }
-
-    .detalle-produccion-tabla {
-      width: 100%;
-      border-collapse: collapse;
-      font-size: 0.9em;
-    }
-
-    .detalle-produccion-tabla th {
-      background: #f5f5f5;
-      padding: 10px;
-      font-weight: bold;
-      border-bottom: 2px solid var(--gris, #666);
-      text-align: left;
-      sticky: 0;
-      position: sticky;
-      top: 0;
-      z-index: 10;
-    }
-
-    .detalle-produccion-tabla td {
-      padding: 8px 10px;
-      border-bottom: 1px solid var(--borde-claro, #ddd);
-      word-break: break-word;
-    }
-
-    .detalle-produccion-tabla tbody tr:hover {
-      background: rgba(0, 0, 0, 0.02);
-    }
-
-    .detalle-produccion-oculto {
-      display: none;
-    }
-
-    .toast {
-      position: fixed;
-      bottom: 20px;
-      right: 20px;
-      background: #333;
-      color: #fff;
-      padding: 12px 20px;
-      border-radius: 4px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.2);
-      z-index: 10001;
-      max-width: 300px;
-      word-wrap: break-word;
-    }
-
-    .toast.success {
-      background: #4caf50;
-    }
-
-    .toast.error {
-      background: #f44336;
-    }
-
-    .toast.info {
-      background: #2196f3;
-    }
-  </style>
-</head>
-
-<body class="viewer-only">
-  <main class="app" id="app">
-    <header class="app-header">
-      <div>
-        <h1>Repositorio de Manuales</h1>
-        <div class="header-subtitle">
-          Bitácora, seguimiento y respaldo de información · 
-          <span class="modo-badge-visitante">Visor</span>
-        </div>
-      </div>
-      <div class="backup-timer">
-        <strong>Última publicación:</strong> 
-        <span id="ultimaCopiaTexto">Cargando...</span>
-        <div class="small-note" id="estadoSincronizacion">Leyendo data.json</div>
-      </div>
-      <div class="header-actions viewer-meta">
-        <span id="versionPublicada">Versión: -</span>
-        <span id="publicadoPor">Publicado por: -</span>
-      </div>
-    </header>
-
-    <div class="layout">
-      <nav class="tabs">
+<!doctype html> 
+<html lang="es"> 
+  <head> 
+    <meta charset="UTF-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+    <title>Parámetros del Emisor - Editor V7</title> 
+    <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
+    <style> 
+      :root { 
+        --naranja: #ff6c0c; 
+        --gris: #4f4f4f; 
+        --fondo: #f2f2f2; 
+        --borde: #d9d9d9; 
+        --rojo: #b42318; 
+        --verde: #217346; 
+      } 
+      * { 
+        box-sizing: border-box; 
+      } 
+      body { 
+        margin: 0; 
+        background: var(--fondo); 
+        color: #333; 
+        font-family: "Segoe UI", Arial, sans-serif; 
+      } 
+      button, 
+      input, 
+      textarea, 
+      select { 
+        font: inherit; 
+      } 
+      button { 
+        cursor: pointer; 
+      } 
+      .encabezado { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+        gap: 10px; 
+        flex-wrap: wrap; 
+        padding: 10px 20px; 
+        background: #fff; 
+        border-bottom: 1px solid var(--borde); 
+      } 
+      h1 { 
+        margin: 0; 
+        color: var(--naranja); 
+        font-size: 34px; 
+        font-weight: 300; 
+      } 
+      .acciones, 
+      .pestanas { 
+        display: flex; 
+        gap: 7px; 
+        flex-wrap: wrap; 
+      } 
+      .boton { 
+        padding: 9px 12px; 
+        border: 0; 
+        border-radius: 8px; 
+        background: var(--gris); 
+        color: #fff; 
+        font-weight: 750; 
+      } 
+      .boton-naranja, 
+      .activa { 
+        background: var(--naranja) !important; 
+      } 
+      .boton-rojo { 
+        background: var(--rojo); 
+      } 
+      .pestanas { 
+        padding: 9px 20px; 
+        background: #fff; 
+        border-bottom: 1px solid var(--borde); 
+      } 
+      .pestana { 
+        padding: 9px 20px; 
+        border: 1px solid #ccc; 
+        border-radius: 999px; 
+        background: #fff; 
+        color: var(--gris); 
+        font-weight: 800; 
+      } 
+      .menu { 
+        display: grid; 
+        grid-template-columns: repeat(10, minmax(0, 1fr)); 
+        gap: 4px; 
+        padding: 7px 20px; 
+        background: #fafafa; 
+        border-bottom: 1px solid var(--borde); 
+      } 
+      .opcion { 
+        height: 25px; 
+        overflow: hidden; 
+        padding: 3px 5px; 
+        border: 1px solid #ccc; 
+        border-radius: 14px; 
+        background: #fff; 
+        color: var(--gris); 
+        font-size: 9.5px; 
+        font-weight: 750; 
+        text-overflow: ellipsis; 
+        white-space: nowrap; 
+      } 
+      .opcion.activa { 
+        color: #fff; 
+        border-color: var(--naranja); 
+      } 
+      .filtros { 
+        position: sticky; 
+        top: 0; 
+        z-index: 80; 
+        display: grid; 
+        grid-template-columns: 2fr 1fr 1fr 1fr auto; 
+        gap: 8px; 
+        padding: 11px 20px; 
+      } 
+      input, 
+      textarea, 
+      select, 
+      .editable { 
+        width: 100%; 
+        padding: 9px; 
+        border: 1px solid var(--borde); 
+        border-radius: 7px; 
+        background: #fff; 
+      } 
+      textarea { 
+        min-height: 88px; 
+        resize: vertical; 
+      } 
+      .editable { 
+        min-height: 100px; 
+        white-space: pre-wrap; 
+        outline: none; 
+      } 
+      .editable:focus { 
+        border-color: var(--naranja); 
+        box-shadow: 0 0 0 2px #ff6c0c22; 
+      } 
+      .estado, 
+      .titulo { 
+        padding: 5px 20px; 
+      } 
+      .estado { 
+        color: #666; 
+        font-size: 13px; 
+      } 
+      .estado.ok { 
+        color: var(--verde); 
+      } 
+      .estado.error { 
+        color: var(--rojo); 
+      } 
+      .titulo { 
+        margin: 0; 
+        color: #444; 
+        font-size: 25px; 
+        font-weight: 400; 
+      } 
+      .contenido { 
+        padding: 9px 20px 70px; 
+      } 
+      .ficha { 
+        margin-bottom: 13px; 
+        background: #fff; 
+        border: 1px solid var(--borde); 
+        box-shadow: 0 2px 7px #0001; 
+      } 
+      .cabecera-ficha { 
+        display: grid; 
+        grid-template-columns: 140px 1fr auto; 
+        border-bottom: 1px solid var(--borde); 
+      } 
+      .codigo { 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 9px; 
+        background: #5a5a5a; 
+        color: #fff; 
+        font-weight: 800; 
+      } 
+      .nombre { 
+        padding: 9px 14px; 
+        color: var(--naranja); 
+        font-size: 24px; 
+        font-weight: 300; 
+        outline: none; 
+      } 
+      .nombre[contenteditable="true"]:focus, 
+      .editable-ficha:focus { 
+        background: #fff; 
+        box-shadow: inset 0 0 0 2px #ff6c0c38; 
+      } 
+      .editable-ficha { 
+        min-height: 52px; 
+        outline: none; 
+        cursor: text; 
+      } 
+      .acciones-ficha { 
+        display: flex; 
+        align-items: center; 
+        gap: 5px; 
+        padding: 6px; 
+      } 
+      .acciones-ficha .boton { 
+        padding: 6px 8px; 
+        font-size: 11px; 
+      } 
+      .cuadricula { 
+        display: grid; 
+        grid-template-columns: repeat(3, 1fr); 
+        gap: 9px; 
+        padding: 11px; 
+      } 
+      .campo { 
+        min-height: 95px; 
+        padding: 9px; 
+        background: #fafafa; 
+        border: 1px solid #e5e5e5; 
+        border-top: 4px solid #bbb; 
+      } 
+      .campo.ejemplo { 
+        background: #fff5ec; 
+      } 
+      .etiqueta { 
+        margin-bottom: 7px; 
+        color: #444; 
+        font-size: 11px; 
+        font-weight: 850; 
+        text-transform: uppercase; 
+      } 
+      .texto { 
+        line-height: 1.36; 
+        white-space: pre-wrap; 
+      } 
+      .dependencia-inline { 
+        min-height: 54px; 
+        padding: 5px; 
+        border-radius: 5px; 
+        outline: none; 
+        cursor: text; 
+      } 
+      .dependencia-inline:hover { 
+        background: #fff; 
+        box-shadow: inset 0 0 0 1px #ffd1ad; 
+      } 
+      .dependencia-inline:focus { 
+        background: #fff; 
+        box-shadow: inset 0 0 0 2px #ff6c0c38; 
+      } 
+      mark { 
+        padding: 0 1px; 
+        border-radius: 2px; 
+        background: #fff176; 
+        color: #000; 
+      } 
+      .dep-ref-inline { 
+        padding: 0 2px; 
+        border-bottom: 2px solid var(--naranja); 
+        border-radius: 3px; 
+        background: #fff0c2; 
+        color: #8a3b00; 
+        font-weight: 800; 
+        text-decoration: none; 
+      } 
+      .vacio { 
+        padding: 24px; 
+        background: #fff; 
+        border: 1px dashed var(--borde); 
+        text-align: center; 
+      } 
+      .modal { 
+        position: fixed; 
+        inset: 0; 
+        z-index: 100; 
+        display: flex; 
+        align-items: center; 
+        justify-content: center; 
+        padding: 15px; 
+        background: #0009; 
+      } 
+      .modal[hidden] { 
+        display: none; 
+      } 
+      .ventana { 
+        width: min(920px, 100%); 
+        max-height: 94vh; 
+        overflow: auto; 
+        padding: 17px; 
+        border-radius: 13px; 
+        background: #fff; 
+      } 
+      .ventana-cabecera { 
+        display: flex; 
+        justify-content: space-between; 
+        align-items: center; 
+      } 
+      .ventana-cabecera h2 { 
+        margin: 0; 
+        color: var(--naranja); 
+        font-weight: 400; 
+      } 
+      .formulario { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 11px; 
+        margin-top: 11px; 
+      } 
+      .formulario label { 
+        color: #444; 
+        font-size: 12px; 
+        font-weight: 800; 
+      } 
+      .completo, 
+      .acciones-formulario { 
+        grid-column: 1/-1; 
+      } 
+      .acciones-formulario { 
+        display: flex; 
+        justify-content: flex-end; 
+        gap: 8px; 
+      } 
+      .ayuda { 
+        margin: 4px 0; 
+        color: #666; 
+        font-size: 11px; 
+      } 
+      .menu-contextual, 
+      .tarjeta-flotante { 
+        position: fixed; 
+        z-index: 160; 
+        display: none; 
+        padding: 11px; 
+        background: #fff; 
+        border: 1px solid var(--borde); 
+        border-radius: 12px; 
+        box-shadow: 0 14px 38px #0005; 
+      } 
+      .menu-contextual { 
+        width: 380px; 
+        max-width: calc(100vw - 24px); 
+        padding: 18px; 
+        border-radius: 18px; 
+        background: #fff; 
+      } 
+      .menu-contextual strong { 
+        display: block; 
+        margin-bottom: 3px; 
+        color: #333; 
+        font-size: 18px; 
+        line-height: 1.15; 
+      } 
+      .menu-contextual > .ayuda { 
+        margin-bottom: 10px; 
+        color: #777; 
+        font-size: 16px; 
+      } 
+      .menu-contextual input { 
+        height: 42px; 
+        margin-bottom: 14px; 
+        border-radius: 10px; 
+        font-size: 14px; 
+      } 
+      .resultados-dependencia { 
+        max-height: 340px; 
+        overflow-y: auto; 
+        padding-right: 5px; 
+        scrollbar-color: #8b8b8b transparent; 
+      } 
+      .resultado-dependencia { 
+        display: block; 
+        width: 100%; 
+        margin: 6px 0; 
+        padding: 6px; 
+        border: 1px solid #ddd; 
+        border-radius: 12px; 
+        background: #fafafa; 
+        color: #111; 
+        text-align: left; 
+        font-size: 13px; 
+        line-height: 1.35; 
+      } 
+      .resultado-dependencia:hover { 
+        border-color: #ffb47f; 
+        background: #fff8f3; 
+      } 
+      .resultado-dependencia strong { 
+        display: inline; 
+        color: var(--naranja); 
+        font-size: 15px; 
+      } 
+      .resultado-dependencia small { 
+        color: #111; 
+        font-size: 15px; 
+      } 
+      .tarjeta-flotante { 
+        width: 520px; 
+        max-width: calc(100vw - 24px); 
+        max-height: 440px; 
+        overflow: auto; 
+        font-size: 14px; 
+      } 
+      .vista-previa-campo { 
+        padding: 7px 0; 
+        border-bottom: 1px solid #eee; 
+        line-height: 1.35; 
+      } 
+      .vista-previa-campo b { 
+        display: block; 
+        color: var(--gris); 
+        margin-bottom: 2px; 
+      } 
+      .tarjeta-flotante h4 { 
+        margin: 0; 
+        color: var(--naranja); 
+        font-size: 16px; 
+      } 
+      .acciones-flotantes { 
+        display: flex; 
+        gap: 7px; 
+        flex-wrap: wrap; 
+        margin-top: 8px; 
+      } 
+      .toast { 
+        position: fixed; 
+        right: 18px; 
+        bottom: 18px; 
+        z-index: 180; 
+        padding: 12px 15px; 
+        border-radius: 9px; 
+        background: #222; 
+        color: #fff; 
+      } 
+      .toast.error { 
+        background: var(--rojo); 
+      } 
+ 
+      .selector-idioma { 
+        display: flex; 
+        overflow: hidden; 
+        border: 1px solid var(--borde); 
+        border-radius: 999px; 
+        background: #fff; 
+      } 
+      .selector-idioma button { 
+        padding: 8px 12px; 
+        border: 0; 
+        background: #fff; 
+        color: var(--gris); 
+        font-weight: 800; 
+      } 
+      .selector-idioma button.seleccionado { 
+        background: var(--naranja); 
+        color: #fff; 
+      } 
+      .rejilla-etiquetas { 
+        display: grid; 
+        grid-template-columns: 1fr 1fr; 
+        gap: 10px; 
+        margin-top: 12px; 
+      } 
+      .rejilla-etiquetas label { 
+        color: #444; 
+        font-size: 12px; 
+        font-weight: 800; 
+      } 
+      [hidden] { 
+        display: none !important; 
+      } 
+      @media (max-width: 1050px) { 
+        .menu { 
+          grid-template-columns: repeat(8, 1fr); 
+        } 
+        .cuadricula { 
+          grid-template-columns: 1fr 1fr; 
+        } 
+      } 
+      @media (max-width: 700px) { 
+        .menu { 
+          grid-template-columns: repeat(4, 1fr); 
+        } 
+        .filtros, 
+        .cuadricula, 
+        .formulario { 
+          grid-template-columns: 1fr; 
+        } 
+        .completo, 
+        .acciones-formulario { 
+          grid-column: auto; 
+        } 
+        .cabecera-ficha { 
+          grid-template-columns: 90px 1fr; 
+        } 
+        .acciones-ficha { 
+          grid-column: 1/-1; 
+        } 
+      } 
+    </style> 
+  </head> 
+  <body> 
+    <header class="encabezado"> 
+      <h1 id="tituloPrincipal">Parámetros del Emisor</h1> 
+      <div class="acciones"> 
         <button 
-          aria-selected="true" 
-          class="tab-btn active" 
-          data-tab="tabManuales" 
-          type="button">
-          Avance de Manuales
-        </button>
+          id="btnNuevo" 
+          class="boton boton-naranja" 
+          onclick="nuevoRegistro()" 
+        > 
+          Nuevo registro 
+        </button> 
+        <button id="btnImportarJSON" class="boton" onclick="seleccionarJSON()"> 
+          Importar JSON 
+        </button> 
         <button 
-          class="tab-btn" 
-          data-tab="tabCalendario" 
-          type="button">
-          Calendario
-        </button>
+          id="btnImportarExcel" 
+          class="boton" 
+          onclick="seleccionarExcel()" 
+        > 
+          Importar Excel 
+        </button> 
         <button 
-          class="tab-btn" 
-          data-tab="tabBitacora" 
-          type="button">
-          Bitácora
-        </button>
+          id="btnExportarJSON" 
+          class="boton boton-naranja" 
+          onclick="exportarJSON()" 
+        > 
+          Exportar JSON 
+        </button> 
+        <button id="btnExportarWord" class="boton" onclick="exportarWord()"> 
+          Exportar Word B/N 
+        </button> 
         <button 
-          class="tab-btn" 
-          data-tab="tabDashboard" 
-          type="button">
-          Dashboard de Producción
-        </button>
+          id="botonEtiquetas" 
+          class="boton boton-naranja" 
+          onclick="abrirEtiquetas()" 
+        > 
+          Etiquetas en inglés 
+        </button> 
         <button 
-          class="tab-btn" 
-          data-tab="tabTramites" 
-          type="button">
-          Trámites y Requerimientos
-        </button>
-        <button 
-          class="tab-btn" 
-          data-tab="tabVersiones" 
-          type="button">
-          Control de Versiones
-        </button>
-      </nav>
-
-      <!-- TAB: MANUALES -->
-      <section class="tab-content active" id="tabManuales">
-        <div class="panel" id="panelManuales">
-          <div class="panel-header">
-            <div>
-              <h2>Bitácora de Manuales</h2>
-              <div class="small-note">Consulta, filtros y columnas configurables</div>
-            </div>
-            <div class="toolbar">
-              <button 
-                class="btn btn-light" 
-                id="btnColumnasM" 
-                type="button">
-                ⚙️ Columnas
-              </button>
-              <button 
-                class="btn btn-light" 
-                id="btnLimpiarM" 
-                type="button" 
-                data-clear="tablaManuales">
-                🔄 Limpiar
-              </button>
-            </div>
-          </div>
-          <div id="tablaManuales"></div>
-        </div>
-      </section>
-
-      <!-- TAB: CALENDARIO -->
-      <section class="tab-content" id="tabCalendario">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="navegacion-mes">
-              <button class="btn btn-light" id="btnCalendarioAnterior">◀</button>
-              <h2 id="tituloCalendarioManuales">Calendario</h2>
-              <button class="btn btn-light" id="btnCalendarioSiguiente">▶</button>
-            </div>
-            <div>
-              <select id="selectorMesCalendario"></select>
-              <select id="selectorAnioCalendario"></select>
-            </div>
-          </div>
-          <div id="calendarioManuales"></div>
-        </div>
-      </section>
-
-      <!-- TAB: BITÁCORA -->
-      <section class="tab-content" id="tabBitacora">
-        <div class="panel">
-          <div class="panel-header">
-            <div class="navegacion-mes">
-              <button class="btn btn-light" id="btnBitacoraAnterior">◀</button>
-              <h2 id="tituloBitacora">Bitácora</h2>
-              <button class="btn btn-light" id="btnBitacoraSiguiente">▶</button>
-            </div>
-            <div>
-              <select id="selectorMesBitacora"></select>
-              <select id="selectorAnioBitacora"></select>
-            </div>
-          </div>
-          <div id="calendarioBitacora"></div>
-        </div>
-      </section>
-
-      <!-- TAB: DASHBOARD -->
-      <section class="tab-content" id="tabDashboard">
-        <div class="panel dashboard-header-panel">
-          <div class="panel-header">
-            <div>
-              <h2>Dashboard de Producción</h2>
-              <div class="small-note">Indicadores, horas y tiempos de ciclo.</div>
-            </div>
-            <div class="toolbar">
-              <button 
-                class="btn btn-light" 
-                id="btnDetalleProduccion" 
-                type="button">
-                📋 Ver detalle
-              </button>
-              <button 
-                class="btn btn-light" 
-                id="btnExportarDashboard" 
-                type="button">
-                ⬇️ Exportar
-              </button>
-            </div>
-          </div>
-        </div>
-        <div class="kpi-grid" id="kpiCards"></div>
-        <div class="dashboard-grid">
-          <div class="panel">
-            <h3>📈 Horas por tipo</h3>
-            <div id="graficoTiposMes"></div>
-          </div>
-          <div class="panel">
-            <div class="panel-header compacta">
-              <h3>🏆 Manuales del mes</h3>
-              <button class="btn btn-light small" id="btnManualesMes">↓</button>
-            </div>
-            <div id="manualesMes"></div>
-          </div>
-        </div>
-        <div class="dashboard-grid">
-          <div class="panel">
-            <h3>📅 Estrategia Semanal</h3>
-            <div id="estrategiaSemanal"></div>
-          </div>
-          <div class="panel">
-            <h3>📚 Análisis por tipo</h3>
-            <div id="analisisTipos"></div>
-          </div>
-        </div>
-        <div class="panel panel-ciclo">
-          <div class="panel-header">
-            <div>
-              <h3>⏱️ Tiempo total de ciclo</h3>
-              <div class="small-note">Días calendario desde inicio hasta finalización.</div>
-            </div>
-            <button class="btn btn-light" id="btnCicloDetalle">📊 Ver ciclos</button>
-          </div>
-          <div id="graficoCiclo"></div>
-        </div>
-      </section>
-
-      <!-- TAB: TRÁMITES -->
-      <section class="tab-content" id="tabTramites">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Trámites y Requerimientos</h2>
-            </div>
-            <div class="toolbar">
-              <button 
-                class="btn btn-light" 
-                id="btnColumnasT" 
-                type="button">
-                ⚙️ Columnas
-              </button>
-              <button 
-                class="btn btn-light" 
-                id="btnLimpiarT" 
-                type="button" 
-                data-clear="tablaTramites">
-                🔄 Limpiar
-              </button>
-            </div>
-          </div>
-          <div id="tablaTramites"></div>
-        </div>
-      </section>
-
-      <!-- TAB: VERSIONES -->
-      <section class="tab-content" id="tabVersiones">
-        <div class="panel">
-          <div class="panel-header">
-            <div>
-              <h2>Control de Versiones</h2>
-            </div>
-            <div class="toolbar">
-              <button 
-                class="btn btn-light" 
-                id="btnLimpiarV" 
-                type="button" 
-                data-clear="tablaVersiones">
-                🔄 Limpiar
-              </button>
-            </div>
-          </div>
-          <div id="tablaVersiones"></div>
-        </div>
-      </section>
-    </div>
-  </main>
-
-  <aside class="columns-panel" hidden id="columnsPanelManuales">
-    <h3>Columnas de Manuales</h3>
-    <div id="columnsListManuales"></div>
-    <div class="form-acciones">
-      <button class="btn btn-light" data-show-all="tablaManuales" type="button">Mostrar todo</button>
-      <button class="btn btn-primary" data-close="columnsPanelManuales" type="button">Aplicar</button>
-    </div>
-  </aside>
-
-  <aside class="columns-panel" hidden id="columnsPanelTramites">
-    <h3>Columnas de Trámites</h3>
-    <div id="columnsListTramites"></div>
-    <div class="form-acciones">
-      <button class="btn btn-light" data-show-all="tablaTramites" type="button">Mostrar todo</button>
-      <button class="btn btn-primary" data-close="columnsPanelTramites" type="button">Aplicar</button>
-    </div>
-  </aside>
-
-  <div class="filter-menu" hidden id="filterMenu"></div>
-  <div class="toast" hidden id="toast"></div>
-
-  <script>
-    "use strict";
-
-    // =============================================================================
-    // UTILIDADES GLOBALES
-    // =============================================================================
-
-    const $ = id => document.getElementById(id);
-    
-    const MESES = [
-      "Enero", "Febrero", "Marzo", "Abril", "Mayo", "Junio",
-      "Julio", "Agosto", "Septiembre", "Octubre", "Noviembre", "Diciembre"
-    ];
-    
-    const DIAS = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
-
-    /**
-     * Escapa caracteres especiales HTML
-     */
-    const esc = v => 
-      String(v ?? "")
-        .replaceAll("&", "&amp;")
-        .replaceAll("<", "&lt;")
-        .replaceAll(">", "&gt;")
-        .replaceAll('"', "&quot;")
-        .replaceAll("'", "&#39;");
-
-    /**
-     * Normaliza texto para búsqueda (minúsculas, sin acentos)
-     */
-    const norm = v => 
-      String(v ?? "")
-        .toLowerCase()
-        .normalize("NFD")
-        .replace(/[\u0300-\u036f]/g, "");
-
-    /**
-     * Normaliza el estado "Listo" especial
-     */
-    function normalizarListo(v) {
-      return String(v ?? "")
-        .trim()
-        .replace(/AMBOS\s*[ÍI]\s*IDIOMAS/gi, "AMBOS IDIOMAS");
-    }
-
-    /**
-     * Retorna la clase CSS correspondiente al estado "Listo"
-     */
-    function claseListo(v) {
-      const n = norm(normalizarListo(v));
-      if (n.startsWith("pendiente")) return "listo-pendiente";
-      if (n === "ambos idiomas") return "listo-ambos";
-      if (n.startsWith("solo espanol")) return "listo-esp";
-      if (n.startsWith("solo ingles")) return "listo-eng";
-      if (n === "completo") return "listo-completo";
-      return "";
-    }
-
-    // =============================================================================
-    // ALMACENAMIENTO GLOBAL
-    // =============================================================================
-
-    let datos = {
-      manuales: [],
-      bitacora: [],
-      tramites: [],
-      versiones: [],
-      ciclo: []
-    };
-
-    let fechaManual = new Date();
-    let fechaBitacora = new Date();
-    let fechaDash = new Date();
-    let tablas = {};
-
-    // =============================================================================
-    // FUNCIONES DE ESTADO
-    // =============================================================================
-
-    /**
-     * Determina el estado de un manual según sus fechas
-     */
-    function estadoManual(m) {
-      if (m.fechaPublicado || m.fechaPublicadoGestor) return "Publicado";
-      if (m.fechaFinalizacion) return "Completado";
-      if (m.fechaInicio) return "En proceso";
-      return "No iniciado";
-    }
-
-    // =============================================================================
-    // CARGA Y ADAPTACIÓN DE DATOS
-    // =============================================================================
-
-    /**
-     * Adapta los datos cargados desde JSON
-     */
-    function adaptar(raw) {
-      const r = raw?.datos || raw?.data || raw || {};
-      const meta = raw?.metadata || raw?.publicacion || r.metadata || {};
-      
-      const manuales = (r.manuales || []).map(m => ({
-        ...m,
-        fechaPublicado: m.fechaPublicado ?? m.fechaPublicadoGestor
-      }));
-
-      return {
-        manuales,
-        bitacora: r.bitacora || [],
-        tramites: r.tramites || [],
-        versiones: r.versiones || [],
-        ciclo: r.ciclo || [],
-        metadata: {
-          version: meta.version ?? "",
-          publicadoPor: meta.publicadoPor ?? "",
-          fechaPublicacion: meta.fechaPublicacion ?? ""
-        }
-      };
-    }
-
-    /**
-     * Carga los datos desde data.json
-     */
-    async function cargar() {
-      try {
-        const res = await fetch(`./data.json?v=${Date.now()}`, {
-          cache: "no-store"
-        });
-        
-        if (!res.ok) {
-          throw new Error(`HTTP ${res.status}`);
-        }
-        
-        datos = adaptar(await res.json());
-        
-        const d = new Date(datos.metadata?.fechaPublicacion || Date.now());
-        $("ultimaCopiaTexto").textContent = d.toLocaleString("es-ES");
-        $("estadoSincronizacion").textContent = "✓ Sincronizado";
-        $("versionPublicada").textContent = `Versión: ${datos.metadata?.version || "-"}`;
-        $("publicadoPor").textContent = `Publicado por: ${datos.metadata?.publicadoPor || "-"}`;
-        
-        renderTodo();
-      } catch (err) {
-        console.error("Error al cargar datos:", err);
-        $("estadoSincronizacion").textContent = "✗ Error al cargar";
-      }
-    }
-
-    // =============================================================================
-    // DEFINICIÓN DE COLUMNAS
-    // =============================================================================
-
-    const CM = [
-      { key: "orden", label: "#", width: 60 },
-      { key: "codigo", label: "Código" },
-      { key: "titulo", label: "Título" },
-      { key: "idioma", label: "Idioma" },
-      { key: "archivoElectronico", label: "Archivo electrónico" },
-      { key: "ocR", label: "OCR" },
-      { key: "cAM", label: "CAM" },
-      { key: "fotografia", label: "Fotografía" },
-      { key: "tipo", label: "Tipo" },
-      { key: "fechaInicio", label: "Fecha inicio" },
-      { key: "fechaFinalizacion", label: "Fecha finalización" },
-      { key: "fechaPublicado", label: "Publicado" }
-    ];
-
-    const CT = [
-      { key: "requerimiento", label: "Requerimiento" },
-      { key: "detalle", label: "Detalle" },
-      { key: "fechaIngreso", label: "Fecha ingreso" },
-      { key: "fechaInicio", label: "Fecha inicio" },
-      { key: "manualActualizar", label: "Manual a actualizar" },
-      { key: "estado", label: "Estado" }
-    ];
-
-    const CV = [
-      { key: "sistema", label: "Sistema" },
-      { key: "codigo", label: "Código" },
-      { key: "manual", label: "Manual" },
-      { key: "idioma", label: "Idioma" },
-      { key: "numero", label: "Versión disponible" },
-      { key: "ubicacionEService", label: "Ubicación eService" }
-    ];
-
-    // =============================================================================
-    // FUNCIONES DE TABLA GENÉRICA
-    // =============================================================================
-
-    /**
-     * Obtiene el valor de una celda para una fila y columna
-     */
-    function valor(f, c) {
-      return String(c.value ? c.value(f) : f[c.key] ?? "");
-    }
-
-    /**
-     * Inicializa o recupera el estado de una tabla
-     */
-    function estadoTabla(id, filas, columnas) {
-      const p = tablas[id] || {};
-      return (tablas[id] = {
-        filas,
-        columnas,
-        orden: p.orden || columnas.map((_, i) => i),
-        filtros: p.filtros || {},
-        ocultas: p.ocultas || new Set(),
-        anchos: p.anchos || {}
-      });
-    }
-
-    /**
-     * Verifica si una fila cumple los filtros actuales
-     */
-    function cumpleFila(t, f) {
-      return Object.entries(t.filtros).every(([i, cfg]) => {
-        if (!cfg) return true;
-        const v = valor(f, t.columnas[+i]);
-        const mostrar = v.trim() || "(Vacío)";
-        return (
-          !cfg.texto || 
-          norm(v).includes(norm(cfg.texto))
-        );
-      });
-    }
-
-    /**
-     * Renderiza una tabla en el DOM
-     */
-    function renderTabla(id, filas, columnas) {
-      const t = estadoTabla(id, filas, columnas);
-      const vis = t.orden.filter(i => !t.ocultas.has(i));
-      
-      const html = filas.length
-        ? `
-          <table class="viewer-table">
-            <colgroup>
-              ${vis.map(i => `<col data-ci="${i}" style="width: ${t.anchos[i] || 'auto'}px">`).join("")}
-            </colgroup>
-            <thead>
-              <tr>
-                ${vis.map(i => {
-                  const c = t.columnas[i];
-                  return `
-                    <th data-ci="${i}">
-                      <div style="display: flex; justify-content: space-between; align-items: center; gap: 4px;">
-                        <span>${esc(c.label)}</span>
-                        <button 
-                          class="viewer-filter-input" 
-                          data-ci="${i}" 
-                          type="button"
-                          title="Filtrar por ${esc(c.label)}"
-                        >
-                          ⓞ
-                        </button>
-                      </div>
-                    </th>
-                  `;
-                }).join("")}
-              </tr>
-            </thead>
-            <tbody>
-              ${filas
-                .filter(f => cumpleFila(t, f))
-                .map((f, idx) => `
-                  <tr>
-                    ${vis.map(i => `
-                      <td data-ci="${i}" class="${claseListo(valor(f, t.columnas[i]))}">
-                        ${esc(valor(f, t.columnas[i]))}
-                      </td>
-                    `).join("")}
-                  </tr>
-                `).join("")}
-            </tbody>
-          </table>
-        `
-        : "<p style='padding: 20px; text-align: center; color: #999;'>No hay registros</p>";
-
-      $(id).innerHTML = html;
-      enlazarTabla(id);
-    }
-
-    /**
-     * Abre el menú de filtro en línea
-     */
-    function abrirFiltroInline(evento, id, ci, input) {
-      evento.stopPropagation();
-      input.focus();
-      
-      document.querySelectorAll(".viewer-inline-filter").forEach(p => p.remove());
-      
-      const t = tablas[id];
-      const cfg = t.filtros[ci] || {};
-      const rect = input.getBoundingClientRect();
-      
-      const filtro = document.createElement("input");
-      filtro.className = "viewer-inline-filter";
-      filtro.type = "text";
-      filtro.placeholder = "Buscar...";
-      filtro.value = cfg.texto || "";
-      filtro.style.top = (rect.bottom + 5) + "px";
-      filtro.style.left = rect.left + "px";
-      filtro.style.width = rect.width + "px";
-      
-      filtro.oninput = () => {
-        t.filtros[ci] = { texto: filtro.value };
-        renderTabla(id, t.filas, t.columnas);
-      };
-      
-      filtro.onblur = () => {
-        setTimeout(() => {
-          if (document.activeElement !== filtro) {
-            filtro.remove();
-          }
-        }, 100);
-      };
-      
-      document.body.appendChild(filtro);
-      filtro.focus();
-    }
-
-    /**
-     * Vincula eventos de filtro a los botones de columna
-     */
-    function enlazarTabla(id) {
-      const t = tablas[id];
-      const box = $(id);
-      
-      box.querySelectorAll(".viewer-filter-input").forEach(input => {
-        input.onclick = e => abrirFiltroInline(e, id, +input.dataset.ci, input);
-      });
-    }
-
-    /**
-     * Limpia todos los filtros de una tabla
-     */
-    function limpiar(id) {
-      const t = tablas[id];
-      if (t) {
-        t.filtros = {};
-        renderTabla(id, t.filas, t.columnas);
-      }
-    }
-
-    /**
-     * Abre el panel de configuración de columnas
-     */
-    function columnas(id, panel, list) {
-      const t = tablas[id];
-      $(list).innerHTML = t.columnas
-        .map((c, i) => `
-          <label class="filter-option">
-            <input 
-              type="checkbox" 
-              data-column="${i}" 
-              ${t.ocultas.has(i) ? "" : "checked"}
-            >
-            ${esc(c.label)}
-          </label>
-        `)
-        .join("");
-
-      const panelEl = $(panel);
-      panelEl.hidden = false;
-
-      panelEl.querySelectorAll("input[type='checkbox']").forEach(cb => {
-        cb.onchange = () => {
-          const col = +cb.dataset.column;
-          if (cb.checked) {
-            t.ocultas.delete(col);
-          } else {
-            t.ocultas.add(col);
-          }
-        };
-      });
-
-      panelEl.querySelectorAll("[data-show-all]").forEach(btn => {
-        btn.onclick = () => {
-          t.ocultas.clear();
-          columnas(id, panel, list);
-        };
-      });
-
-      panelEl.querySelectorAll("[data-close]").forEach(btn => {
-        btn.onclick = () => {
-          renderTabla(id, t.filas, t.columnas);
-          panelEl.hidden = true;
-        };
-      });
-    }
-
-    // =============================================================================
-    // FUNCIONES DE CALENDARIO
-    // =============================================================================
-
-    /**
-     * Llena selectores de mes y año
-     */
-    function selectMes(id, d) {
-      $(id).innerHTML = MESES
-        .map((m, i) => 
-          `<option value="${i}" ${i === d.getMonth() ? "selected" : ""}>${m}</option>`
-        )
-        .join("");
-    }
-
-    function selectAnio(id, d) {
-      $(id).innerHTML = Array.from(
-        { length: 9 },
-        (_, i) => d.getFullYear() - 4 + i
-      )
-        .map(y => 
-          `<option ${y === d.getFullYear() ? "selected" : ""}>${y}</option>`
-        )
-        .join("");
-    }
-
-    /**
-     * Convierte fecha a formato ISO (YYYY-MM-DD)
-     */
-    function iso(d) {
-      return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
-    }
-
-    /**
-     * Parsea string de fecha a Date
-     */
-    function fecha(v) {
-      if (!v) return null;
-      const d = new Date(`${v}T00:00:00`);
-      return Number.isNaN(d.getTime()) ? null : d;
-    }
-
-    /**
-     * Asigna color único a un manual basado en su ID/código
-     */
-    function colorManual(m) {
-      const paleta = [
-        "#FF6C0C", "#E63946", "#2A9D8F", "#3A86FF", "#8338EC",
-        "#F4A261", "#00A896", "#D62828", "#6A994E", "#4D908E",
-        "#F72585", "#4361EE"
-      ];
-      const k = String(m.id || m.codigo || m.titulo || "");
-      let hash = 0;
-      for (let i = 0; i < k.length; i++) {
-        hash = ((hash << 5) - hash) + k.charCodeAt(i);
-        hash |= 0;
-      }
-      return paleta[Math.abs(hash) % paleta.length];
-    }
-
-    /**
-     * Determina la posición de un manual en una fecha específica
-     */
-    function posicion(m, f) {
-      const a = fecha(m.fechaInicio);
-      const b = fecha(m.fechaFinalizacion || m.fechaPublicado || m.fechaInicio);
-      const x = fecha(f);
-      
-      if (!a || !b || !x || x < a || x > b) return "";
-      if (a.getTime() === b.getTime()) return "unico";
-      if (x.getTime() === a.getTime()) return "inicio";
-      if (x.getTime() === b.getTime()) return "fin";
-      return "medio";
-    }
-
-    /**
-     * Suma las horas de bitácora de un manual
-     */
-    function horasManual(m) {
-      return datos.bitacora
-        .filter(b => 
-          b.manualId === m.id || 
-          b.manual === m.titulo || 
-          b.codigo === m.codigo ||
-          norm(b.manual).includes(norm(m.codigo))
-        )
-        .reduce((a, b) => a + Number(b.horas || 0), 0);
-    }
-
-    /**
-     * Genera el tooltip de un manual
-     */
-    function tooltipManual(m) {
-      const h = horasManual(m);
-      return `Manual: ${m.codigo || ""} - ${m.titulo || ""}\nTipo: ${m.tipo || ""}\nFecha inicio: ${m.fechaInicio || ""}\nFecha finalización: ${m.fechaFinalizacion || ""}\nHoras: ${h}`;
-    }
-
-    /**
-     * Renderiza una rejilla de calendario
-     */
-    function rejilla(id, d, eventos, titulo) {
-      const bit = titulo.includes("Bitácora");
-      selectMes(bit ? "selectorMesBitacora" : "selectorMesCalendario", d);
-      selectAnio(bit ? "selectorAnioBitacora" : "selectorAnioCalendario", d);
-
-      const primerDia = new Date(d.getFullYear(), d.getMonth(), 1);
-      const ultimoDia = new Date(d.getFullYear(), d.getMonth() + 1, 0);
-      const diaInicio = (primerDia.getDay() + 6) % 7;
-      const diasMes = ultimoDia.getDate();
-
-      const filas = [];
-      let fila = Array(diaInicio).fill("");
-
-      for (let dia = 1; dia <= diasMes; dia++) {
-        const f = new Date(d.getFullYear(), d.getMonth(), dia);
-        fila.push(`
-          <div class="dia-calendario" data-fecha="${iso(f)}">
-            <span class="dia-numero">${dia}</span>
-            <div class="dia-eventos">
-              ${eventos(f).join("")}
-            </div>
-          </div>
-        `);
-
-        if (fila.length === 7) {
-          filas.push(fila);
-          fila = [];
-        }
-      }
-      
-      if (fila.length > 0) {
-        while (fila.length < 7) fila.push("");
-        filas.push(fila);
-      }
-
-      const html = `
-        <div class="calendario">
-          <div class="calendario-header">
-            ${DIAS.map(d => `<div class="dia-semana">${d}</div>`).join("")}
-          </div>
-          <div class="calendario-cuerpo">
-            ${filas.map(f => `<div class="fila-calendario">${f.join("")}</div>`).join("")}
-          </div>
-        </div>
-      `;
-
-      $(id).innerHTML = html;
-    }
-
-    /**
-     * Renderiza calendarios de manuales y bitácora
-     */
-    function renderCalendarios() {
-      rejilla(
-        "calendarioManuales",
-        fechaManual,
-        f => 
-          datos.manuales
-            .map(m => ({ m, p: posicion(m, f) }))
-            .filter(x => x.p)
-            .map(({ m, p }) => 
-              `<div class="evento-calendario ${p}" style="--evento-color: ${colorManual(m)}" title="${tooltipManual(m)}">
-                ${esc((m.codigo || "").substring(0, 3))}
-              </div>`
-            ),
-        "Calendario"
-      );
-
-      rejilla(
-        "calendarioBitacora",
-        fechaBitacora,
-        f => {
-          const dia = iso(f);
-          return datos.bitacora
-            .filter(b => b.fecha === dia)
-            .map(b => 
-              `<div class="evento-calendario bitacora" title="${esc(b.manual || "")} - ${b.horas}h">
-                ${b.horas}h
-              </div>`
-            );
-        },
-        "Bitácora"
-      );
-    }
-
-    // =============================================================================
-    // FUNCIONES DEL DASHBOARD
-    // =============================================================================
-
-    /**
-     * Renderiza barras horizontales para gráficos
-     */
-    function barras(id, mapa, suf = "") {
-      const e = Object.entries(mapa).sort((a, b) => b[1] - a[1]);
-      const max = Math.max(1, ...e.map(x => x[1]));
-
-      $(id).innerHTML = e
-        .map(([k, v]) => `
-          <div class="dashboard-cycle-row">
-            <div class="dashboard-cycle-label">${esc(k)}</div>
-            <div class="dashboard-cycle-bar">
-              <div 
-                class="dashboard-cycle-fill" 
-                style="width: ${(v / max) * 100}%"
-              ></div>
-              <span class="dashboard-cycle-value">${v}${suf}</span>
-            </div>
-          </div>
-        `)
-        .join("");
-    }
-
-    /**
-     * Renderiza el dashboard
-     */
-    function renderDashboard() {
-      selectMes("selectorMesDashboard", fechaDash);
-      $("selectorAnioDashboard").value = fechaDash.getFullYear();
-
-      const horas = datos.bitacora.reduce((a, b) => a + Number(b.horas || 0), 0);
-      const pub = datos.manuales.filter(
-        m => m.fechaPublicado || m.fechaPublicadoGestor
-      ).length;
-
-      $("kpiCards").innerHTML = `
-        <div class="kpi-card">
-          <div class="kpi-valor">${horas}</div>
-          <div class="kpi-label">Horas totales</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-valor">${datos.manuales.length}</div>
-          <div class="kpi-label">Manuales</div>
-        </div>
-        <div class="kpi-card">
-          <div class="kpi-valor">${pub}</div>
-          <div class="kpi-label">Publicados</div>
-        </div>
-      `;
-
-      const tiposMapa = {};
-      datos.bitacora.forEach(b => {
-        tiposMapa[b.tipo || "Sin clasificar"] = 
-          (tiposMapa[b.tipo || "Sin clasificar"] || 0) + Number(b.horas || 0);
-      });
-      barras("graficoTiposMes", tiposMapa, "h");
-
-      const manualesMes = {};
-      datos.manuales.forEach(m => {
-        if (m.fechaInicio || m.fechaFinalizacion || m.fechaPublicado) {
-          manualesMes[m.codigo || m.titulo || "Sin código"] = 
-            horasManual(m);
-        }
-      });
-      
-      const top10 = Object.entries(manualesMes)
-        .sort((a, b) => b[1] - a[1])
-        .slice(0, 10)
-        .reduce((o, [k, v]) => ({ ...o, [k]: v }), {});
-      barras("manualesMes", top10, "h");
-
-      const estrategia = {};
-      const ahora = new Date();
-      const inicioSemana = new Date(ahora.setDate(ahora.getDate() - ahora.getDay() + 1));
-      
-      for (let i = 0; i < 7; i++) {
-        const d = new Date(inicioSemana);
-        d.setDate(d.getDate() + i);
-        const diaIso = iso(d);
-        const horasDia = datos.bitacora
-          .filter(b => b.fecha === diaIso)
-          .reduce((a, b) => a + Number(b.horas || 0), 0);
-        estrategia[DIAS[(d.getDay() + 6) % 7]] = horasDia;
-      }
-      barras("estrategiaSemanal", estrategia, "h");
-
-      const analisisMapa = {};
-      datos.manuales.forEach(m => {
-        const tipo = m.tipo || "Sin clasificar";
-        analisisMapa[tipo] = (analisisMapa[tipo] || 0) + 1;
-      });
-      barras("analisisTipos", analisisMapa);
-
-      const cicloMapa = {};
-      datos.ciclo.forEach(c => {
-        cicloMapa[c.nombre || c.codigo || "Sin nombre"] = 
-          c.diasCiclo || 0;
-      });
-      barras("graficoCiclo", cicloMapa, " días");
-    }
-
-    /**
-     * Renderiza la tabla de versiones
-     */
-    function renderVersiones() {
-      renderTabla("tablaVersiones", datos.versiones, CV);
-      
-      const ingles = datos.versiones.filter(
-        v => norm(v.idioma) === "ingles"
-      ).length;
-      const espanol = datos.versiones.filter(
-        v => norm(v.idioma) === "espanol"
-      ).length;
-    }
-
-    // =============================================================================
-    // MODAL DE DETALLE DE PRODUCCIÓN (CORREGIDO)
-    // =============================================================================
-
-    /**
-     * Abre el modal de detalle de producción
-     * CORREGIDO: Mantiene foco en inputs, no reconstruye tabla en cada búsqueda
-     */
-    function abrirDetalleProduccion() {
-      if (!datos.ciclo.length) {
-        return alert("No hay detalle de producción publicado");
-      }
-
-      const rows = datos.ciclo.map(x => x.original || x);
-      const headers = [
-        ...new Set(rows.flatMap(Object.keys))
-      ];
-
-      // =========================================================================
-      // Crear modal y contenedor
-      // =========================================================================
-      const modal = document.createElement("div");
-      modal.className = "detalle-produccion-modal";
-
-      const contenedor = document.createElement("div");
-      contenedor.className = "detalle-produccion-contenedor";
-
-      // =========================================================================
-      // Header del modal
-      // =========================================================================
-      const header = document.createElement("div");
-      header.className = "detalle-produccion-header";
-
-      const titulo = document.createElement("h3");
-      titulo.textContent = "Detalle de Producción";
-      
-      const btnCerrar = document.createElement("button");
-      btnCerrar.className = "detalle-produccion-close";
-      btnCerrar.type = "button";
-      btnCerrar.textContent = "Cerrar";
-      btnCerrar.onclick = () => modal.remove();
-
-      header.appendChild(titulo);
-      header.appendChild(btnCerrar);
-      contenedor.appendChild(header);
-
-      // =========================================================================
-      // Área de búsqueda global
-      // =========================================================================
-      const busquedaDiv = document.createElement("div");
-      busquedaDiv.className = "detalle-produccion-busqueda";
-
-      const labelBusqueda = document.createElement("label");
-      labelBusqueda.textContent = "Buscar en todas las columnas:";
-      labelBusqueda.style.width = "100%";
-
-      const inputBusqueda = document.createElement("input");
-      inputBusqueda.type = "text";
-      inputBusqueda.placeholder = "Escribe para filtrar...";
-      inputBusqueda.className = "detalle-produccion-input-global";
-
-      busquedaDiv.appendChild(labelBusqueda);
-      busquedaDiv.appendChild(inputBusqueda);
-      contenedor.appendChild(busquedaDiv);
-
-      // =========================================================================
-      // Área de estadísticas
-      // =========================================================================
-      const statsDiv = document.createElement("div");
-      statsDiv.className = "detalle-produccion-stats";
-      statsDiv.id = "detalleStats";
-      contenedor.appendChild(statsDiv);
-
-      // =========================================================================
-      // Contenedor de tabla con scroll
-      // =========================================================================
-      const tablaContenedor = document.createElement("div");
-      tablaContenedor.className = "detalle-produccion-tabla-contenedor";
-
-      const tabla = document.createElement("table");
-      tabla.className = "detalle-produccion-tabla";
-      tabla.id = "detalleTabla";
-
-      // Encabezados
-      const thead = document.createElement("thead");
-      const tr = document.createElement("tr");
-      
-      headers.forEach(h => {
-        const th = document.createElement("th");
-        th.textContent = String(h || "");
-        tr.appendChild(th);
-      });
-      
-      thead.appendChild(tr);
-      tabla.appendChild(thead);
-
-      // Cuerpo (inicialmente vacío, se llena con renderDetalleTabla)
-      const tbody = document.createElement("tbody");
-      tabla.appendChild(tbody);
-
-      tablaContenedor.appendChild(tabla);
-      contenedor.appendChild(tablaContenedor);
-
-      modal.appendChild(contenedor);
-      document.body.appendChild(modal);
-
-      // =========================================================================
-      // Función para renderizar solo las filas visibles sin tocar inputs
-      // =========================================================================
-      function renderDetalleTabla(filtroGlobal = "", filtrosColumna = {}) {
-        const tbody = tabla.querySelector("tbody");
-        tbody.innerHTML = "";
-
-        let conteoMostrado = 0;
-        
-        rows.forEach(row => {
-          // Verificar filtro global
-          if (filtroGlobal) {
-            const textoFila = headers
-              .map(h => String(row[h] ?? "").toLowerCase())
-              .join(" ");
-            
-            if (!textoFila.includes(filtroGlobal.toLowerCase())) {
-              return;
-            }
-          }
-
-          // Verificar filtros por columna
-          let cumpleTodosFiltros = true;
-          Object.entries(filtrosColumna).forEach(([headerIdx, texto]) => {
-            if (!texto) return;
-            const valor = String(row[headers[headerIdx]] ?? "").toLowerCase();
-            if (!valor.includes(texto.toLowerCase())) {
-              cumpleTodosFiltros = false;
-            }
-          });
-
-          if (!cumpleTodosFiltros) {
-            return;
-          }
-
-          // Fila visible: crear <tr>
-          const tr = document.createElement("tr");
-          headers.forEach(h => {
-            const td = document.createElement("td");
-            td.textContent = String(row[h] ?? "");
-            tr.appendChild(td);
-          });
-
-          tbody.appendChild(tr);
-          conteoMostrado++;
-        });
-
-        // Actualizar estadísticas
-        const statsDiv = document.getElementById("detalleStats");
-        statsDiv.textContent = `Registros mostrados: ${conteoMostrado} de ${rows.length}`;
-      }
-
-      // =========================================================================
-      // Event listeners para búsqueda sin reconstruir tabla
-      // =========================================================================
-      inputBusqueda.oninput = () => {
-        const filtroGlobal = inputBusqueda.value;
-        renderDetalleTabla(filtroGlobal, {});
-      };
-
-      // Inicializar tabla
-      renderDetalleTabla("", {});
-    }
-
-    // =============================================================================
-    // RENDER GENERAL
-    // =============================================================================
-
-    /**
-     * Renderiza todos los tabs
-     */
-    function renderTodo() {
-      renderTabla("tablaManuales", datos.manuales, CM);
-      renderTabla("tablaTramites", datos.tramites, CT);
-      renderVersiones();
-      renderCalendarios();
-      renderDashboard();
-    }
-
-    // =============================================================================
-    // EVENT LISTENERS
-    // =============================================================================
-
-    // Navegación de tabs
-    document.querySelectorAll(".tab-btn").forEach(b => {
-      b.onclick = () => {
-        document.querySelectorAll(".tab-btn, .tab-content").forEach(x => 
-          x.classList.remove("active")
-        );
-        document.querySelectorAll(".tab-btn").forEach(x => 
-          x.removeAttribute("aria-selected")
-        );
-        
-        b.classList.add("active");
-        b.setAttribute("aria-selected", "true");
-        
-        const tabId = b.dataset.tab;
-        $(tabId).classList.add("active");
-      };
-    });
-
-    // Botones de columnas
-    $("btnColumnasM").onclick = () => 
-      columnas("tablaManuales", "columnsPanelManuales", "columnsListManuales");
-    
-    $("btnColumnasT").onclick = () => 
-      columnas("tablaTramites", "columnsPanelTramites", "columnsListTramites");
-
-    // Botones de limpiar filtros
-    document.querySelectorAll("[data-clear]").forEach(btn => {
-      btn.onclick = () => limpiar(btn.dataset.clear);
-    });
-
-    // Navegación de calendarios
-    $("btnCalendarioAnterior").onclick = () => {
-      fechaManual.setMonth(fechaManual.getMonth() - 1);
-      renderCalendarios();
-      $("tituloCalendarioManuales").textContent = 
-        `${MESES[fechaManual.getMonth()]} ${fechaManual.getFullYear()}`;
-    };
-
-    $("btnCalendarioSiguiente").onclick = () => {
-      fechaManual.setMonth(fechaManual.getMonth() + 1);
-      renderCalendarios();
-      $("tituloCalendarioManuales").textContent = 
-        `${MESES[fechaManual.getMonth()]} ${fechaManual.getFullYear()}`;
-    };
-
-    $("btnBitacoraAnterior").onclick = () => {
-      fechaBitacora.setMonth(fechaBitacora.getMonth() - 1);
-      renderCalendarios();
-      $("tituloBitacora").textContent = 
-        `${MESES[fechaBitacora.getMonth()]} ${fechaBitacora.getFullYear()}`;
-    };
-
-    $("btnBitacoraSiguiente").onclick = () => {
-      fechaBitacora.setMonth(fechaBitacora.getMonth() + 1);
-      renderCalendarios();
-      $("tituloBitacora").textContent = 
-        `${MESES[fechaBitacora.getMonth()]} ${fechaBitacora.getFullYear()}`;
-    };
-
-    // Selectores de mes/año calendario
-    $("selectorMesCalendario").onchange = () => {
-      fechaManual.setMonth(+$("selectorMesCalendario").value);
-      renderCalendarios();
-      $("tituloCalendarioManuales").textContent = 
-        `${MESES[fechaManual.getMonth()]} ${fechaManual.getFullYear()}`;
-    };
-
-    $("selectorAnioCalendario").onchange = () => {
-      fechaManual.setFullYear(+$("selectorAnioCalendario").value);
-      renderCalendarios();
-      $("tituloCalendarioManuales").textContent = 
-        `${MESES[fechaManual.getMonth()]} ${fechaManual.getFullYear()}`;
-    };
-
-    $("selectorMesBitacora").onchange = () => {
-      fechaBitacora.setMonth(+$("selectorMesBitacora").value);
-      renderCalendarios();
-      $("tituloBitacora").textContent = 
-        `${MESES[fechaBitacora.getMonth()]} ${fechaBitacora.getFullYear()}`;
-    };
-
-    $("selectorAnioBitacora").onchange = () => {
-      fechaBitacora.setFullYear(+$("selectorAnioBitacora").value);
-      renderCalendarios();
-      $("tituloBitacora").textContent = 
-        `${MESES[fechaBitacora.getMonth()]} ${fechaBitacora.getFullYear()}`;
-    };
-
-    // Selectores de mes/año dashboard
-    $("selectorMesDashboard").onchange = () => {
-      fechaDash.setMonth(+$("selectorMesDashboard").value);
-      renderDashboard();
-    };
-
-    $("selectorAnioDashboard").onchange = () => {
-      fechaDash.setFullYear(+$("selectorAnioDashboard").value);
-      renderDashboard();
-    };
-
-    // Botón de detalle de producción
-    $("btnDetalleProduccion").onclick = abrirDetalleProduccion;
-
-    // Botón de exportar dashboard
-    $("btnExportarDashboard").onclick = () => {
-      const contenido = {
-        fechaExportacion: new Date().toISOString(),
-        manuales: datos.manuales,
-        bitacora: datos.bitacora,
-        tramites: datos.tramites,
-        versiones: datos.versiones,
-        ciclo: datos.ciclo
-      };
-
-      const blob = new Blob([JSON.stringify(contenido, null, 2)], 
-        { type: "application/json" }
-      );
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement("a");
-      a.href = url;
-      a.download = `dashboard-${new Date().toISOString().split("T")[0]}.json`;
-      a.click();
-      URL.revokeObjectURL(url);
-    };
-
-    // Cerrar menús con Escape
-    document.addEventListener("keydown", e => {
-      if (e.key === "Escape") {
-        document.querySelectorAll("[hidden='false']").forEach(el => {
-          el.hidden = true;
-        });
-      }
-    });
-
-    // Cargar datos al iniciar
-    cargar();
-  </script>
-</body>
-
-</html>
+          id="botonGuardar" 
+          class="boton boton-naranja" 
+          onclick="guardarCambios()" 
+          disabled 
+        > 
+          Guardar cambios 
+        </button> 
+        <div class="selector-idioma"> 
+          <button 
+            id="botonES" 
+            class="seleccionado" 
+            onclick="cambiarIdiomaEditor('es')" 
+          > 
+            Español 
+          </button> 
+          <button id="botonEN" onclick="cambiarIdiomaEditor('en')"> 
+            English 
+          </button> 
+        </div> 
+      </div> 
+    </header> 
+    <section class="pestanas"> 
+      <button 
+        id="externo" 
+        class="pestana activa" 
+        onclick="cambiarAmbito('externo')" 
+      > 
+        Externo 
+      </button> 
+      <button id="interno" class="pestana" onclick="cambiarAmbito('interno')"> 
+        Interno 
+      </button> 
+    </section> 
+    <nav id="menu" class="menu"></nav> 
+    <section class="filtros"> 
+      <input 
+        id="buscar" 
+        placeholder="Buscar por palabra clave en TODAS las opciones" 
+      /> 
+      <input id="filtrarNombre" placeholder="Filtrar nombre" /> 
+      <input id="filtrarProducto" placeholder="Filtrar producto" /> 
+      <input id="filtrarPais" placeholder="Filtrar país" /> 
+      <button id="btnLimpiar" class="boton" onclick="limpiarFiltros()"> 
+        Limpiar filtros 
+      </button> 
+    </section> 
+    <div id="estado" class="estado"></div> 
+    <h2 id="titulo" class="titulo"></h2> 
+    <main id="contenido" class="contenido"></main> 
+    <input id="archivoJSON" type="file" accept=".json" hidden /> 
+    <input id="archivoExcel" type="file" accept=".xlsx,.xls" hidden /> 
+ 
+    <div id="modalRegistro" class="modal" hidden> 
+      <section class="ventana"> 
+        <div class="ventana-cabecera"> 
+          <h2 id="tituloFormulario">Nuevo registro</h2> 
+          <button class="boton" onclick="cerrarFormulario()">Cerrar</button> 
+        </div> 
+        <form id="formulario" class="formulario"> 
+          <input id="indiceEdicion" type="hidden" value="-1" /> 
+          <input id="opcionOrigen" type="hidden" /> 
+          <label>Opción<select id="codigo"></select></label> 
+          <label>Nombre del Parámetro<input id="nombre" required /></label> 
+          <label>Producto<input id="producto" /></label> 
+          <label>País<input id="pais" /></label> 
+          <label class="completo" 
+            >Valores Permitidos<textarea id="valores"></textarea> 
+          </label> 
+          <label class="completo" 
+            >¿Qué hace el parámetro?<textarea id="que"></textarea> 
+          </label> 
+          <label class="completo" 
+            >¿Cómo funciona?<textarea id="como"></textarea> 
+          </label> 
+          <label class="completo"> 
+            Dependencias / Reglas 
+            <div 
+              id="dependencias" 
+              class="editable" 
+              contenteditable="true" 
+            ></div> 
+            <p class="ayuda"> 
+              Marque una porción de texto y haga clic derecho. Se abrirá el 
+              buscador de parámetros. 
+            </p> 
+          </label> 
+          <label class="completo" 
+            >¿Cuándo aplica?<textarea id="cuando"></textarea> 
+          </label> 
+          <label class="completo" 
+            >Ejemplo Funcional<textarea id="ejemplo"></textarea> 
+          </label> 
+          <label class="completo" 
+            >Notas Visibles al Cliente<textarea id="notas"></textarea> 
+          </label> 
+          <div class="acciones-formulario"> 
+            <button type="button" class="boton" onclick="cerrarFormulario()"> 
+              Cancelar 
+            </button> 
+            <button class="boton boton-naranja">Guardar</button> 
+          </div> 
+        </form> 
+      </section> 
+    </div> 
+    <div id="modalGitHub" class="modal" hidden> 
+      <section class="ventana" style="width: min(520px, 100%)"> 
+        <div class="ventana-cabecera"> 
+          <h2>Conectar con GitHub</h2> 
+          <button class="boton" onclick="cerrarGitHub()">Cerrar</button> 
+        </div> 
+        <div class="formulario"> 
+          <div class="completo"> 
+            <b>Repositorio detectado</b> 
+            <div 
+              id="repositorioDetectado" 
+              class="editable" 
+              style="min-height: auto; margin-top: 5px" 
+              contenteditable="false" 
+            ></div> 
+          </div> 
+          <label class="completo" 
+            >Token de GitHub<input 
+              id="githubToken" 
+              type="password" 
+              autocomplete="off" 
+              placeholder="Pegue el token una sola vez por sesión" 
+          /></label> 
+          <p class="ayuda completo"> 
+            Después de conectar, el botón Guardar cambios actualizará los JSON. 
+            El visor usa esos mismos archivos. 
+          </p> 
+          <div class="acciones-formulario"> 
+            <button class="boton" type="button" onclick="cerrarGitHub()"> 
+              Cancelar</button 
+            ><button 
+              class="boton boton-naranja" 
+              type="button" 
+              onclick="conectarYGuardar()" 
+            > 
+              Conectar y guardar 
+            </button> 
+          </div> 
+        </div> 
+      </section> 
+    </div> 
+    <div id="modalEtiquetas" class="modal" hidden> 
+      <section class="ventana" style="width: min(760px, 100%)"> 
+        <div class="ventana-cabecera"> 
+          <h2>Etiquetas del visor inglés</h2> 
+          <button class="boton" onclick="cerrarEtiquetas()">Cerrar</button> 
+        </div> 
+        <p class="ayuda"> 
+          Estas etiquetas se guardarán en el repositorio inglés y el visor las 
+          leerá al seleccionar English. 
+        </p> 
+        <div id="rejillaEtiquetas" class="rejilla-etiquetas"></div> 
+        <div class="acciones-formulario" style="margin-top: 14px"> 
+          <button class="boton boton-naranja" onclick="guardarEtiquetas()"> 
+            Publicar etiquetas 
+          </button> 
+        </div> 
+      </section> 
+    </div> 
+    <div id="menuDependencias" class="menu-contextual"></div> 
+    <div id="tarjetaDependencia" class="tarjeta-flotante"></div> 
+    <div id="toast" class="toast" hidden></div> 
+ 
+    <script> 
+      "use strict"; 
+      const OPCIONES = [ 
+        ["05", "Consultar"], 
+        ["12", "Trabajar con"], 
+        ["13", "Moneda"], 
+        ["14", "Clasificación"], 
+        ["15", "Membresías"], 
+        ["16", "Cargos Auto"], 
+        ["17", "Ciclos"], 
+        ["18", "Tipo Cliente"], 
+        ["19", "Renovación"], 
+        ["20", "Pólizas"], 
+        ["21", "Mensajes"], 
+        ["22", "Sorteos"], 
+        ["23", "Estados"], 
+        ["24", "Clases"], 
+        ["25", "Trasiego"], 
+        ["26", "Cargos I.V."], 
+        ["27", "Corporativo"], 
+        ["28", "Skip Pay"], 
+        ["29", "Diseño"], 
+        ["30", "Extrafin."], 
+        ["31", "Limpiar"], 
+        ["32", "Tipo Cta."], 
+        ["33", "Costos"], 
+        ["34", "Estados Cta."], 
+        ["35", "Excepciones"], 
+        ["36", "Origen"], 
+        ["38", "No Intereses"], 
+        ["39", "Excep."], 
+        ["40", "Documentos"], 
+        ["42", "Prepago"], 
+        ["44", "Reducc."], 
+        ["45", "Vence Pago"], 
+        ["46", "Copia"], 
+        ["47", "Deterioro"], 
+        ["48", "Prospecto"], 
+        ["49", "Renov. Tarj."], 
+        ["50", "Renov. Emisor"], 
+        ["52", "Rangos"], 
+        ["53", "Tecnología"], 
+      ]; 
+      const CAMPOS = [ 
+        "codigo", 
+        "nombre", 
+        "producto", 
+        "pais", 
+        "valores", 
+        "que", 
+        "como", 
+        "dependencias", 
+        "cuando", 
+        "ejemplo", 
+        "notas", 
+      ]; 
+      const $ = (id) => document.getElementById(id); 
+      let idiomaEditor = "es", 
+        ambito = "externo", 
+        opcion = "05", 
+        datos = {}, 
+        seleccionDependencia = null, 
+        elementoDependenciaActivo = null, 
+        ocultarTarjeta = null, 
+        cambiosPendientes = new Set(); 
+      let modoFicha = false; 
+      let fichaSolicitada = ""; 
+      function claveFicha(registro) { 
+        return registro.id || 
+          `op${registro.__opcion || registro.codigo}-${normalizar(registro.nombre).replaceAll(" ", "-")}`; 
+      } 
+      function prepararModoFicha() { 
+        const parametros = new URLSearchParams(location.search); 
+        if (parametros.get("modo") !== "ficha") return; 
+        modoFicha = true; 
+        idiomaEditor = parametros.get("idioma") === "en" ? "en" : "es"; 
+        ambito = parametros.get("ambito") === "interno" ? "interno" : "externo"; 
+        opcion = parametros.get("opcion") || "05"; 
+        fichaSolicitada = parametros.get("id") || ""; 
+      } 
+      function aplicarModoFicha() { 
+        if (!modoFicha) return; 
+        document.querySelector(".encabezado")?.setAttribute("hidden", ""); 
+        document.querySelector(".pestanas")?.setAttribute("hidden", ""); 
+        $("menu")?.setAttribute("hidden", ""); 
+        document.querySelector(".filtros")?.setAttribute("hidden", ""); 
+        $("estado")?.setAttribute("hidden", ""); 
+        $("titulo")?.setAttribute("hidden", ""); 
+      } 
+      function abrirFichaURL(registro) { 
+        const url = new URL(location.href); 
+        url.search = ""; 
+        url.hash = ""; 
+        url.searchParams.set("modo", "ficha"); 
+        url.searchParams.set("idioma", idiomaEditor); 
+        url.searchParams.set("ambito", ambito); 
+        url.searchParams.set("opcion", registro.__opcion || registro.codigo || opcion); 
+        url.searchParams.set("id", claveFicha(registro)); 
+        window.open(url.href, "_blank", "noopener"); 
+      } 
+      let github = { 
+        url: "", 
+        propietario: "", 
+        repositorio: "", 
+        rama: "main", 
+        token: localStorage.getItem("peToken") || "", 
+      }; 
+      let etiquetasIngles = { 
+        titulo: "Issuer Parameters", 
+        subtitulo: "Functional parameter reference", 
+        externo: "External", 
+        interno: "Internal", 
+        exportar: "Export to Excel", 
+        limpiar: "Clear filters", 
+        buscar: "Search by keyword across all options", 
+        nombre: "Filter by name", 
+        producto: "Filter by product", 
+        pais: "Filter by country", 
+        preguntas: "Questions?", 
+        faq: "Frequently asked questions", 
+        desea: "What do you want to do?", 
+        analizar: "Find useful parameters", 
+        todas: "All", 
+        mostrando: "Showing", 
+        registros: "record(s)", 
+        noResultados: "No records to display.", 
+        productoCampo: "Product", 
+        paisCampo: "Country", 
+        valores: "Allowed Values", 
+        que: "What does it do?", 
+        como: "How does it work?", 
+        dependencias: "Dependencies / Rules", 
+        cuando: "When does it apply?", 
+        ejemplo: "Functional Example", 
+        notas: "Customer-visible Notes", 
+        recomendados: "Recommended parameters", 
+        sinSugerencias: 
+          "I did not find enough matches. Try more specific terms.", 
+      }; 
+      const textosEditor = { 
+        es: { 
+          titulo: "Parámetros del Emisor", 
+          nuevo: "Nuevo registro", 
+          importarJSON: "Importar JSON", 
+          importarExcel: "Importar Excel", 
+          exportarJSON: "Exportar JSON", 
+          exportarWord: "Exportar Word B/N", 
+          etiquetas: "Corregir etiquetas en inglés", 
+          guardar: "Guardar cambios", 
+          externo: "Externo", 
+          interno: "Interno", 
+          buscar: "Buscar por palabra clave en TODAS las opciones", 
+          filtrarNombre: "Filtrar nombre", 
+          filtrarProducto: "Filtrar producto", 
+          filtrarPais: "Filtrar país", 
+          limpiar: "Limpiar filtros", 
+          todas: "Todas", 
+          resultados: "Resultados en todas las opciones", 
+          opcion: "Opción", 
+          producto: "Producto", 
+          pais: "País", 
+          valores: "Valores Permitidos", 
+          que: "¿Qué hace?", 
+          como: "¿Cómo funciona?", 
+          dependencias: "Dependencias / Reglas", 
+          cuando: "¿Cuándo aplica?", 
+          ejemplo: "Ejemplo Funcional", 
+          notas: "Notas Visibles al Cliente", 
+          duplicar: "Duplicar", 
+          eliminar: "Eliminar", 
+        }, 
+        en: { 
+          titulo: "Issuer Parameters", 
+          nuevo: "New record", 
+          importarJSON: "Import JSON", 
+          importarExcel: "Import Excel", 
+          exportarJSON: "Export JSON", 
+          exportarWord: "Export Word B/W", 
+          etiquetas: "Correct English labels", 
+          guardar: "Save changes", 
+          externo: "External", 
+          interno: "Internal", 
+          buscar: "Search by keyword across ALL options", 
+          filtrarNombre: "Filter by name", 
+          filtrarProducto: "Filter by product", 
+          filtrarPais: "Filter by country", 
+          limpiar: "Clear filters", 
+          todas: "All", 
+          resultados: "Results across all options", 
+          opcion: "Option", 
+          producto: "Product", 
+          pais: "Country", 
+          valores: "Allowed Values", 
+          que: "What does it do?", 
+          como: "How does it work?", 
+          dependencias: "Dependencies / Rules", 
+          cuando: "When does it apply?", 
+          ejemplo: "Functional Example", 
+          notas: "Customer-visible Notes", 
+          duplicar: "Duplicate", 
+          eliminar: "Delete", 
+        }, 
+      }; 
+ 
+      function textoEditor(clave) { 
+        if (idiomaEditor === "en" && etiquetasIngles[clave]) 
+          return etiquetasIngles[clave]; 
+        return ( 
+          textosEditor[idiomaEditor][clave] || textosEditor.es[clave] || clave 
+        ); 
+      } 
+ 
+      function aplicarIdiomaEditor() { 
+        $("tituloPrincipal").textContent = textoEditor("titulo"); 
+        $("btnNuevo").textContent = textoEditor("nuevo"); 
+        $("btnImportarJSON").textContent = textoEditor("importarJSON"); 
+        $("btnImportarExcel").textContent = textoEditor("importarExcel"); 
+        $("btnExportarJSON").textContent = textoEditor("exportarJSON"); 
+        $("btnExportarWord").textContent = textoEditor("exportarWord"); 
+        $("botonEtiquetas").textContent = textoEditor("etiquetas"); 
+        $("botonGuardar").textContent = textoEditor("guardar"); 
+        $("externo").textContent = textoEditor("externo"); 
+        $("interno").textContent = textoEditor("interno"); 
+        $("buscar").placeholder = textoEditor("buscar"); 
+        $("filtrarNombre").placeholder = textoEditor("filtrarNombre"); 
+        $("filtrarProducto").placeholder = textoEditor("filtrarProducto"); 
+        $("filtrarPais").placeholder = textoEditor("filtrarPais"); 
+        $("btnLimpiar").textContent = textoEditor("limpiar"); 
+      } 
+ 
+      function escapar(v) { 
+        return String(v ?? "").replace( 
+          /[&<>"']/g, 
+          (m) => 
+            ({ 
+              "&": "&amp;", 
+              "<": "&lt;", 
+              ">": "&gt;", 
+              '"': "&quot;", 
+              "'": "&#039;", 
+            })[m], 
+        ); 
+      } 
+      function normalizar(v) { 
+        return String(v ?? "") 
+          .toLowerCase() 
+          .normalize("NFD") 
+          .replace(/[\u0300-\u036f]/g, "") 
+          .replace(/[^a-z0-9]+/g, " ") 
+          .replace(/\s+/g, " ") 
+          .trim(); 
+      } 
+      function textoHTML(v) { 
+        const d = document.createElement("div"); 
+        d.innerHTML = String(v ?? ""); 
+        return d.textContent || ""; 
+      } 
+      function nombreOpcion(c) { 
+        return OPCIONES.find((x) => x[0] === c)?.[1] || "Sin nombre"; 
+      } 
+      function ruta(c) { 
+        return `data/${ambito}/op${c}.json`; 
+      } 
+      function baseLectura() { 
+        if (idiomaEditor === "es") return "./"; 
+        if (location.hostname.endsWith(".github.io")) { 
+          const propietario = location.hostname.split(".")[0]; 
+          return `https://${propietario}.github.io/parametros-emisor-en/`; 
+        } 
+        return "../parametros-emisor-en/"; 
+      } 
+      function todos() { 
+        return OPCIONES.flatMap(([c]) => 
+          (datos[c] || []).map((r) => ({ ...r, __opcion: c })), 
+        ); 
+      } 
+      function aviso(m, error = false) { 
+        $("toast").textContent = m; 
+        $("toast").className = "toast" + (error ? " error" : ""); 
+        $("toast").hidden = false; 
+        clearTimeout(aviso.t); 
+        aviso.t = setTimeout(() => ($("toast").hidden = true), 3500); 
+      } 
+      function construirMenu() { 
+        $("menu").innerHTML = 
+          `<button class="opcion ${opcion === "todas" ? "activa" : ""}" data-opcion="todas">${textoEditor("todas")}</button>` + 
+          OPCIONES.map( 
+            ([c, n]) => 
+              `<button class="opcion ${opcion === c ? "activa" : ""}" data-opcion="${c}" title="Op. ${c} · ${escapar(n)}">Op. ${c} · ${escapar(n)}</button>`, 
+          ).join(""); 
+      } 
+      $("menu").addEventListener("click", (e) => { 
+        const b = e.target.closest("[data-opcion]"); 
+        if (!b) return; 
+        opcion = b.dataset.opcion; 
+        construirMenu(); 
+        renderizar(); 
+      }); 
+      function opcionesFormulario(c) { 
+        $("codigo").innerHTML = OPCIONES.map( 
+          ([x, n]) => 
+            `<option value="${x}" ${x === c ? "selected" : ""}>Op. ${x} · ${escapar(n)}</option>`, 
+        ).join(""); 
+      } 
+      async function leer(c) { 
+        try { 
+          const url = `${baseLectura()}${ruta(c)}?v=${Date.now()}`; 
+          const r = await fetch(url, { cache: "no-store" }); 
+          if (r.status === 404) return []; 
+          if (!r.ok) throw new Error(`${url} (${r.status})`); 
+          const x = await r.json(); 
+          return Array.isArray(x) ? x : []; 
+        } catch (e) { 
+          console.warn(e); 
+          return []; 
+        } 
+      } 
+      async function cargarTodo() { 
+        $("estado").textContent = "Cargando todas las opciones..."; 
+        const pares = await Promise.all( 
+          OPCIONES.map(async ([c]) => [c, await leer(c)]), 
+        ); 
+        datos = Object.fromEntries(pares); 
+        renderizar(); 
+        $("estado").className = "estado ok"; 
+        $("estado").textContent = 
+          `${ambito === "externo" ? "Externo" : "Interno"} · ${todos().length} registros cargados.`; 
+      } 
+      async function cambiarAmbito(v) { 
+        ambito = v; 
+        $("externo").classList.toggle("activa", v === "externo"); 
+        $("interno").classList.toggle("activa", v === "interno"); 
+        await cargarTodo(); 
+      } 
+      function registrosVisibles() { 
+        if (modoFicha) { 
+          return todos().filter((registro) => claveFicha(registro) === fichaSolicitada); 
+        } 
+        const q = normalizar($("buscar").value), 
+          n = normalizar($("filtrarNombre").value), 
+          p = normalizar($("filtrarProducto").value), 
+          c = normalizar($("filtrarPais").value); 
+        const base = 
+          q || opcion === "todas" 
+            ? todos() 
+            : (datos[opcion] || []).map((r) => ({ ...r, __opcion: opcion })); 
+        return base.filter( 
+          (r) => 
+            (!q || 
+              normalizar(CAMPOS.map((k) => textoHTML(r[k])).join(" ")).includes( 
+                q, 
+              )) && 
+            (!n || normalizar(r.nombre).includes(n)) && 
+            (!p || normalizar(r.producto).includes(p)) && 
+            (!c || normalizar(r.pais).includes(c)), 
+        ); 
+      } 
+      function resaltar(v) { 
+        let s = escapar(textoHTML(v) || "—"), 
+          q = $("buscar").value.trim(); 
+        if (!q) return s; 
+        const partes = q 
+          .split(/\s+/) 
+          .filter(Boolean) 
+          .sort((a, b) => b.length - a.length) 
+          .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); 
+        return partes.length 
+          ? s.replace( 
+              new RegExp(`(${partes.join("|")})`, "gi"), 
+              "<mark>$1</mark>", 
+            ) 
+          : s; 
+      } 
+      function dependenciaVisible(v) { 
+        let html = String(v || "—"); 
+        if (!/<a\b/i.test(html)) html = escapar(html); 
+        return html; 
+      } 
+      function resaltarHTML(valor) { 
+        const contenedor = document.createElement("div"); 
+        contenedor.innerHTML = String(valor || "—"); 
+        const consulta = $("buscar").value.trim(); 
+        if (!consulta) return contenedor.innerHTML; 
+        const partes = consulta.split(/\s+/).filter(Boolean) 
+          .sort((a, b) => b.length - a.length) 
+          .map((x) => x.replace(/[.*+?^${}()|[\]\\]/g, "\\$&")); 
+        if (!partes.length) return contenedor.innerHTML; 
+        const expresion = new RegExp(`(${partes.join("|")})`, "gi"); 
+        const caminante = document.createTreeWalker(contenedor, NodeFilter.SHOW_TEXT); 
+        const nodos = []; 
+        while (caminante.nextNode()) nodos.push(caminante.currentNode); 
+        nodos.forEach((nodo) => { 
+          const texto = nodo.nodeValue || ""; 
+          expresion.lastIndex = 0; 
+          if (!expresion.test(texto)) return; 
+          expresion.lastIndex = 0; 
+          const fragmento = document.createDocumentFragment(); 
+          let ultimo = 0; 
+          texto.replace(expresion, (coincidencia, _grupo, indice) => { 
+            fragmento.appendChild(document.createTextNode(texto.slice(ultimo, indice))); 
+            const marca = document.createElement("mark"); 
+            marca.textContent = coincidencia; 
+            fragmento.appendChild(marca); 
+            ultimo = indice + coincidencia.length; 
+            return coincidencia; 
+          }); 
+          fragmento.appendChild(document.createTextNode(texto.slice(ultimo))); 
+          nodo.replaceWith(fragmento); 
+        }); 
+        return contenedor.innerHTML; 
+      } 
+      function campoEditable(t, c, i, k, v, clase = "") { 
+        return `<div class="campo ${clase}"><div class="etiqueta">${t}</div><div class="texto editable-ficha" contenteditable="true" data-campo="${k}" data-opcion="${c}" data-indice="${i}">${resaltar(v)}</div></div>`; 
+      } 
+      function campoDependencia(c, i, v) { 
+        return `<div class="campo"><div class="etiqueta">${textoEditor("dependencias")}</div><div class="texto dependencia-inline" contenteditable="true" data-dep-opcion="${c}" data-dep-indice="${i}" title="Edite directamente. Seleccione texto y haga clic derecho para vincularlo.">${resaltarHTML(dependenciaVisible(v))}</div><div class="ayuda">Edición directa · seleccione texto y haga clic derecho para vincular.</div></div>`; 
+      } 
+      function indiceReal(r) { 
+        return (datos[r.__opcion] || []).findIndex( 
+          (x) => 
+            (x.id && x.id === r.id) || 
+            (!x.id && 
+              x.nombre === r.nombre && 
+              x.producto === r.producto && 
+              x.pais === r.pais), 
+        ); 
+      } 
+      function renderizar() { 
+        const a = registrosVisibles(), 
+          hayBusqueda = Boolean(normalizar($("buscar").value)); 
+        $("titulo").textContent = hayBusqueda 
+          ? textoEditor("resultados") 
+          : opcion === "todas" 
+            ? textoEditor("todas") 
+            : `${textoEditor("opcion")} ${opcion} ${nombreOpcion(opcion)}`; 
+        $("contenido").innerHTML = a.length 
+          ? a 
+              .map((r) => { 
+                const c = r.__opcion, 
+                  i = indiceReal(r); 
+                return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${resaltar(r.nombre)}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${campoEditable(textoEditor("producto"), c, i, "producto", r.producto)}${campoEditable(textoEditor("pais"), c, i, "pais", r.pais)}${campoEditable(textoEditor("valores"), c, i, "valores", r.valores)}${campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)}${campoEditable(textoEditor("como"), c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)}${campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
+              }) 
+              .join("") 
+          : '<div class="vacio">No hay registros para mostrar.</div>'; 
+        $("estado").textContent = `Mostrando ${a.length} registro(s).`; 
+      } 
+      $("contenido").addEventListener("click", (e) => { 
+        for (const tipo of ["duplicar", "eliminar"]) { 
+          const b = e.target.closest(`[data-${tipo}]`); 
+          if (!b) continue; 
+          const [c, i] = b.dataset[tipo].split("|"); 
+          ({ duplicar: duplicarRegistro, eliminar: eliminarRegistro })[tipo]( 
+            c, 
+            Number(i), 
+          ); 
+          return; 
+        } 
+        const a = e.target.closest(".dep-ref-inline"); 
+        if (a) { 
+          e.preventDefault(); 
+          abrirRelacionado(a.dataset.target); 
+        } 
+      }); 
+      ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+        (id) => $(id).addEventListener("input", renderizar), 
+      ); 
+      function limpiarFiltros() { 
+        ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+          (id) => ($(id).value = ""), 
+        ); 
+        renderizar(); 
+      } 
+      function nuevoRegistro() { 
+        const c = opcion === "todas" ? "05" : opcion; 
+        $("formulario").reset(); 
+        $("indiceEdicion").value = -1; 
+        $("opcionOrigen").value = c; 
+        opcionesFormulario(c); 
+        $("dependencias").innerHTML = ""; 
+        $("tituloFormulario").textContent = "Nuevo registro"; 
+        $("modalRegistro").hidden = false; 
+      } 
+      function editarRegistro(c, i) { 
+        const r = datos[c]?.[i]; 
+        if (!r) return; 
+        $("formulario").reset(); 
+        $("indiceEdicion").value = i; 
+        $("opcionOrigen").value = c; 
+        opcionesFormulario(c); 
+        [ 
+          "nombre", 
+          "producto", 
+          "pais", 
+          "valores", 
+          "que", 
+          "como", 
+          "cuando", 
+          "ejemplo", 
+          "notas", 
+        ].forEach((k) => ($(k).value = r[k] ?? "")); 
+        $("dependencias").innerHTML = r.dependencias || r.dep || ""; 
+        $("tituloFormulario").textContent = "Editar registro"; 
+        $("modalRegistro").hidden = false; 
+      } 
+      function cerrarFormulario() { 
+        $("modalRegistro").hidden = true; 
+        cerrarMenuDependencias(); 
+      } 
+      function clave(r, c) { 
+        return [ 
+          c, 
+          normalizar(r.nombre), 
+          normalizar(r.producto), 
+          normalizar(r.pais), 
+        ].join("|"); 
+      } 
+      function existe(r, c, omitir = -1) { 
+        return (datos[c] || []).some( 
+          (x, i) => i !== omitir && clave(x, c) === clave(r, c), 
+        ); 
+      } 
+      $("formulario").addEventListener("submit", (e) => { 
+        e.preventDefault(); 
+        const i = Number($("indiceEdicion").value), 
+          origen = $("opcionOrigen").value, 
+          destino = $("codigo").value, 
+          anterior = i >= 0 ? datos[origen][i] : null, 
+          ahora = new Date().toISOString(); 
+        const r = { 
+          id: anterior?.id || crypto.randomUUID(), 
+          codigo: destino, 
+          nombre: $("nombre").value.trim(), 
+          producto: $("producto").value.trim(), 
+          pais: $("pais").value.trim(), 
+          valores: $("valores").value.trim(), 
+          que: $("que").value.trim(), 
+          como: $("como").value.trim(), 
+          dependencias: $("dependencias").innerHTML.trim(), 
+          cuando: $("cuando").value.trim(), 
+          ejemplo: $("ejemplo").value.trim(), 
+          notas: $("notas").value.trim(), 
+          creadoEn: anterior?.creadoEn || ahora, 
+          actualizadoEn: ahora, 
+        }; 
+        if (!r.nombre) return aviso("Nombre es obligatorio.", true); 
+        if (existe(r, destino, origen === destino ? i : -1)) 
+          return aviso("El registro ya existe.", true); 
+        if (i >= 0) datos[origen].splice(i, 1); 
+        datos[destino] ||= []; 
+        datos[destino].unshift(r); 
+        cerrarFormulario(); 
+        renderizar(); 
+        marcarCambio(origen); 
+        if (destino !== origen) marcarCambio(destino); 
+      }); 
+      function duplicarRegistro(c, i) { 
+        const r = structuredClone(datos[c][i]); 
+        r.id = crypto.randomUUID(); 
+        r.nombre = (r.nombre || "Sin nombre") + " - Copia"; 
+        r.creadoEn = r.actualizadoEn = new Date().toISOString(); 
+        datos[c].splice(i + 1, 0, r); 
+        renderizar(); 
+        marcarCambio(c); 
+        editarRegistro(c, i + 1); 
+      } 
+      function eliminarRegistro(c, i) { 
+        if (confirm(`¿Eliminar ${datos[c][i].nombre || "este registro"}?`)) { 
+          datos[c].splice(i, 1); 
+          renderizar(); 
+          marcarCambio(c); 
+        } 
+      } 
+ 
+      function detectarRepositorio() { 
+        const host = location.hostname.toLowerCase(); 
+        if (host.endsWith(".github.io")) { 
+          const propietario = host.split(".")[0]; 
+          const repositorio = 
+            location.pathname.split("/").filter(Boolean)[0] || 
+            "parametros-emisor"; 
+          return { propietario, repositorio, rama: "main" }; 
+        } 
+        const guardado = localStorage.getItem("peRepositorio"); 
+        if (guardado) { 
+          try { 
+            return JSON.parse(guardado); 
+          } catch (error) { 
+            console.warn(error); 
+          } 
+        } 
+        return null; 
+      } 
+      function marcarCambio(c) { 
+        cambiosPendientes.add(c); 
+        $("botonGuardar").disabled = false; 
+        $("estado").className = "estado"; 
+        $("estado").textContent = 
+          `Cambios pendientes en ${[...cambiosPendientes].map((x) => "op" + x).join(", ")}.`; 
+      } 
+      function configurarGitHub() { 
+        const detectado = detectarRepositorio(); 
+        if (!detectado) { 
+          const entrada = prompt( 
+            "No fue posible detectar el repositorio. Pegue una vez owner/repository:", 
+            "", 
+          ); 
+          if (!entrada) return null; 
+          const partes = entrada 
+            .replace(/^https:\/\/github\.com\//i, "") 
+            .replace(/\/$/, "") 
+            .split("/"); 
+          if (partes.length < 2) { 
+            aviso("Use el formato usuario/repositorio.", true); 
+            return null; 
+          } 
+          github = { 
+            propietario: partes[0], 
+            repositorio: partes[1].replace(/\.git$/i, ""), 
+            rama: "main", 
+            token: "", 
+          }; 
+          localStorage.setItem( 
+            "peRepositorio", 
+            JSON.stringify({ 
+              propietario: github.propietario, 
+              repositorio: github.repositorio, 
+              rama: "main", 
+            }), 
+          ); 
+        } else { 
+          github = { 
+            ...detectado, 
+            token: localStorage.getItem("peToken") || "", 
+          }; 
+        } 
+        $("repositorioDetectado").textContent = 
+          `${github.propietario}/${github.repositorio} · rama ${github.rama}`; 
+        $("githubToken").value = github.token; 
+        $("modalGitHub").hidden = false; 
+        return github; 
+      } 
+      function cerrarGitHub() { 
+        $("modalGitHub").hidden = true; 
+      } 
+      function cabecerasGitHub() { 
+        return { 
+          Accept: "application/vnd.github+json", 
+          Authorization: `Bearer ${github.token}`, 
+          "X-GitHub-Api-Version": "2022-11-28", 
+        }; 
+      } 
+      async function conectarYGuardar() { 
+        github.token = $("githubToken").value.trim(); 
+        if (!github.token) return aviso("Pegue el token.", true); 
+        localStorage.setItem("peToken", github.token); 
+        try { 
+          const r = await fetch( 
+            `https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}`, 
+            { headers: cabecerasGitHub() }, 
+          ); 
+          if (!r.ok) 
+            throw new Error( 
+              `No se pudo abrir ${github.propietario}/${github.repositorio} (${r.status}). Revise que el token tenga acceso al repositorio.`, 
+            ); 
+          cerrarGitHub(); 
+          await guardarCambios(); 
+        } catch (error) { 
+          aviso(error.message, true); 
+        } 
+      } 
+      async function guardarCambios() { 
+        if (!cambiosPendientes.size) return aviso("No hay cambios pendientes."); 
+        const detectado = detectarRepositorio(); 
+        if (!github.propietario && detectado) 
+          github = { 
+            ...detectado, 
+            token: localStorage.getItem("peToken") || "", 
+          }; 
+        if (!github.propietario || !github.token) { 
+          configurarGitHub(); 
+          return; 
+        } 
+        $("botonGuardar").disabled = true; 
+        const opciones = [...cambiosPendientes]; 
+        let guardadas = 0; 
+        try { 
+          for (const c of opciones) { 
+            await guardarOpcion(c); 
+            cambiosPendientes.delete(c); 
+            guardadas++; 
+          } 
+          $("estado").className = "estado ok"; 
+          $("estado").textContent = 
+            `${guardadas} archivo(s) guardado(s). El visor leerá estos mismos JSON.`; 
+          aviso("Cambios guardados y publicados para el visor."); 
+        } catch (error) { 
+          $("estado").className = "estado error"; 
+          $("estado").textContent = error.message; 
+          aviso(error.message, true); 
+        } finally { 
+          $("botonGuardar").disabled = cambiosPendientes.size === 0; 
+        } 
+      } 
+      function base64Unicode(s) { 
+        const a = new TextEncoder().encode(s); 
+        let b = ""; 
+        for (let i = 0; i < a.length; i += 32768) 
+          b += String.fromCharCode(...a.subarray(i, i + 32768)); 
+        return btoa(b); 
+      } 
+      async function guardarOpcion(c) { 
+        const p = ruta(c), 
+          api = `https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${p}`, 
+          h = cabecerasGitHub(); 
+        $("estado").className = "estado"; 
+        $("estado").textContent = `Guardando ${p}...`; 
+        let sha; 
+        const actual = await fetch( 
+          `${api}?ref=${encodeURIComponent(github.rama)}`, 
+          { headers: h }, 
+        ); 
+        if (actual.ok) sha = (await actual.json()).sha; 
+        else if (actual.status !== 404) 
+          throw new Error(`No se pudo leer ${p} (${actual.status}).`); 
+        const body = { 
+          message: `Actualizar ${p} desde Editor`, 
+          content: base64Unicode(JSON.stringify(datos[c], null, 2) + "\n"), 
+          branch: github.rama, 
+        }; 
+        if (sha) body.sha = sha; 
+        const r = await fetch(api, { 
+          method: "PUT", 
+          headers: { ...h, "Content-Type": "application/json" }, 
+          body: JSON.stringify(body), 
+        }); 
+        if (!r.ok) { 
+          const detalle = await r.text(); 
+          if (r.status === 403) 
+            throw new Error( 
+              `El token puede abrir el repositorio, pero no puede escribir ${p}. Cree o edite un token con acceso a este repositorio y Repository permissions > Contents > Read and write. Detalle de GitHub: ${detalle}`, 
+            ); 
+          throw new Error(`GitHub rechazó ${p} (${r.status}): ${detalle}`); 
+        } 
+      } 
+ 
+      function obtenerSeleccion(el) { 
+        const s = window.getSelection(); 
+        if (!s || !s.rangeCount || s.isCollapsed) return null; 
+        const r = s.getRangeAt(0); 
+        if (!el.contains(r.commonAncestorContainer)) return null; 
+        return { rango: r.cloneRange(), texto: r.toString() }; 
+      } 
+      function abrirMenuDependencias(e, el) { 
+        e.preventDefault(); 
+        e.stopPropagation(); 
+        const sel = obtenerSeleccion(el); 
+        if (!sel) { 
+          alert( 
+            "Primero marque una porción de texto dentro de Dependencias / Reglas y luego haga clic derecho.", 
+          ); 
+          return; 
+        } 
+        seleccionDependencia = sel; 
+        elementoDependenciaActivo = el; 
+        const menu = $("menuDependencias"); 
+        menu.style.display = "block"; 
+        menu.style.left = Math.min(e.clientX, window.innerWidth - 390) + "px"; 
+        menu.style.top = Math.min(e.clientY, window.innerHeight - 360) + "px"; 
+        menu.innerHTML = `<strong>Vincular texto seleccionado</strong><div class="ayuda">Texto: ${escapar(sel.texto)}</div><input id="buscarDependencia" placeholder="Buscar parámetro u opción..."><div id="resultadosDependencia" class="resultados-dependencia"></div>`; 
+        $("buscarDependencia").addEventListener("input", () => 
+          mostrarResultadosDependencia($("buscarDependencia").value), 
+        ); 
+        mostrarResultadosDependencia(sel.texto); 
+        setTimeout(() => $("buscarDependencia").focus(), 0); 
+      } 
+      $("dependencias").addEventListener("contextmenu", (e) => 
+        abrirMenuDependencias(e, $("dependencias")), 
+      ); 
+      $("contenido").addEventListener("contextmenu", (e) => { 
+        const el = e.target.closest(".dependencia-inline"); 
+        if (el) abrirMenuDependencias(e, el); 
+      }); 
+      $("contenido").addEventListener("input", (e) => { 
+        const el = e.target.closest("[data-campo]"); 
+        if (!el) return; 
+        const c = el.dataset.opcion, 
+          i = Number(el.dataset.indice), 
+          k = el.dataset.campo, 
+          r = datos[c]?.[i]; 
+        if (!r) return; 
+        r[k] = el.innerText.trim(); 
+        r.actualizadoEn = new Date().toISOString(); 
+        marcarCambio(c); 
+      }); 
+      $("contenido").addEventListener("input", (e) => { 
+        const el = e.target.closest(".dependencia-inline"); 
+        if (!el) return; 
+        const c = el.dataset.depOpcion, 
+          i = Number(el.dataset.depIndice), 
+          r = datos[c]?.[i]; 
+        if (!r) return; 
+        r.dependencias = el.innerHTML.trim(); 
+        r.actualizadoEn = new Date().toISOString(); 
+        marcarCambio(c); 
+      }); 
+      function puntaje(q, r) { 
+        const palabras = normalizar(q) 
+            .split(" ") 
+            .filter((x) => x.length > 2), 
+          texto = normalizar(CAMPOS.map((k) => textoHTML(r[k])).join(" ")); 
+        return palabras.reduce((s, x) => s + (texto.includes(x) ? 1 : 0), 0); 
+      } 
+      function mostrarResultadosDependencia(q) { 
+        const arr = todos() 
+          .map((r) => ({ r, p: puntaje(q, r) })) 
+          .filter((x) => x.p > 0 || !normalizar(q)) 
+          .sort((a, b) => b.p - a.p) 
+          .slice(0, 10); 
+        $("resultadosDependencia").innerHTML = arr.length 
+          ? arr 
+              .map( 
+                ({ r }) => 
+                  `<button class="resultado-dependencia" data-vincular="${escapar(r.id || "")}" data-opcion="${r.__opcion}" data-nombre="${escapar(r.nombre)}"><strong>Op. ${r.__opcion} · ${escapar(r.nombre)}</strong><br><small>${escapar(r.que || r.como || "Sin descripción")}</small></button>`, 
+              ) 
+              .join("") 
+          : '<div class="ayuda">No hay coincidencias. Escriba otra búsqueda.</div>'; 
+      } 
+      $("menuDependencias").addEventListener("click", (e) => { 
+        const b = e.target.closest("[data-vincular]"); 
+        if (!b) return; 
+        e.preventDefault(); 
+        e.stopPropagation(); 
+        if (!seleccionDependencia) return; 
+        const id = 
+          b.dataset.vincular || 
+          `op${b.dataset.opcion}-${normalizar(b.dataset.nombre).replaceAll(" ", "-")}`; 
+        const a = document.createElement("a"); 
+        a.href = "#"; 
+        a.className = "dep-ref-inline"; 
+        a.dataset.target = id; 
+        try { 
+          a.appendChild(seleccionDependencia.rango.extractContents()); 
+          seleccionDependencia.rango.insertNode(a); 
+          a.after(document.createTextNode("")); 
+        } catch (error) { 
+          aviso( 
+            "No se pudo crear el vínculo. Vuelva a seleccionar el texto.", 
+            true, 
+          ); 
+        } 
+        if ( 
+          elementoDependenciaActivo?.classList.contains("dependencia-inline") 
+        ) { 
+          const c = elementoDependenciaActivo.dataset.depOpcion, 
+            i = Number(elementoDependenciaActivo.dataset.depIndice), 
+            registro = datos[c]?.[i]; 
+          if (registro) { 
+            registro.dependencias = elementoDependenciaActivo.innerHTML.trim(); 
+            registro.actualizadoEn = new Date().toISOString(); 
+            marcarCambio(c); 
+          } 
+        } 
+        cerrarMenuDependencias(); 
+      }); 
+      function cerrarMenuDependencias() { 
+        $("menuDependencias").style.display = "none"; 
+        seleccionDependencia = null; 
+        elementoDependenciaActivo = null; 
+      } 
+      document.addEventListener("pointerdown", (e) => { 
+        if ( 
+          !$("menuDependencias").contains(e.target) && 
+          !e.target.closest("#dependencias") 
+        ) 
+          cerrarMenuDependencias(); 
+      }); 
+      function encontrarRelacionado(id) { 
+        return todos().find( 
+          (r) => 
+            r.id === id || 
+            `op${r.__opcion}-${normalizar(r.nombre).replaceAll(" ", "-")}` === 
+              id, 
+        ); 
+      } 
+      document.addEventListener("mouseover", (e) => { 
+        const a = e.target.closest?.(".dep-ref-inline"); 
+        if (!a) return; 
+        clearTimeout(ocultarTarjeta); 
+        const r = encontrarRelacionado(a.dataset.target); 
+        if (!r) return; 
+        const h = $("tarjetaDependencia"), 
+          rect = a.getBoundingClientRect(); 
+        h.style.display = "block"; 
+        h.style.left = Math.min(rect.left, window.innerWidth - 535) + "px"; 
+        h.style.top = 
+          Math.min(rect.bottom + 8, window.innerHeight - 455) + "px"; 
+        const fila = (t, v) => 
+          `<div class="vista-previa-campo"><b>${t}</b>${escapar(textoHTML(v) || "—")}</div>`; 
+        h.innerHTML = `<h4>${escapar(r.nombre)}</h4><p>Opción ${r.__opcion} ${escapar(nombreOpcion(r.__opcion))}</p>${fila("Producto", r.producto)}${fila("País", r.pais)}${fila("Valores", r.valores)}${fila("Qué hace", r.que)}${fila("Cómo funciona", r.como)}${fila("Dependencias / Reglas", r.dependencias || r.dep)}${fila("Cuándo aplica", r.cuando)}${fila("Ejemplo", r.ejemplo)}${fila("Notas", r.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-nueva-pestana="${escapar(a.dataset.target)}">Abrir en nueva pestaña</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`; 
+      }); 
+      document.addEventListener("mouseout", (e) => { 
+        if (e.target.closest?.(".dep-ref-inline")) 
+          ocultarTarjeta = setTimeout( 
+            () => ($("tarjetaDependencia").style.display = "none"), 
+            450, 
+          ); 
+      }); 
+      $("tarjetaDependencia").addEventListener("mouseenter", () => 
+        clearTimeout(ocultarTarjeta), 
+      ); 
+      $("tarjetaDependencia").addEventListener( 
+        "mouseleave", 
+        () => ($("tarjetaDependencia").style.display = "none"), 
+      ); 
+      $("tarjetaDependencia").addEventListener("click", (e) => { 
+        const nueva = e.target.closest("[data-nueva-pestana]"), 
+          quitar = e.target.closest("[data-quitar-relacion]"); 
+        if (nueva) abrirNuevaPestana(nueva.dataset.nuevaPestana); 
+        if (quitar) { 
+          const objetivo = quitar.dataset.quitarRelacion; 
+          document.querySelectorAll("a.dep-ref-inline").forEach((enlace) => { 
+            if (enlace.dataset.target !== objetivo) return; 
+            const contenedor = enlace.closest(".dependencia-inline, #dependencias"); 
+            enlace.replaceWith(document.createTextNode(enlace.textContent)); 
+            contenedor?.normalize(); 
+            if (contenedor?.classList.contains("dependencia-inline")) { 
+              const c = contenedor.dataset.depOpcion; 
+              const i = Number(contenedor.dataset.depIndice); 
+              const registro = datos[c]?.[i]; 
+              if (registro) { 
+                registro.dependencias = contenedor.innerHTML.trim(); 
+                registro.actualizadoEn = new Date().toISOString(); 
+                marcarCambio(c); 
+              } 
+            } 
+          }); 
+          $("tarjetaDependencia").style.display = "none"; 
+          aviso("Vínculo eliminado. Guarde los cambios para publicarlo."); 
+        } 
+      }); 
+      function abrirNuevaPestana(id) { 
+        const registro = encontrarRelacionado(id); 
+        if (!registro) return aviso("No se encontró la ficha relacionada.", true); 
+        abrirFichaURL(registro); 
+      } 
+      function abrirRelacionado(id) { 
+        const r = encontrarRelacionado(id); 
+        if (!r) return aviso("No se encontró la ficha relacionada.", true); 
+        opcion = r.__opcion; 
+        construirMenu(); 
+        $("buscar").value = r.nombre; 
+        cerrarFormulario(); 
+        renderizar(); 
+        window.scrollTo({ top: 0, behavior: "smooth" }); 
+      } 
+ 
+      function seleccionarJSON() { 
+        $("archivoJSON").value = ""; 
+        $("archivoJSON").click(); 
+      } 
+      function seleccionarExcel() { 
+        $("archivoExcel").value = ""; 
+        $("archivoExcel").click(); 
+      } 
+      function importarUnicos(filas, c) { 
+        datos[c] ||= []; 
+        const existentes = new Set(datos[c].map((r) => clave(r, c))); 
+        let nuevos = 0, 
+          duplicados = 0, 
+          ignorados = 0; 
+        for (let r of filas) { 
+          r = { ...r, codigo: c, nombre: String(r.nombre || "").trim() }; 
+          if (!r.nombre) { 
+            ignorados++; 
+            continue; 
+          } 
+          const k = clave(r, c); 
+          if (existentes.has(k)) { 
+            duplicados++; 
+            continue; 
+          } 
+          r.id = r.id || crypto.randomUUID(); 
+          r.creadoEn = r.creadoEn || new Date().toISOString(); 
+          r.actualizadoEn = new Date().toISOString(); 
+          datos[c].push(r); 
+          existentes.add(k); 
+          nuevos++; 
+        } 
+        renderizar(); 
+        if (nuevos) marcarCambio(c); 
+        aviso( 
+          `${nuevos} nuevos agregados · ${duplicados} duplicados omitidos · ${ignorados} filas ignoradas.`, 
+        ); 
+      } 
+      $("archivoJSON").addEventListener("change", async (e) => { 
+        if (opcion === "todas") 
+          return aviso("Seleccione una opción antes de importar.", true); 
+        try { 
+          const x = JSON.parse(await e.target.files[0].text()); 
+          if (!Array.isArray(x)) 
+            throw new Error("El JSON debe contener una lista."); 
+          importarUnicos(x, opcion); 
+        } catch (error) { 
+          aviso(error.message, true); 
+        } 
+      }); 
+      function filaEncabezados(filas) { 
+        return filas.findIndex( 
+          (r) => 
+            Array.isArray(r) && 
+            r.some((c) => normalizar(c).includes("nombre del parametro")), 
+        ); 
+      } 
+      function mapaColumnas(h) { 
+        const defs = { 
+            nombre: ["nombre del parametro"], 
+            producto: ["producto"], 
+            pais: ["pais"], 
+            valores: ["valores permitidos"], 
+            que: ["que hace el parametro", "que hace"], 
+            como: ["como funciona"], 
+            dependencias: ["dependencias reglas", "dependencias"], 
+            cuando: ["cuando aplica"], 
+            ejemplo: ["ejemplo funcional"], 
+            notas: ["notas visibles al cliente", "notas"], 
+          }, 
+          m = {}; 
+        h.forEach((x, i) => { 
+          const n = normalizar(x); 
+          Object.entries(defs).forEach(([k, a]) => { 
+            if (m[k] === undefined && a.some((v) => n === v || n.includes(v))) 
+              m[k] = i; 
+          }); 
+        }); 
+        return m; 
+      } 
+      $("archivoExcel").addEventListener("change", async (e) => { 
+        if (opcion === "todas") 
+          return aviso("Seleccione una opción antes de importar.", true); 
+        try { 
+          const wb = XLSX.read(await e.target.files[0].arrayBuffer(), { 
+              type: "array", 
+            }), 
+            filas = XLSX.utils.sheet_to_json(wb.Sheets[wb.SheetNames[0]], { 
+              header: 1, 
+              defval: "", 
+              raw: false, 
+            }), 
+            i = filaEncabezados(filas); 
+          if (i < 0) throw new Error("No se encontró Nombre del Parámetro."); 
+          const m = mapaColumnas(filas[i]), 
+            get = (r, k) => String(r[m[k]] ?? "").trim(), 
+            items = filas.slice(i + 1).map((r) => ({ 
+              nombre: get(r, "nombre"), 
+              producto: get(r, "producto"), 
+              pais: get(r, "pais"), 
+              valores: get(r, "valores"), 
+              que: get(r, "que"), 
+              como: get(r, "como"), 
+              dependencias: get(r, "dependencias"), 
+              cuando: get(r, "cuando"), 
+              ejemplo: get(r, "ejemplo"), 
+              notas: get(r, "notas"), 
+            })); 
+          importarUnicos(items, opcion); 
+        } catch (error) { 
+          aviso(error.message, true); 
+        } 
+      }); 
+      function descargar(texto, nombre, tipo) { 
+        const u = URL.createObjectURL(new Blob([texto], { type: tipo })), 
+          a = document.createElement("a"); 
+        a.href = u; 
+        a.download = nombre; 
+        a.click(); 
+        URL.revokeObjectURL(u); 
+      } 
+      function exportarJSON() { 
+        const x = 
+          opcion === "todas" 
+            ? Object.fromEntries(OPCIONES.map(([c]) => [c, datos[c] || []])) 
+            : datos[opcion] || []; 
+        descargar( 
+          JSON.stringify(x, null, 2) + "\n", 
+          `${ambito}_${opcion}.json`, 
+          "application/json", 
+        ); 
+      } 
+      function exportarWord() { 
+        const a = registrosVisibles(); 
+        if (!a.length) return aviso("No hay registros visibles.", true); 
+        const fichas = a 
+          .map( 
+            (r) => 
+              `<h2>Op. ${escapar(r.__opcion)} - ${escapar(r.nombre)}</h2><table><tr><th>PRODUCTO</th><th>PAÍS</th><th>VALORES PERMITIDOS</th></tr><tr><td>${escapar(r.producto)}</td><td>${escapar(r.pais)}</td><td>${escapar(r.valores)}</td></tr><tr><th>¿QUÉ HACE?</th><th>¿CÓMO FUNCIONA?</th><th>DEPENDENCIAS / REGLAS</th></tr><tr><td>${escapar(r.que)}</td><td>${escapar(r.como)}</td><td>${escapar(textoHTML(r.dependencias))}</td></tr><tr><th>¿CUÁNDO APLICA?</th><th>EJEMPLO FUNCIONAL</th><th>NOTAS VISIBLES AL CLIENTE</th></tr><tr><td>${escapar(r.cuando)}</td><td>${escapar(r.ejemplo)}</td><td>${escapar(r.notas)}</td></tr></table>`, 
+          ) 
+          .join(""); 
+        const doc = `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#000}h2{color:#000;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:20px}th,td{border:1px solid #000;padding:7px;vertical-align:top}th{background:#fff;color:#000}</style></head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`; 
+        descargar( 
+          "\ufeff" + doc, 
+          `${ambito}_${opcion}.doc`, 
+          "application/msword", 
+        ); 
+      } 
+      async function cambiarIdiomaEditor(nuevoIdioma) { 
+        if (cambiosPendientes.size) { 
+          aviso( 
+            "Guarde o descarte los cambios pendientes antes de cambiar de idioma.", 
+            true, 
+          ); 
+          return; 
+        } 
+        idiomaEditor = nuevoIdioma; 
+        $("botonES").classList.toggle("seleccionado", nuevoIdioma === "es"); 
+        $("botonEN").classList.toggle("seleccionado", nuevoIdioma === "en"); 
+        $("botonEtiquetas").style.display = 
+          nuevoIdioma === "en" ? "inline-block" : "none"; 
+        if (nuevoIdioma === "en") await cargarEtiquetas(); 
+        aplicarIdiomaEditor(); 
+        github = { 
+          url: "", 
+          propietario: "", 
+          repositorio: "", 
+          rama: "main", 
+          token: localStorage.getItem("peToken") || "", 
+        }; 
+        await cargarTodo(); 
+      } 
+      async function cargarEtiquetas() { 
+        if (idiomaEditor !== "en") return; 
+        try { 
+          const respuesta = await fetch( 
+            `${baseLectura()}data/config/labels.json?v=${Date.now()}`, 
+            { cache: "no-store" }, 
+          ); 
+          if (respuesta.ok) 
+            etiquetasIngles = { 
+              ...etiquetasIngles, 
+              ...(await respuesta.json()), 
+            }; 
+        } catch (error) { 
+          console.warn(error); 
+        } 
+      } 
+      async function abrirEtiquetas() { 
+        if (idiomaEditor !== "en") 
+          return aviso("Seleccione English para editar sus etiquetas.", true); 
+        await cargarEtiquetas(); 
+        $("rejillaEtiquetas").innerHTML = Object.entries(etiquetasIngles) 
+          .map( 
+            ([clave, valor]) => 
+              `<label>${escapar(clave)}<input data-etiqueta="${escapar(clave)}" value="${escapar(valor)}"></label>`, 
+          ) 
+          .join(""); 
+        $("modalEtiquetas").hidden = false; 
+      } 
+      function cerrarEtiquetas() { 
+        $("modalEtiquetas").hidden = true; 
+      } 
+      async function guardarEtiquetas() { 
+        document.querySelectorAll("[data-etiqueta]").forEach((input) => { 
+          etiquetasIngles[input.dataset.etiqueta] = input.value.trim(); 
+        }); 
+        const detectado = detectarRepositorio(); 
+        github = { 
+          ...detectado, 
+          token: localStorage.getItem("peToken") || github.token, 
+        }; 
+        if (!github.token) { 
+          configurarGitHub(); 
+          return; 
+        } 
+        try { 
+          await guardarArchivoGitHub( 
+            "data/config/labels.json", 
+            etiquetasIngles, 
+          ); 
+          cerrarEtiquetas(); 
+          aplicarIdiomaEditor(); 
+          renderizar(); 
+          aviso("Etiquetas inglesas publicadas para el visor."); 
+        } catch (error) { 
+          aviso(error.message, true); 
+        } 
+      } 
+      async function guardarArchivoGitHub(rutaArchivo, contenido) { 
+        const api = `https://api.github.com/repos/${encodeURIComponent(github.propietario)}/${encodeURIComponent(github.repositorio)}/contents/${rutaArchivo}`; 
+        const h = cabecerasGitHub(); 
+        let sha; 
+        const actual = await fetch( 
+          `${api}?ref=${encodeURIComponent(github.rama)}`, 
+          { headers: h }, 
+        ); 
+        if (actual.ok) sha = (await actual.json()).sha; 
+        else if (actual.status !== 404) 
+          throw new Error(`No se pudo leer ${rutaArchivo} (${actual.status}).`); 
+        const body = { 
+          message: `Actualizar ${rutaArchivo} desde Editor`, 
+          content: base64Unicode(JSON.stringify(contenido, null, 2) + "\n"), 
+          branch: github.rama, 
+        }; 
+        if (sha) body.sha = sha; 
+        const respuesta = await fetch(api, { 
+          method: "PUT", 
+          headers: { ...h, "Content-Type": "application/json" }, 
+          body: JSON.stringify(body), 
+        }); 
+        if (!respuesta.ok) 
+          throw new Error( 
+            `GitHub rechazó ${rutaArchivo} (${respuesta.status}): ${await respuesta.text()}`, 
+          ); 
+      } 
+      window.addEventListener("beforeunload", (e) => { 
+        if (cambiosPendientes.size) { 
+          e.preventDefault(); 
+          e.returnValue = ""; 
+        } 
+      }); 
+      document.addEventListener("DOMContentLoaded", async () => { 
+        prepararModoFicha(); 
+        construirMenu(); 
+        opcionesFormulario("05"); 
+        $("botonEtiquetas").style.display = "none"; 
+        aplicarIdiomaEditor(); 
+        const detectado = detectarRepositorio(); 
+        if (detectado) 
+          github = { 
+            ...detectado, 
+            token: localStorage.getItem("peToken") || "", 
+          }; 
+        await cargarTodo(); 
+        aplicarModoFicha(); 
+      }); 
+    </script> 
+  </body> 
+</html> 
+ 
+ 
