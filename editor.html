@@ -1837,7 +1837,47 @@
               `<h2>Op. ${escapar(r.__opcion)} - ${escapar(r.nombre)}</h2><table><tr><th>PRODUCTO</th><th>PAÍS</th><th>VALORES PERMITIDOS</th></tr><tr><td>${escapar(r.producto)}</td><td>${escapar(r.pais)}</td><td>${escapar(r.valores)}</td></tr><tr><th>¿QUÉ HACE?</th><th>¿CÓMO FUNCIONA?</th><th>DEPENDENCIAS / REGLAS</th></tr><tr><td>${escapar(r.que)}</td><td>${escapar(r.como)}</td><td>${escapar(textoHTML(r.dependencias))}</td></tr><tr><th>¿CUÁNDO APLICA?</th><th>EJEMPLO FUNCIONAL</th><th>NOTAS VISIBLES AL CLIENTE</th></tr><tr><td>${escapar(r.cuando)}</td><td>${escapar(r.ejemplo)}</td><td>${escapar(r.notas)}</td></tr></table>`, 
           ) 
           .join(""); 
-        const doc = `<!doctype html><html><head><meta charset="utf-8"><style>body{font-family:Arial;color:#000}h2{color:#000;border-bottom:1px solid #000}table{width:100%;border-collapse:collapse;table-layout:fixed;margin-bottom:20px}th,td{border:1px solid #000;padding:7px;vertical-align:top}th{background:#fff;color:#000}</style></head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`; 
+        const doc = `<!doctype html><html><head><meta charset="utf-8">
+        <style>
+body{
+  font-family: Arial, sans-serif;
+  color:#000;
+  margin:25px;
+}
+
+h1{
+  font-size:22pt;
+  margin-bottom:20px;
+}
+
+h2{
+  color:#000;
+  font-size:16pt;
+  margin-top:20px;
+  margin-bottom:8px;
+}
+
+table{
+  width:100%;
+  border-collapse:collapse;
+  margin-bottom:25px;
+}
+
+th,td{
+  border:1px solid #000;
+  padding:12px;
+  vertical-align:top;
+  text-align:left;
+  line-height:1.4;
+  font-size:11pt;
+}
+
+th{
+  font-weight:bold;
+  background:#fff;
+}
+</style>
+        </head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`; 
         descargar( 
           "\ufeff" + doc, 
           `${ambito}_${opcion}.doc`, 
