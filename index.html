@@ -152,10 +152,16 @@
       } 
  
       .filtros { 
+        position: sticky; 
+        top: 0; 
+        z-index: 80; 
         display: grid; 
         grid-template-columns: 2fr repeat(3, 1fr) auto; 
         gap: 8px; 
         padding: 12px 22px; 
+        background: var(--fondo); 
+        border-bottom: 1px solid var(--borde); 
+        box-shadow: 0 4px 10px #00000012; 
       } 
  
       input, 
@@ -803,19 +809,19 @@
       function construirMenu() { 
         const t = textosActivos(); 
         $("menuOpciones").innerHTML = 
-          `  
-                <button class="opcion ${opcion === "todas" ? "activa" : ""}" data-opcion="todas">  
-                    ${t.todas}  
-                </button>  
+          ` 
+                <button class="opcion ${opcion === "todas" ? "activa" : ""}" data-opcion="todas"> 
+                    ${t.todas} 
+                </button> 
             ` + 
           OPCIONES.map( 
-            ([codigo, nombre]) => `  
-                <button  
-                    class="opcion ${opcion === codigo ? "activa" : ""}"  
-                    data-opcion="${codigo}"  
-                    title="Op. ${codigo} · ${escapar(nombre)}">  
-                    Op. ${codigo} · ${escapar(nombre)}  
-                </button>  
+            ([codigo, nombre]) => ` 
+                <button 
+                    class="opcion ${opcion === codigo ? "activa" : ""}" 
+                    data-opcion="${codigo}" 
+                    title="Op. ${codigo} · ${escapar(nombre)}"> 
+                    Op. ${codigo} · ${escapar(nombre)} 
+                </button> 
             `, 
           ).join(""); 
       } 
@@ -871,11 +877,11 @@
       } 
  
       function campo(etiqueta, valor, clase = "", dependencia = false) { 
-        return `  
-                <div class="campo ${clase}">  
-                    <div class="etiqueta">${etiqueta}</div>  
-                    <div class="texto">${dependencia ? String(valor || "—") : resaltar(valor)}</div>  
-                </div>  
+        return ` 
+                <div class="campo ${clase}"> 
+                    <div class="etiqueta">${etiqueta}</div> 
+                    <div class="texto">${dependencia ? String(valor || "—") : resaltar(valor)}</div> 
+                </div> 
             `; 
       } 
  
@@ -898,24 +904,24 @@
         $("contenido").innerHTML = registros.length 
           ? registros 
               .map( 
-                (registro) => `  
-                    <article id="${escapar(idFicha(registro))}" class="ficha" data-id="${escapar(claveRegistro(registro))}">  
-                        <div class="ficha-encabezado">  
-                            <div class="codigo">Op. ${registro.__opcion}</div>  
-                            <div class="nombre">${resaltar(registro.nombre)}</div>  
-                        </div>  
-                        <div class="cuadricula">  
-                            ${campo(t.productoCampo, registro.producto)}  
-                            ${campo(t.paisCampo, registro.pais)}  
-                            ${campo(t.valores, registro.valores)}  
-                            ${campo(t.que, registro.que || registro.descripcion)}  
-                            ${campo(t.como, registro.como)}  
-                            ${campo(t.dependencias, registro.dependencias || registro.dep, "", true)}  
-                            ${campo(t.cuando, registro.cuando)}  
-                            ${campo(t.ejemplo, registro.ejemplo, "ejemplo")}  
-                            ${campo(t.notas, registro.notas)}  
-                        </div>  
-                    </article>  
+                (registro) => ` 
+                    <article id="${escapar(idFicha(registro))}" class="ficha" data-id="${escapar(claveRegistro(registro))}"> 
+                        <div class="ficha-encabezado"> 
+                            <div class="codigo">Op. ${registro.__opcion}</div> 
+                            <div class="nombre">${resaltar(registro.nombre)}</div> 
+                        </div> 
+                        <div class="cuadricula"> 
+                            ${campo(t.productoCampo, registro.producto)} 
+                            ${campo(t.paisCampo, registro.pais)} 
+                            ${campo(t.valores, registro.valores)} 
+                            ${campo(t.que, registro.que || registro.descripcion)} 
+                            ${campo(t.como, registro.como)} 
+                            ${campo(t.dependencias, registro.dependencias || registro.dep, "", true)} 
+                            ${campo(t.cuando, registro.cuando)} 
+                            ${campo(t.ejemplo, registro.ejemplo, "ejemplo")} 
+                            ${campo(t.notas, registro.notas)} 
+                        </div> 
+                    </article> 
                 `, 
               ) 
               .join("") 
@@ -969,8 +975,8 @@
       function construirFAQ() { 
         $("faqLista").innerHTML = FAQ[idioma] 
           .map( 
-            (pregunta) => `  
-                <button class="faq" data-faq="${escapar(pregunta)}">${escapar(pregunta)}</button>  
+            (pregunta) => ` 
+                <button class="faq" data-faq="${escapar(pregunta)}">${escapar(pregunta)}</button> 
             `, 
           ) 
           .join(""); 
@@ -1030,39 +1036,138 @@
           ? `<strong>${t.recomendados}</strong>` + 
             sugerencias 
               .map( 
-                ({ registro }) => `  
-                    <button class="recomendacion" data-recomendacion="${registro.__opcion}|${escapar(claveRegistro(registro))}">  
-                        <strong>Op. ${registro.__opcion} · ${escapar(registro.nombre || "")}</strong><br>  
-                        <small>${escapar(registro.que || registro.como || registro.notas || "")}</small>  
-                    </button>  
+                ({ registro }) => ` 
+                    <button class="recomendacion" data-recomendacion="${registro.__opcion}|${escapar(claveRegistro(registro))}"> 
+                        <strong>Op. ${registro.__opcion} · ${escapar(registro.nombre || "")}</strong><br> 
+                        <small>${escapar(registro.que || registro.como || registro.notas || "")}</small> 
+                    </button> 
                 `, 
               ) 
               .join("") 
           : t.sinSugerencias; 
       } 
  
+      function abrirFichaRecomendada(codigo, registro) { 
+        const t = textosActivos(); 
+        const fila = (etiqueta, valor) => ` 
+          <section> 
+            <b>${escapar(etiqueta)}</b> 
+            <div>${escapar(textoPlano(valor) || "—")}</div> 
+          </section> 
+        `; 
+        const pagina = `<!doctype html> 
+<html lang="${idioma}"> 
+  <head> 
+    <meta charset="utf-8" /> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
+    <title>${escapar(registro.nombre || "")}</title> 
+    <style> 
+      :root { 
+        --naranja: #ff6c0c; 
+        --gris: #4f4f4f; 
+        --fondo: #f2f2f2; 
+        --borde: #d9d9d9; 
+      } 
+      * { box-sizing: border-box; } 
+      body { 
+        margin: 0; 
+        background: var(--fondo); 
+        color: #333; 
+        font-family: "Segoe UI", Arial, sans-serif; 
+      } 
+      .ficha { 
+        max-width: 900px; 
+        margin: 30px auto; 
+        background: white; 
+        border: 1px solid var(--borde); 
+        box-shadow: 0 2px 7px #00000012; 
+      } 
+      .codigo { 
+        padding: 12px 18px; 
+        background: #595959; 
+        color: white; 
+        font-weight: 800; 
+      } 
+      .nombre { 
+        margin: 0; 
+        padding: 18px; 
+        border-bottom: 1px solid var(--borde); 
+        color: var(--naranja); 
+        font-size: 30px; 
+        font-weight: 300; 
+      } 
+      .campos { 
+        display: grid; 
+        grid-template-columns: repeat(2, minmax(0, 1fr)); 
+        gap: 10px; 
+        padding: 14px; 
+      } 
+      section { 
+        min-height: 95px; 
+        padding: 12px; 
+        background: #fafafa; 
+        border: 1px solid #e5e5e5; 
+        border-top: 4px solid #bbb; 
+        line-height: 1.4; 
+        white-space: pre-wrap; 
+      } 
+      section b { 
+        display: block; 
+        margin-bottom: 7px; 
+        color: #444; 
+        font-size: 11px; 
+        text-transform: uppercase; 
+      } 
+      @media (max-width: 700px) { 
+        .ficha { margin: 0; } 
+        .campos { grid-template-columns: 1fr; } 
+      } 
+    </style> 
+  </head> 
+  <body> 
+    <article class="ficha"> 
+      <div class="codigo">Op. ${escapar(codigo)} · ${escapar(nombreOpcion(codigo))}</div> 
+      <h1 class="nombre">${escapar(registro.nombre || "")}</h1> 
+      <div class="campos"> 
+        ${fila(t.productoCampo, registro.producto)} 
+        ${fila(t.paisCampo, registro.pais)} 
+        ${fila(t.valores, registro.valores)} 
+        ${fila(t.que, registro.que || registro.descripcion)} 
+        ${fila(t.como, registro.como)} 
+        ${fila(t.dependencias, registro.dependencias || registro.dep)} 
+        ${fila(t.cuando, registro.cuando)} 
+        ${fila(t.ejemplo, registro.ejemplo)} 
+        ${fila(t.notas, registro.notas)} 
+      </div> 
+    </article> 
+  </body> 
+</html>`; 
+        const url = URL.createObjectURL( 
+          new Blob([pagina], { type: "text/html" }), 
+        ); 
+        const ventana = window.open(url, "_blank", "noopener"); 
+        if (!ventana) { 
+          alert( 
+            idioma === "en" 
+              ? "The browser blocked the new tab." 
+              : "El navegador bloqueó la nueva pestaña.", 
+          ); 
+        } 
+        setTimeout(() => URL.revokeObjectURL(url), 60000); 
+      } 
+ 
       $("respuestaIA").addEventListener("click", (evento) => { 
         const boton = evento.target.closest("[data-recomendacion]"); 
         if (!boton) return; 
-        const [codigo, identificador] = boton.dataset.recomendacion.split("|"); 
+        const separador = boton.dataset.recomendacion.indexOf("|"); 
+        if (separador < 0) return; 
+        const codigo = boton.dataset.recomendacion.slice(0, separador); 
+        const identificador = boton.dataset.recomendacion.slice(separador + 1); 
         const registro = (datos[codigo] || []).find( 
           (item) => claveRegistro(item) === identificador, 
         ); 
         if (!registro) return; 
- 
-        opcion = codigo; 
-        ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
-          (id) => ($(id).value = ""), 
-        ); 
-        construirMenu(); 
-        renderizar(); 
-        alternarPreguntas(false); 
- 
-        requestAnimationFrame(() => { 
-          document 
-            .getElementById(idFicha({ ...registro, __opcion: codigo })) 
-            ?.scrollIntoView({ behavior: "smooth", block: "start" }); 
-        }); 
+        abrirFichaRecomendada(codigo, registro); 
       }); 
  
       function alternarPreguntas(forzar) { 
@@ -1120,4 +1225,5 @@
     </script> 
   </body> 
 </html> 
+ 
  
