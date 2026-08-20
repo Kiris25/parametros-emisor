@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" /> 
     <title>Parámetros del Emisor - Editor V7</title> 
     <script src="https://cdn.jsdelivr.net/npm/xlsx@0.18.5/dist/xlsx.full.min.js"></script> 
+    <script src="https://cdn.jsdelivr.net/npm/docx@8.5.0/build/index.umd.js"></script>
     <style> 
       :root { 
         --naranja: #ff6c0c; 
@@ -1828,62 +1829,182 @@
           "application/json", 
         ); 
       } 
-      function exportarWord() { 
-        const a = registrosVisibles(); 
-        if (!a.length) return aviso("No hay registros visibles.", true); 
-        const fichas = a 
-          .map( 
-            (r) => 
-              `<h2>Op. ${escapar(r.__opcion)} - ${escapar(r.nombre)}</h2><table><tr><th>PRODUCTO</th><th>PAÍS</th><th>VALORES PERMITIDOS</th></tr><tr><td>${escapar(r.producto)}</td><td>${escapar(r.pais)}</td><td>${escapar(r.valores)}</td></tr><tr><th>¿QUÉ HACE?</th><th>¿CÓMO FUNCIONA?</th><th>DEPENDENCIAS / REGLAS</th></tr><tr><td>${escapar(r.que)}</td><td>${escapar(r.como)}</td><td>${escapar(textoHTML(r.dependencias))}</td></tr><tr><th>¿CUÁNDO APLICA?</th><th>EJEMPLO FUNCIONAL</th><th>NOTAS VISIBLES AL CLIENTE</th></tr><tr><td>${escapar(r.cuando)}</td><td>${escapar(r.ejemplo)}</td><td>${escapar(r.notas)}</td></tr></table>`, 
-          ) 
-          .join(""); 
-        const doc = `<!doctype html><html><head><meta charset="utf-8">
-        <style>
-body{
-  font-family: Arial, sans-serif;
-  color:#000;
-  margin:25px;
-}
+      async function exportarWord() {
+    const registros = registrosVisibles();
 
-h1{
-  font-size:22pt;
-  margin-bottom:20px;
-}
+    if (!registros.length) {
+        aviso("No hay registros visibles.", true);
+        return;
+    }
 
-h2{
-  color:#000;
-  font-size:16pt;
-  margin-top:20px;
-  margin-bottom:8px;
-}
+    const {
+        Document,
+        Packer,
+        Paragraph,
+        TextRun,
+        Table,
+        TableRow,
+        TableCell,
+        WidthType,
+        ShadingType,
+        BorderStyle,
+        PageOrientation
+    } = docx;
 
-table{
-  width:100%;
-  border-collapse:collapse;
-  margin-bottom:25px;
-}
+    function textoPlano(v) {
+        const d = document.createElement("div");
+        d.innerHTML = String(v || "");
+        return d.textContent || "";
+    }
 
-th,td{
-  border:1px solid #000;
-  padding:12px;
-  vertical-align:top;
-  text-align:left;
-  line-height:1.4;
-  font-size:11pt;
-}
+    const borde = {
+        style: BorderStyle.SINGLE,
+        size: 1,
+        color: "000000"
+    };
 
-th{
-  font-weight:bold;
-  background:#fff;
-}
-</style>
-        </head><body><h1>Parámetros del Emisor</h1>${fichas}</body></html>`; 
-        descargar( 
-          "\ufeff" + doc, 
-          `${ambito}_${opcion}.doc`, 
-          "application/msword", 
-        ); 
-      } 
+    function celda(titulo, valor) {
+        return new TableCell({
+            width: {
+                size: 33.33,
+                type: WidthType.PERCENTAGE
+            },
+            margins: {
+                top: 140,
+                bottom: 140,
+                left: 140,
+                right: 140
+            },
+            shading: {
+                fill: "FFFFFF",
+                type: ShadingType.CLEAR
+            },
+            children: [
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: titulo.toUpperCase(),
+                            bold: true,
+                            size: 20
+                        })
+                    ]
+                }),
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: textoPlano(valor) || "—",
+                            size: 20
+                        })
+                    ]
+                })
+            ]
+        });
+    }
+
+    const children = [];
+
+    let opcionActual = "";
+
+    registros.forEach((r, indice) => {
+
+        if (r.__opcion !== opcionActual) {
+
+            opcionActual = r.__opcion;
+
+            children.push(
+                new Paragraph({
+                    children: [
+                        new TextRun({
+                            text: `Opción ${r.__opcion} ${nombreOpcion(r.__opcion)}`,
+                            bold: true,
+                            size: 28
+                        })
+                    ],
+                    pageBreakBefore: indice > 0
+                })
+            );
+        }
+
+        children.push(
+            new Paragraph({
+                children: [
+                    new TextRun({
+                        text: r.nombre,
+                        bold: true,
+                        size: 24
+                    })
+                ]
+            })
+        );
+
+        children.push(
+            new Table({
+                width: {
+                    size: 100,
+                    type: WidthType.PERCENTAGE
+                },
+
+                borders: {
+                    top: borde,
+                    bottom: borde,
+                    left: borde,
+                    right: borde,
+                    insideHorizontal: borde,
+                    insideVertical: borde
+                },
+
+                rows: [
+
+                    new TableRow({
+                        children: [
+                            celda("Producto", r.producto),
+                            celda("País", r.pais),
+                            celda("Valores Permitidos", r.valores)
+                        ]
+                    }),
+
+                    new TableRow({
+                        children: [
+                            celda("¿Qué hace?", r.que),
+                            celda("¿Cómo funciona?", r.como),
+                            celda("Dependencias / Reglas", r.dependencias)
+                        ]
+                    }),
+
+                    new TableRow({
+                        children: [
+                            celda("¿Cuándo aplica?", r.cuando),
+                            celda("Ejemplo Funcional", r.ejemplo),
+                            celda("Notas Visibles al Cliente", r.notas)
+                        ]
+                    })
+                ]
+            })
+        );
+
+        children.push(new Paragraph({}));
+    });
+
+    const documento = new Document({
+        sections: [{
+            properties: {
+                page: {
+                    size: {
+                        orientation: PageOrientation.PORTRAIT
+                    }
+                }
+            },
+            children
+        }]
+    });
+
+    const blob = await Packer.toBlob(documento);
+    descargar(
+        blob,
+        `Parametros_${ambito}_${opcion}.docx`,
+        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
+    );
+} 
       async function cambiarIdiomaEditor(nuevoIdioma) { 
         if (cambiosPendientes.size) { 
           aviso( 
