@@ -391,67 +391,71 @@
         position: fixed;
         z-index: 160;
         display: none;
-        width: 552px;
-        max-width: calc(100vw - 16px);
+        width: 460px;
+        max-width: calc(100vw - 24px);
+        max-height: min(460px, calc(100vh - 24px));
         overflow: hidden;
         padding: 0;
-        background: #fff;
-        border: 1px solid #d8d8d8;
+        background: white;
+        border: 1px solid var(--borde);
         border-radius: 16px;
-        box-shadow: 0 14px 38px #0004;
-        color: #4f4f4f;
-        font-size: 17px;
+        box-shadow: 0 16px 42px #0005;
+        font-size: 14px;
       }
+
       .vista-previa-encabezado {
-        padding: 19px 17px 10px;
+        padding: 14px 16px 10px;
+        border-bottom: 1px solid #ececec;
+        background: white;
       }
+
       .tarjeta-flotante h4 {
-        margin: 0 0 11px;
+        margin: 0 0 5px;
         color: var(--naranja);
-        font-size: 24px;
-        font-weight: 750;
-        line-height: 1.15;
+        font-size: 19px;
+        line-height: 1.2;
       }
+
       .vista-previa-meta {
         margin: 0;
-        color: #6a6a6a;
-        font-size: 18px;
+        color: #666;
+        font-size: 13px;
         line-height: 1.3;
       }
+
       .vista-previa-contenido {
-        max-height: 285px;
+        max-height: 330px;
         overflow-y: auto;
-        margin: 0 17px;
-        padding: 10px 0;
-        border-top: 1px solid #e8e8e8;
-        border-bottom: 1px solid #e8e8e8;
-        scrollbar-width: auto;
-        scrollbar-color: #919191 #f5f5f5;
+        padding: 10px 16px;
+        scrollbar-width: thin;
       }
+
       .vista-previa-campo {
-        margin: 3px 0;
-        padding: 0;
-        border: 0;
-        line-height: 1.34;
+        padding: 2px 0;
+        border-bottom: 0;
+        line-height: 1.3;
         white-space: pre-wrap;
       }
+
       .vista-previa-campo b {
         display: inline;
         margin: 0;
-        color: #555;
-        font-weight: 800;
+        color: var(--gris);
       }
+
       .acciones-flotantes {
+        position: sticky;
+        bottom: 0;
         margin: 0;
-        padding: 16px 17px 17px;
+        padding: 10px 16px 14px;
+        border-top: 1px solid #ececec;
+        background: white;
       }
+
       .acciones-flotantes .boton {
-        padding: 10px 14px;
-        border-radius: 11px;
-        font-size: 20px;
-        font-weight: 800;
-      } 
-      .acciones-flotantes { margin-top: 10px; } 
+        padding: 9px 14px;
+      }
+
       @media (max-width: 1050px) { 
         .menu-opciones { 
           grid-template-columns: repeat(8, 1fr); 
@@ -1210,25 +1214,25 @@
  
       function mostrarVistaPrevia(enlace) {
         const registro = encontrarRelacionado(enlace.dataset.target);
-        if (!registro) return;
+
+        if (!registro) {
+          return;
+        }
 
         const t = textosActivos();
         const panel = $("tarjetaDependencia");
         const rect = enlace.getBoundingClientRect();
-        const codigo = registro.__opcion || registro.codigo || "";
 
-        const fila = (etiqueta, valor) => `
-          <div class="vista-previa-campo">
+        const fila = (etiqueta, valor) =>           `<div class="vista-previa-campo">
             <b>${escapar(etiqueta)}:</b>
             ${escapar(textoPlano(valor) || "—")}
-          </div>
-        `;
+          </div>`;
 
-        panel.innerHTML = `
-          <div class="vista-previa-encabezado">
+        panel.innerHTML =           `<div class="vista-previa-encabezado">
             <h4>${escapar(registro.nombre || "")}</h4>
             <p class="vista-previa-meta">
-              ${textoEditorOpcion(codigo)}
+              Op. ${escapar(registro.__opcion || registro.codigo || "")}
+              · ${escapar(nombreOpcion(registro.__opcion || registro.codigo || ""))}
               · ${escapar(textoPlano(registro.producto) || "—")}
               · ${escapar(textoPlano(registro.pais) || "—")}
             </p>
@@ -1250,40 +1254,42 @@
             <button
               class="boton boton-naranja"
               data-abrir-relacion="${escapar(claveFicha(registro))}">
-              ${idioma === "en" ? "Open in new tab" : "Abrir en nueva pestaña"}
+              ${idioma === "en"
+                ? "Open in new tab"
+                : "Abrir en nueva pestaña"}
             </button>
-          </div>
-        `;
+          </div>`;
 
         panel.style.display = "block";
 
         const ancho = panel.offsetWidth;
         const alto = panel.offsetHeight;
-        const margen = 8;
+        const espacioDerecha = window.innerWidth - rect.right;
+        const espacioIzquierda = rect.left;
 
-        let izquierda = rect.left;
-        izquierda = Math.max(
-          margen,
-          Math.min(izquierda, window.innerWidth - ancho - margen),
-        );
+        let izquierda;
 
-        let arriba = rect.top - alto - 6;
-        if (arriba < margen) {
-          arriba = rect.bottom + 6;
+        if (espacioDerecha >= ancho + 12) {
+          izquierda = rect.right + 8;
+        } else if (espacioIzquierda >= ancho + 12) {
+          izquierda = rect.left - ancho - 8;
+        } else {
+          izquierda = Math.max(
+            6,
+            Math.min(rect.left, window.innerWidth - ancho - 12)
+          );
         }
-        arriba = Math.max(
-          margen,
-          Math.min(arriba, window.innerHeight - alto - margen),
-        );
+
+        let arriba = rect.top - 12;
+
+        if (arriba + alto > window.innerHeight - 12) {
+          arriba = window.innerHeight - alto - 12;
+        }
+
+        arriba = Math.max(12, arriba);
 
         panel.style.left = izquierda + "px";
         panel.style.top = arriba + "px";
-      }
-
-      function textoEditorOpcion(codigo) {
-        const numero = Number(codigo);
-        const prefijo = idioma === "en" ? "Option" : "Opción";
-        return `${prefijo} ${numero} ${escapar(nombreOpcion(codigo))}`;
       }
 
       document.addEventListener("mouseover", (evento) => { 
