@@ -1830,7 +1830,7 @@
         ); 
       } 
       async function exportarWord() {
-    const registros = registrosVisibles();
+    const registros = todos();
 
     if (!registros.length) {
         aviso("No hay registros visibles.", true);
@@ -1866,9 +1866,9 @@
     function celda(titulo, valor) {
         return new TableCell({
             width: {
-                size: 33.33,
-                type: WidthType.PERCENTAGE
-            },
+                size: 3485,
+                type: WidthType.DXA
+            }
             margins: {
                 top: 220,
                 bottom: 220,
@@ -1886,7 +1886,7 @@
                             text: titulo.toUpperCase(),
                             font: "Arial",
                             bold: true,
-                             size: 24
+                             size: 20
                         })
                     ]
                 }),
@@ -1895,7 +1895,7 @@
                         new TextRun({
                             text: textoPlano(valor) || "—",
                             font: "Arial",
-                            size: 24
+                            size: 20
                         })
                     ]
                 })
@@ -1917,7 +1917,7 @@
                 new Paragraph({
                     children: [
                         new TextRun({
-                            text: `Opción ${r.__opcion} ${nombreOpcion(r.__opcion)}`,
+                            text: `Opción ${Number(r.__opcion)} ${nombreOpcion(r.__opcion)}`,
                             bold: true,
                             size: 24
                         })
@@ -1931,9 +1931,10 @@
             new Paragraph({
                 children: [
                     new TextRun({
-                        text: r.nombre,
-                        bold: true,
-                        size: 24
+                    text: r.nombre,
+                    font: "Arial",
+                    bold: true,
+                    size: 24
                     })
                 ]
             })
@@ -1984,7 +1985,14 @@
             })
         );
 
-        children.push(new Paragraph({}));
+        children.push(
+    new Paragraph({
+        spacing: {
+            before: 0,
+            after: 180
+        }
+    })
+);
     });
 
     const documento = new Document({
@@ -2001,9 +2009,23 @@
     });
 
     const blob = await Packer.toBlob(documento);
-    descargar(
-        blob,
-        `Parametros_${ambito}_${opcion}.docx`,
+const ahora = new Date();
+
+const fecha =
+    ahora.getFullYear() +
+    "-" +
+    String(ahora.getMonth() + 1).padStart(2, "0") +
+    "-" +
+    String(ahora.getDate()).padStart(2, "0") +
+    "_" +
+    String(ahora.getHours()).padStart(2, "0") +
+    "-" +
+    String(ahora.getMinutes()).padStart(2, "0");
+
+descargar(
+    blob,
+    `Parametros_Emisor_${ambito}_${fecha}.docx`,
+  
         "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
     );
 } 
