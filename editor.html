@@ -1830,183 +1830,495 @@
         ); 
       } 
       async function exportarWord() {
-    const registros = registrosVisibles();
+        const registros = todos();
 
-    if (!registros.length) {
-        aviso("No hay registros visibles.", true);
-        return;
-    }
-
-    const {
-        Document,
-        Packer,
-        Paragraph,
-        TextRun,
-        Table,
-        TableRow,
-        TableCell,
-        WidthType,
-        ShadingType,
-        BorderStyle,
-        PageOrientation
-    } = docx;
-
-    function textoPlano(v) {
-        const d = document.createElement("div");
-        d.innerHTML = String(v || "");
-        return d.textContent || "";
-    }
-
-    const borde = {
-        style: BorderStyle.SINGLE,
-        size: 1,
-        color: "000000"
-    };
-
-    function celda(titulo, valor) {
-        return new TableCell({
-            width: {
-                size: 33.33,
-                type: WidthType.PERCENTAGE
-            },
-            margins: {
-                top: 220,
-                bottom: 220,
-                left: 220,
-                right: 220
-            },
-            shading: {
-                fill: "FFFFFF",
-                type: ShadingType.CLEAR
-            },
-            children: [
-                new Paragraph({
-                    children: [
-                        new TextRun({
-                            text: titulo.toUpperCase(),
-                            font: "Arial",
-                            bold: true,
-                             size: 24
-                        })
-                    ]
-                }),
-                new Paragraph({
-                    children: [
-                        new TextRun({
-                            text: textoPlano(valor) || "—",
-                            font: "Arial",
-                            size: 24
-                        })
-                    ]
-                })
-            ]
-        });
-    }
-
-    const children = [];
-
-    let opcionActual = "";
-
-    registros.forEach((r, indice) => {
-
-        if (r.__opcion !== opcionActual) {
-
-            opcionActual = r.__opcion;
-
-            children.push(
-                new Paragraph({
-                    children: [
-                        new TextRun({
-                            text: `Opción ${r.__opcion} ${nombreOpcion(r.__opcion)}`,
-                            bold: true,
-                            size: 24
-                        })
-                    ],
-                    pageBreakBefore: indice > 0
-                })
-            );
+        if (!registros.length) {
+          aviso("No hay parámetros para exportar.", true);
+          return;
         }
 
-        children.push(
-            new Paragraph({
-                children: [
-                    new TextRun({
-                        text: r.nombre,
-                        bold: true,
-                        size: 24
-                    })
-                ]
-            })
-        );
+        if (!window.docx) {
+          aviso("No se cargó la librería DOCX.", true);
+          return;
+        }
 
-        children.push(
-            new Table({
-                width: {
-                    size: 100,
-                    type: WidthType.PERCENTAGE
-                },
+        const {
+          AlignmentType,
+          Bookmark,
+          BorderStyle,
+          Document,
+          HighlightColor,
+          InternalHyperlink,
+          PageOrientation,
+          Packer,
+          Paragraph,
+          ShadingType,
+          Table,
+          TableCell,
+          TableRow,
+          TextRun,
+          VerticalAlign,
+          WidthType
+        } = window.docx;
 
-                borders: {
-                    top: borde,
-                    bottom: borde,
-                    left: borde,
-                    right: borde,
-                    insideHorizontal: borde,
-                    insideVertical: borde
-                },
+        const TAMANO_12 = 24;
+        const TAMANO_10 = 20;
+        const ANCHO_CELDA = 3485;
+        const ANCHO_TABLA = ANCHO_CELDA * 3;
 
-                rows: [
+        const nombresOpciones = {
+          "05": "Opción 5 Consultar (Parámetros generales)",
+          "12": "Opción 12 Trabajar con (Parámetros por tipo de Cliente y Moneda)",
+          "13": "Opción 13 Por Moneda",
+          "14": "Opción 14 Clasificación de consumo",
+          "15": "Opción 15 Membresías Preferenciales",
+          "16": "Opción 16 Cargos Automáticos",
+          "17": "Opción 17 Ciclos de corte",
+          "18": "Opción 18 Por Tipo de Cliente",
+          "19": "Opción 19 Renovación",
+          "20": "Opción 20 Pólizas",
+          "21": "Opción 21 Envío Mensajes",
+          "22": "Opción 22 Sorteos",
+          "23": "Opción 23 Estados Imprimir",
+          "24": "Opción 24 Clases para Disponible",
+          "25": "Opción 25 Trasiego",
+          "26": "Opción 26 Cargos I.V. (Importes Vencidos)",
+          "27": "Opción 27 Corporativo",
+          "28": "Opción 28 Skip Payment",
+          "29": "Opción 29 Tipo tarj/ Diseño",
+          "30": "Opción 30 Estados Extrafinanciamiento",
+          "31": "Opción 31 Limpiar Saldos",
+          "32": "Opción 32 Tipo Cta. No Permitido",
+          "33": "Opción 33 Costos de Cobro",
+          "34": "Opción 34 Estados de Cta. x Emisor",
+          "35": "Opción 35 Excepciones Estados",
+          "36": "Opción 36 Origen de Tarjeta",
+          "38": "Opción 38 Estado No Cálc. Intereses",
+          "39": "Opción 39 Param.Excep.Cálculo",
+          "40": "Opción 40 Trabajar con Tipo de Documentos",
+          "42": "Opción 42 Parámetros Tarjetas Prepago por Emisor",
+          "44": "Opción 44 Trabajar con Parámetros Reducc. Aut",
+          "45": "Opción 45 Trabajar con Cargos Vence Pago por TC",
+          "46": "Opción 46 Copia de Emisor",
+          "47": "Opción 47 Trabajar Parámetros Deterioro Tarjeta",
+          "48": "Opción 48 Trabajar Tarjeta Prospect. Débito MBEMBO",
+          "49": "Opción 49 Trabajar Estados de Tarjeta Renovación",
+          "50": "Opción 50 Trabajar Estados Renovación Por Emisor",
+          "52": "Opción 52 Trabajar con Rangos Bines de Visa/MC",
+          "53": "Opción 53 Trabajar con Tipo Tecnología"
+        };
 
-                    new TableRow({
-                        children: [
-                            celda("Producto", r.producto),
-                            celda("País", r.pais),
-                            celda("Valores Permitidos", r.valores)
-                        ]
-                    }),
+        function textoPlano(valor) {
+          const contenedor = document.createElement("div");
+          contenedor.innerHTML = String(valor ?? "");
+          return contenedor.textContent.trim();
+        }
 
-                    new TableRow({
-                        children: [
-                            celda("¿Qué hace?", r.que),
-                            celda("¿Cómo funciona?", r.como),
-                            celda("Dependencias / Reglas", r.dependencias)
-                        ]
-                    }),
+        function idSeguro(valor) {
+          return String(valor ?? "")
+            .normalize("NFD")
+            .replace(/[\u0300-\u036f]/g, "")
+            .replace(/[^a-zA-Z0-9_]/g, "_")
+            .replace(/_+/g, "_")
+            .replace(/^_|_$/g, "") || "parametro";
+        }
 
-                    new TableRow({
-                        children: [
-                            celda("¿Cuándo aplica?", r.cuando),
-                            celda("Ejemplo Funcional", r.ejemplo),
-                            celda("Notas Visibles al Cliente", r.notas)
-                        ]
-                    })
-                ]
-            })
-        );
+        function idRegistro(registro) {
+          return idSeguro(
+            registro.id ||
+              "op_" + registro.__opcion + "_" + registro.nombre
+          );
+        }
 
-        children.push(new Paragraph({}));
-    });
+        function nombreOpcionWord(codigo) {
+          return (
+            nombresOpciones[codigo] ||
+            "Opción " + Number(codigo) + " " + nombreOpcion(codigo)
+          );
+        }
 
-    const documento = new Document({
-        sections: [{
-            properties: {
-                page: {
-                    size: {
-                        orientation: PageOrientation.PORTRAIT
-                    }
-                }
+        function fechaHora() {
+          const ahora = new Date();
+          const dos = (valor) => String(valor).padStart(2, "0");
+
+          return (
+            ahora.getFullYear() +
+            "-" +
+            dos(ahora.getMonth() + 1) +
+            "-" +
+            dos(ahora.getDate()) +
+            "_" +
+            dos(ahora.getHours()) +
+            "-" +
+            dos(ahora.getMinutes()) +
+            "-" +
+            dos(ahora.getSeconds())
+          );
+        }
+
+        function runNormal(valor, negrita = false) {
+          return new TextRun({
+            text: textoPlano(valor) || "—",
+            font: "Arial",
+            size: TAMANO_10,
+            bold: negrita,
+            color: "000000"
+          });
+        }
+
+        function parrafoTitulo(titulo) {
+          return new Paragraph({
+            children: [
+              new TextRun({
+                text: titulo.toUpperCase(),
+                font: "Arial",
+                size: TAMANO_10,
+                bold: true,
+                color: "000000"
+              })
+            ],
+            spacing: {
+              after: 55,
+              line: 240
+            }
+          });
+        }
+
+        function parrafoValor(valor) {
+          return new Paragraph({
+            children: [runNormal(valor)],
+            spacing: {
+              after: 0,
+              line: 240
+            }
+          });
+        }
+
+        function parrafoDependencias(valor) {
+          const contenedor = document.createElement("div");
+          contenedor.innerHTML = String(valor ?? "");
+          const elementos = [];
+
+          function recorrer(nodo) {
+            if (nodo.nodeType === Node.TEXT_NODE) {
+              if (nodo.nodeValue) {
+                elementos.push(
+                  new TextRun({
+                    text: nodo.nodeValue,
+                    font: "Arial",
+                    size: TAMANO_10,
+                    color: "000000"
+                  })
+                );
+              }
+              return;
+            }
+
+            if (nodo.nodeType !== Node.ELEMENT_NODE) {
+              return;
+            }
+
+            if (nodo.tagName === "BR") {
+              elementos.push(
+                new TextRun({
+                  text: "",
+                  break: 1,
+                  font: "Arial",
+                  size: TAMANO_10
+                })
+              );
+              return;
+            }
+
+            if (nodo.tagName === "A") {
+              const destino = nodo.dataset.target || "";
+              const texto = nodo.textContent || "";
+              const relacionado = encontrarRelacionado(destino);
+              const runVinculo = new TextRun({
+                text: texto,
+                font: "Arial",
+                size: TAMANO_10,
+                bold: true,
+                underline: {},
+                color: relacionado ? "0563C1" : "8A3B00",
+                highlight: HighlightColor.YELLOW
+              });
+
+              if (
+                relacionado &&
+                typeof InternalHyperlink === "function"
+              ) {
+                elementos.push(
+                  new InternalHyperlink({
+                    anchor: idRegistro(relacionado),
+                    children: [runVinculo]
+                  })
+                );
+              } else {
+                elementos.push(runVinculo);
+              }
+              return;
+            }
+
+            nodo.childNodes.forEach(recorrer);
+          }
+
+          contenedor.childNodes.forEach(recorrer);
+
+          if (!elementos.length) {
+            elementos.push(runNormal("—"));
+          }
+
+          return new Paragraph({
+            children: elementos,
+            spacing: {
+              after: 0,
+              line: 240
+            }
+          });
+        }
+
+        function celda(titulo, valor, dependencia = false) {
+          return new TableCell({
+            width: {
+              size: ANCHO_CELDA,
+              type: WidthType.DXA
             },
-            children
-        }]
-    });
+            verticalAlign: VerticalAlign.TOP,
+            margins: {
+              top: 130,
+              bottom: 130,
+              left: 145,
+              right: 145
+            },
+            shading: {
+              fill: "FFFFFF",
+              type: ShadingType.CLEAR
+            },
+            children: [
+              parrafoTitulo(titulo),
+              dependencia
+                ? parrafoDependencias(valor)
+                : parrafoValor(valor)
+            ]
+          });
+        }
 
-    const blob = await Packer.toBlob(documento);
-    descargar(
-        blob,
-        `Parametros_${ambito}_${opcion}.docx`,
-        "application/vnd.openxmlformats-officedocument.wordprocessingml.document"
-    );
-} 
+        const borde = {
+          style: BorderStyle.SINGLE,
+          size: 4,
+          color: "000000"
+        };
+
+        function tabla(registro) {
+          return new Table({
+            width: {
+              size: ANCHO_TABLA,
+              type: WidthType.DXA
+            },
+            columnWidths: [
+              ANCHO_CELDA,
+              ANCHO_CELDA,
+              ANCHO_CELDA
+            ],
+            alignment: AlignmentType.CENTER,
+            borders: {
+              top: borde,
+              bottom: borde,
+              left: borde,
+              right: borde,
+              insideHorizontal: borde,
+              insideVertical: borde
+            },
+            rows: [
+              new TableRow({
+                cantSplit: false,
+                children: [
+                  celda("Producto", registro.producto),
+                  celda("País", registro.pais),
+                  celda("Valores Permitidos", registro.valores)
+                ]
+              }),
+              new TableRow({
+                cantSplit: false,
+                children: [
+                  celda(
+                    "¿Qué hace?",
+                    registro.que || registro.descripcion
+                  ),
+                  celda("¿Cómo funciona?", registro.como),
+                  celda(
+                    "Dependencias / Reglas",
+                    registro.dependencias || registro.dep,
+                    true
+                  )
+                ]
+              }),
+              new TableRow({
+                cantSplit: false,
+                children: [
+                  celda("¿Cuándo aplica?", registro.cuando),
+                  celda("Ejemplo Funcional", registro.ejemplo),
+                  celda(
+                    "Notas Visibles al Cliente",
+                    registro.notas
+                  )
+                ]
+              })
+            ]
+          });
+        }
+
+        const contenido = [];
+        let opcionActual = "";
+
+        registros.forEach((registro) => {
+          const nuevaOpcion = registro.__opcion !== opcionActual;
+
+          if (nuevaOpcion) {
+            opcionActual = registro.__opcion;
+
+            contenido.push(
+              new Paragraph({
+                pageBreakBefore: contenido.length > 0,
+                children: [
+                  new TextRun({
+                    text: nombreOpcionWord(opcionActual),
+                    font: "Arial",
+                    size: TAMANO_12,
+                    bold: true,
+                    color: "000000"
+                  })
+                ],
+                spacing: {
+                  after: 150,
+                  line: 240
+                },
+                keepNext: true
+              })
+            );
+          }
+
+          const runNombre = new TextRun({
+            text: registro.nombre || "Parámetro sin nombre",
+            font: "Arial",
+            size: TAMANO_12,
+            bold: true,
+            color: "000000"
+          });
+
+          const nombreConMarca =
+            typeof Bookmark === "function"
+              ? new Bookmark({
+                  id: idRegistro(registro),
+                  children: [runNombre]
+                })
+              : runNombre;
+
+          contenido.push(
+            new Paragraph({
+              children: [nombreConMarca],
+              spacing: {
+                before: nuevaOpcion ? 0 : 180,
+                after: 90,
+                line: 240
+              },
+              keepNext: true
+            })
+          );
+
+          contenido.push(tabla(registro));
+
+          contenido.push(
+            new Paragraph({
+              children: [
+                new TextRun({
+                  text: "",
+                  font: "Arial",
+                  size: TAMANO_10
+                })
+              ],
+              spacing: {
+                after: 100
+              }
+            })
+          );
+        });
+
+        const documento = new Document({
+          styles: {
+            default: {
+              document: {
+                run: {
+                  font: "Arial",
+                  size: TAMANO_10,
+                  color: "000000"
+                },
+                paragraph: {
+                  spacing: {
+                    line: 240,
+                    after: 0
+                  }
+                }
+              }
+            }
+          },
+          sections: [
+            {
+              properties: {
+                page: {
+                  size: {
+                    orientation: PageOrientation.PORTRAIT
+                  },
+                  margin: {
+                    top: 540,
+                    right: 540,
+                    bottom: 540,
+                    left: 540,
+                    header: 360,
+                    footer: 360
+                  }
+                }
+              },
+              children: contenido
+            }
+          ]
+        });
+
+        try {
+          const blob = await Packer.toBlob(documento);
+          const nombre =
+            "Parametros_del_Emisor_" +
+            ambito +
+            "_" +
+            idiomaEditor.toUpperCase() +
+            "_" +
+            fechaHora() +
+            ".docx";
+          const url = URL.createObjectURL(blob);
+          const enlace = document.createElement("a");
+
+          enlace.href = url;
+          enlace.download = nombre;
+          document.body.appendChild(enlace);
+          enlace.click();
+          enlace.remove();
+
+          setTimeout(() => URL.revokeObjectURL(url), 1000);
+
+          aviso(
+            registros.length +
+              " parámetros exportados correctamente."
+          );
+        } catch (error) {
+          console.error(error);
+          aviso(
+            "No se pudo generar el Word: " + error.message,
+            true
+          );
+        }
+      }
+
       async function cambiarIdiomaEditor(nuevoIdioma) { 
         if (cambiosPendientes.size) { 
           aviso( 
