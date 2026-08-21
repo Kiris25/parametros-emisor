@@ -6,14 +6,14 @@
     "valores": "No aplica (valor asignado automáticamente por el sistema).",
     "que": "Identifica de forma única al emisor dentro del sistema y permite administrar las tarjetas y cuentas asociadas a sus productos.",
     "como": "El sistema asigna automáticamente un número único al emisor, el cual se utiliza internamente para relacionar tarjetas, cuentas y operaciones del banco dentro de la plataforma.",
-    "dependencias": "Requiere que el BIN esté previamente definido y aprobado por la Marca.",
+    "dependencias": "Requiere que el BIN esté previamente definido y aprobado por la Marca. 1",
     "cuando": "Aplica desde el momento en que el emisor se encuentra activo y para todas las operaciones asociadas a sus productos.",
     "ejemplo": "Un banco cuenta con un identificador de emisor que le permite gestionar todas sus tarjetas de crédito y débito dentro del sistema.",
     "notas": "Este identificador es único, no editable y forma parte de la configuración general del producto.",
     "codigo": "05",
     "id": "6b8df515-da9e-4a1d-9030-14339dd3f367",
     "creadoEn": "2026-08-19T19:57:27.324Z",
-    "actualizadoEn": "2026-08-19T19:57:27.324Z"
+    "actualizadoEn": "2026-08-21T15:04:55.574Z"
   },
   {
     "nombre": "Franquicia",
