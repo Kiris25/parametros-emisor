@@ -391,69 +391,58 @@
         position: fixed;
         z-index: 160;
         display: none;
-        width: 460px;
+        width: 370px;
         max-width: calc(100vw - 24px);
-        max-height: min(460px, calc(100vh - 24px));
-        overflow: hidden;
-        padding: 0;
+        padding: 12px;
         background: white;
         border: 1px solid var(--borde);
-        border-radius: 16px;
-        box-shadow: 0 16px 42px #0005;
-        font-size: 14px;
-      }
-
-      .vista-previa-encabezado {
-        padding: 14px 16px 10px;
-        border-bottom: 1px solid #ececec;
-        background: white;
+        border-radius: 12px;
+        box-shadow: 0 14px 38px #0005;
+        font-size: 12px;
       }
 
       .tarjeta-flotante h4 {
         margin: 0 0 5px;
         color: var(--naranja);
-        font-size: 19px;
+        font-size: 16px;
         line-height: 1.2;
       }
 
-      .vista-previa-meta {
-        margin: 0;
+      .mini-meta {
+        margin: 0 0 7px;
         color: #666;
-        font-size: 13px;
         line-height: 1.3;
       }
 
-      .vista-previa-contenido {
-        max-height: 330px;
+      .mini-summary {
+        max-height: 190px;
         overflow-y: auto;
-        padding: 10px 16px;
+        margin: 6px 0;
+        padding: 6px 0;
+        border-top: 1px solid #eee;
+        border-bottom: 1px solid #eee;
         scrollbar-width: thin;
       }
 
-      .vista-previa-campo {
-        padding: 2px 0;
-        border-bottom: 0;
-        line-height: 1.3;
+      .mini-row {
+        margin: 3px 0;
+        line-height: 1.25;
         white-space: pre-wrap;
       }
 
-      .vista-previa-campo b {
-        display: inline;
-        margin: 0;
+      .mini-row b {
         color: var(--gris);
       }
 
-      .acciones-flotantes {
-        position: sticky;
-        bottom: 0;
-        margin: 0;
-        padding: 10px 16px 14px;
-        border-top: 1px solid #ececec;
-        background: white;
+      .hover-actions {
+        display: flex;
+        gap: 8px;
+        flex-wrap: wrap;
+        margin-top: 10px;
       }
 
-      .acciones-flotantes .boton {
-        padding: 9px 14px;
+      .hover-actions .boton {
+        padding: 8px 10px;
       }
 
       @media (max-width: 1050px) { 
@@ -1222,23 +1211,26 @@
         const t = textosActivos();
         const panel = $("tarjetaDependencia");
         const rect = enlace.getBoundingClientRect();
+        const codigo =
+          registro.__opcion ||
+          registro.codigo ||
+          "";
 
-        const fila = (etiqueta, valor) =>           `<div class="vista-previa-campo">
+        const fila = (etiqueta, valor) =>           `<div class="mini-row">
             <b>${escapar(etiqueta)}:</b>
             ${escapar(textoPlano(valor) || "—")}
           </div>`;
 
-        panel.innerHTML =           `<div class="vista-previa-encabezado">
-            <h4>${escapar(registro.nombre || "")}</h4>
-            <p class="vista-previa-meta">
-              Op. ${escapar(registro.__opcion || registro.codigo || "")}
-              · ${escapar(nombreOpcion(registro.__opcion || registro.codigo || ""))}
-              · ${escapar(textoPlano(registro.producto) || "—")}
-              · ${escapar(textoPlano(registro.pais) || "—")}
-            </p>
+        panel.innerHTML =           `<h4>${escapar(registro.nombre || "")}</h4>
+
+          <div class="mini-meta">
+            Op. ${escapar(codigo)}
+            · ${escapar(nombreOpcion(codigo))}
+            · ${escapar(textoPlano(registro.producto) || "—")}
+            · ${escapar(textoPlano(registro.pais) || "—")}
           </div>
 
-          <div class="vista-previa-contenido">
+          <div class="mini-summary">
             ${fila(t.productoCampo, registro.producto)}
             ${fila(t.paisCampo, registro.pais)}
             ${fila(t.valores, registro.valores)}
@@ -1250,7 +1242,7 @@
             ${fila(t.notas, registro.notas)}
           </div>
 
-          <div class="acciones-flotantes">
+          <div class="hover-actions">
             <button
               class="boton boton-naranja"
               data-abrir-relacion="${escapar(claveFicha(registro))}">
@@ -1264,29 +1256,34 @@
 
         const ancho = panel.offsetWidth;
         const alto = panel.offsetHeight;
+        const margen = 12;
+        const separacion = 8;
         const espacioDerecha = window.innerWidth - rect.right;
         const espacioIzquierda = rect.left;
 
         let izquierda;
 
-        if (espacioDerecha >= ancho + 12) {
-          izquierda = rect.right + 8;
-        } else if (espacioIzquierda >= ancho + 12) {
-          izquierda = rect.left - ancho - 8;
+        if (espacioDerecha >= ancho + margen) {
+          izquierda = rect.right + separacion;
+        } else if (espacioIzquierda >= ancho + margen) {
+          izquierda = rect.left - ancho - separacion;
         } else {
           izquierda = Math.max(
-            6,
-            Math.min(rect.left, window.innerWidth - ancho - 12)
+            margen,
+            Math.min(
+              rect.left,
+              window.innerWidth - ancho - margen
+            )
           );
         }
 
-        let arriba = rect.top - 12;
+        let arriba = rect.top - 24;
 
-        if (arriba + alto > window.innerHeight - 12) {
-          arriba = window.innerHeight - alto - 12;
+        if (arriba + alto > window.innerHeight - margen) {
+          arriba = window.innerHeight - alto - margen;
         }
 
-        arriba = Math.max(12, arriba);
+        arriba = Math.max(margen, arriba);
 
         panel.style.left = izquierda + "px";
         panel.style.top = arriba + "px";
