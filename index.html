@@ -204,7 +204,7 @@
  
       .ficha-encabezado { 
         display: grid; 
-        grid-template-columns: 145px 1fr auto; 
+        grid-template-columns: 145px 1fr; 
         border-bottom: 1px solid var(--borde); 
       } 
  
@@ -225,11 +225,15 @@
         font-weight: 300; 
       }
       .nombre { cursor: pointer; }
-      .acciones-ficha { display: flex; align-items: center; padding: 6px; }
-      .acciones-ficha .boton { padding: 7px 10px; font-size: 12px; }
       .ficha.colapsada .ficha-encabezado { border-bottom: 0; }
       .ficha.colapsada .cuadricula { display: none; }
-      .indicador-ficha { display: inline-block; width: 18px; color: var(--gris); font-size: 15px; font-weight: 800; }
+      .indicador-ficha {
+        display: inline-block;
+        width: 18px;
+        color: var(--gris);
+        font-size: 15px;
+        font-weight: 800;
+      }
  
  
       .cuadricula { 
@@ -482,8 +486,7 @@
         } 
         .ficha-encabezado { 
           grid-template-columns: 90px 1fr; 
-        }
-        .acciones-ficha { grid-column: 1/-1; justify-content: flex-end; } 
+        } 
       } 
     </style> 
   </head> 
@@ -783,8 +786,28 @@
       let ambito = "externo"; 
       let opcion = "05"; 
       let datos = {};
-      let fichasColapsadas = localStorage.getItem("peVisorFichasColapsadas") === "true";
-      const fichasAbiertasIndividualmente = new Set(); 
+      let colapsoPorPestana = cargarColapsoPorPestana();
+      const excepcionesPorPestana = {};
+
+      function cargarColapsoPorPestana() {
+        try {
+          return JSON.parse(localStorage.getItem("peVisorColapsoPorPestana") || "{}") || {};
+        } catch (error) {
+          console.warn(error);
+          return {};
+        }
+      }
+      function guardarColapsoPorPestana() {
+        localStorage.setItem("peVisorColapsoPorPestana", JSON.stringify(colapsoPorPestana));
+      }
+      function clavePestanaActual() {
+        return opcion === "todas" ? "todas" : `op${opcion}`;
+      }
+      function excepcionesActuales() {
+        const clave = clavePestanaActual();
+        excepcionesPorPestana[clave] ||= new Set();
+        return excepcionesPorPestana[clave];
+      } 
  
       function normalizar(valor) { 
         return String(valor ?? "") 
@@ -972,12 +995,12 @@
         const nombre = normalizar($("filtrarNombre").value); 
         const producto = normalizar($("filtrarProducto").value); 
         const pais = normalizar($("filtrarPais").value); 
-        const base = 
-          general || opcion === "todas" 
-            ? todosLosRegistros() 
-            : (datos[opcion] || []).map((registro) => ({ 
-                ...registro, 
-                __opcion: opcion, 
+        const base =
+          opcion === "todas"
+            ? todosLosRegistros()
+            : (datos[opcion] || []).map((registro) => ({
+                ...registro,
+                __opcion: opcion,
               })); 
  
         return base.filter((registro) => { 
@@ -1066,35 +1089,26 @@
         return `ficha-${registro.__opcion}-${claveRegistro(registro)}`; 
       }
       function estaFichaColapsada(registro) {
-        return fichasColapsadas && !fichasAbiertasIndividualmente.has(idFicha(registro));
+        const modoColapsado = Boolean(colapsoPorPestana[clavePestanaActual()]);
+        const esExcepcion = excepcionesActuales().has(idFicha(registro));
+        return modoColapsado ? !esExcepcion : esExcepcion;
       }
       function esconderTodasLasFichas() {
-        fichasColapsadas = true;
-        fichasAbiertasIndividualmente.clear();
-        localStorage.setItem("peVisorFichasColapsadas", "true");
+        colapsoPorPestana[clavePestanaActual()] = true;
+        excepcionesActuales().clear();
+        guardarColapsoPorPestana();
         renderizar();
       }
       function mostrarTodasLasFichas() {
-        fichasColapsadas = false;
-        fichasAbiertasIndividualmente.clear();
-        localStorage.setItem("peVisorFichasColapsadas", "false");
+        colapsoPorPestana[clavePestanaActual()] = false;
+        excepcionesActuales().clear();
+        guardarColapsoPorPestana();
         renderizar();
       }
       function alternarFicha(registroId) {
-        const ficha = document.getElementById(registroId);
-        if (!ficha) return;
-        const estabaColapsada = ficha.classList.contains("colapsada");
-        if (!fichasColapsadas) {
-          fichasColapsadas = true;
-          fichasAbiertasIndividualmente.clear();
-          document.querySelectorAll(".ficha:not(.colapsada)").forEach((elemento) => {
-            if (elemento.id !== registroId) fichasAbiertasIndividualmente.add(elemento.id);
-          });
-        } else if (estabaColapsada) {
-          fichasAbiertasIndividualmente.add(registroId);
-        } else {
-          fichasAbiertasIndividualmente.delete(registroId);
-        }
+        const excepciones = excepcionesActuales();
+        if (excepciones.has(registroId)) excepciones.delete(registroId);
+        else excepciones.add(registroId);
         renderizar();
       }
 
@@ -1115,8 +1129,7 @@
                     <article id="${escapar(idFicha(registro))}" class="ficha ${estaFichaColapsada(registro) ? "colapsada" : ""}" data-id="${escapar(claveRegistro(registro))}"> 
                         <div class="ficha-encabezado"> 
                             <div class="codigo">Op. ${registro.__opcion}</div> 
-                            <div class="nombre" data-alternar-ficha="${escapar(idFicha(registro))}" title="${estaFichaColapsada(registro) ? t.mostrarTodos : t.esconder}"><span class="indicador-ficha">${estaFichaColapsada(registro) ? "▶" : "▼"}</span>${resaltar(registro.nombre)}</div>
-                            <div class="acciones-ficha">${estaFichaColapsada(registro) ? "" : `<button class="boton" data-esconder-ficha="${escapar(idFicha(registro))}">${t.esconder}</button>`}</div> 
+                            <div class="nombre" data-alternar-ficha="${escapar(idFicha(registro))}" title="${estaFichaColapsada(registro) ? t.mostrarTodos : t.esconder}"><span class="indicador-ficha">${estaFichaColapsada(registro) ? "▶" : "▼"}</span>${resaltar(registro.nombre)}</div> 
                         </div> 
                         <div class="cuadricula"> 
                             ${campo(t.productoCampo, registro.producto)} 
@@ -1139,10 +1152,10 @@
           `${t.mostrando} ${registros.length} ${t.registros}.`; 
       }
       $("contenido").addEventListener("click", (evento) => {
-        const control = evento.target.closest("[data-alternar-ficha], [data-esconder-ficha]");
+        const control = evento.target.closest("[data-alternar-ficha]");
         if (!control) return;
         evento.preventDefault();
-        alternarFicha(control.dataset.alternarFicha || control.dataset.esconderFicha);
+        alternarFicha(control.dataset.alternarFicha);
       });
 
  
