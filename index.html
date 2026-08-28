@@ -156,7 +156,7 @@
         top: 0; 
         z-index: 80; 
         display: grid; 
-        grid-template-columns: 2fr repeat(3, 1fr) auto; 
+        grid-template-columns: 2fr 1fr 1fr auto auto auto; 
         gap: 8px; 
         padding: 12px 22px; 
       } 
@@ -223,18 +223,7 @@
         color: var(--naranja); 
         font-size: 24px; 
         font-weight: 300; 
-      }
-      .nombre { cursor: pointer; }
-      .ficha.colapsada .ficha-encabezado { border-bottom: 0; }
-      .ficha.colapsada .cuadricula { display: none; }
-      .indicador-ficha {
-        display: inline-block;
-        width: 18px;
-        color: var(--gris);
-        font-size: 15px;
-        font-weight: 800;
-      }
- 
+      } 
  
       .cuadricula { 
         display: grid; 
@@ -531,14 +520,11 @@
         id="buscar" 
         placeholder="Buscar por palabra clave en todas las opciones" 
       /> 
-      <input id="filtrarNombre" placeholder="Filtrar nombre" /> 
       <input id="filtrarProducto" placeholder="Filtrar producto" /> 
       <input id="filtrarPais" placeholder="Filtrar país" /> 
       <button id="botonLimpiar" class="boton" onclick="limpiarFiltros()"> 
         Limpiar filtros 
-      </button>
-      <button id="botonEsconderTodos" class="boton" onclick="esconderTodasLasFichas()">Esconder todos</button>
-      <button id="botonMostrarTodos" class="boton boton-naranja" onclick="mostrarTodasLasFichas()">Mostrar todos</button> 
+      </button> 
     </section> 
  
     <div id="estado" class="estado"></div> 
@@ -638,10 +624,10 @@
           interno: "Interno", 
           exportar: "Exportar Excel", 
           limpiar: "Limpiar filtros", 
-          buscar: "Buscar por palabra clave en todas las opciones", 
+          buscar: "Buscar por nombre de parámetro o palabra clave", 
           nombre: "Filtrar nombre", 
-          producto: "Filtrar producto", 
-          pais: "Filtrar país", 
+          producto: "Buscar por producto", 
+          pais: "Buscar por país", 
           preguntas: "¿Preguntas?", 
           faq: "Preguntas frecuentes", 
           desea: "¿Qué desea hacer?", 
@@ -665,10 +651,7 @@
           recomendados: "Parámetros recomendados", 
           sinSugerencias: 
             "No encontré coincidencias suficientes. Pruebe con términos más específicos.", 
-          abrir: "Abrir ficha",
-          esconderTodos: "Esconder todos",
-          mostrarTodos: "Mostrar todos",
-          esconder: "Esconder", 
+          abrir: "Abrir ficha", 
         }, 
         en: { 
           titulo: "Issuer Parameters", 
@@ -677,10 +660,10 @@
           interno: "Internal", 
           exportar: "Export to Excel", 
           limpiar: "Clear filters", 
-          buscar: "Search by keyword across all options", 
+          buscar: "Search by parameter name or keyword", 
           nombre: "Filter by name", 
-          producto: "Filter by product", 
-          pais: "Filter by country", 
+          producto: "Search by product", 
+          pais: "Search by country", 
           preguntas: "Questions?", 
           faq: "Frequently asked questions", 
           desea: "What do you want to do?", 
@@ -704,10 +687,7 @@
           recomendados: "Recommended parameters", 
           sinSugerencias: 
             "I did not find enough matches. Try more specific terms.", 
-          abrir: "Open card",
-          esconderTodos: "Hide all",
-          mostrarTodos: "Show all",
-          esconder: "Hide", 
+          abrir: "Open card", 
         }, 
       }; 
  
@@ -785,29 +765,7 @@
       let etiquetasPersonalizadas = {}; 
       let ambito = "externo"; 
       let opcion = "05"; 
-      let datos = {};
-      let colapsoPorPestana = cargarColapsoPorPestana();
-      const excepcionesPorPestana = {};
-
-      function cargarColapsoPorPestana() {
-        try {
-          return JSON.parse(localStorage.getItem("peVisorColapsoPorPestana") || "{}") || {};
-        } catch (error) {
-          console.warn(error);
-          return {};
-        }
-      }
-      function guardarColapsoPorPestana() {
-        localStorage.setItem("peVisorColapsoPorPestana", JSON.stringify(colapsoPorPestana));
-      }
-      function clavePestanaActual() {
-        return opcion === "todas" ? "todas" : `op${opcion}`;
-      }
-      function excepcionesActuales() {
-        const clave = clavePestanaActual();
-        excepcionesPorPestana[clave] ||= new Set();
-        return excepcionesPorPestana[clave];
-      } 
+      let datos = {}; 
  
       function normalizar(valor) { 
         return String(valor ?? "") 
@@ -935,11 +893,8 @@
         $("externo").textContent = t.externo; 
         $("interno").textContent = t.interno; 
         $("botonExportar").textContent = t.exportar; 
-        $("botonLimpiar").textContent = t.limpiar;
-        $("botonEsconderTodos").textContent = t.esconderTodos;
-        $("botonMostrarTodos").textContent = t.mostrarTodos; 
+        $("botonLimpiar").textContent = t.limpiar; 
         $("buscar").placeholder = t.buscar; 
-        $("filtrarNombre").placeholder = t.nombre; 
         $("filtrarProducto").placeholder = t.producto; 
         $("filtrarPais").placeholder = t.pais; 
         $("botonPreguntas").textContent = t.preguntas; 
@@ -992,15 +947,14 @@
           return todosLosRegistros().filter((registro) => claveFicha(registro) === fichaSolicitada); 
         } 
         const general = normalizar($("buscar").value); 
-        const nombre = normalizar($("filtrarNombre").value); 
         const producto = normalizar($("filtrarProducto").value); 
         const pais = normalizar($("filtrarPais").value); 
-        const base =
-          opcion === "todas"
-            ? todosLosRegistros()
-            : (datos[opcion] || []).map((registro) => ({
-                ...registro,
-                __opcion: opcion,
+        const base = 
+          general || opcion === "todas" 
+            ? todosLosRegistros() 
+            : (datos[opcion] || []).map((registro) => ({ 
+                ...registro, 
+                __opcion: opcion, 
               })); 
  
         return base.filter((registro) => { 
@@ -1009,7 +963,6 @@
           ); 
           return ( 
             (!general || texto.includes(general)) && 
-            (!nombre || normalizar(registro.nombre).includes(nombre)) && 
             (!producto || normalizar(registro.producto).includes(producto)) && 
             (!pais || normalizar(registro.pais).includes(pais)) 
           ); 
@@ -1087,32 +1040,7 @@
  
       function idFicha(registro) { 
         return `ficha-${registro.__opcion}-${claveRegistro(registro)}`; 
-      }
-      function estaFichaColapsada(registro) {
-        const modoColapsado = Boolean(colapsoPorPestana[clavePestanaActual()]);
-        const esExcepcion = excepcionesActuales().has(idFicha(registro));
-        return modoColapsado ? !esExcepcion : esExcepcion;
-      }
-      function esconderTodasLasFichas() {
-        colapsoPorPestana[clavePestanaActual()] = true;
-        excepcionesActuales().clear();
-        guardarColapsoPorPestana();
-        renderizar();
-      }
-      function mostrarTodasLasFichas() {
-        colapsoPorPestana[clavePestanaActual()] = false;
-        excepcionesActuales().clear();
-        guardarColapsoPorPestana();
-        renderizar();
-      }
-      function alternarFicha(registroId) {
-        const excepciones = excepcionesActuales();
-        if (excepciones.has(registroId)) excepciones.delete(registroId);
-        else excepciones.add(registroId);
-        renderizar();
-      }
-
- 
+      } 
  
       function renderizar() { 
         const t = textosActivos(); 
@@ -1126,10 +1054,10 @@
           ? registros 
               .map( 
                 (registro) => ` 
-                    <article id="${escapar(idFicha(registro))}" class="ficha ${estaFichaColapsada(registro) ? "colapsada" : ""}" data-id="${escapar(claveRegistro(registro))}"> 
+                    <article id="${escapar(idFicha(registro))}" class="ficha" data-id="${escapar(claveRegistro(registro))}"> 
                         <div class="ficha-encabezado"> 
                             <div class="codigo">Op. ${registro.__opcion}</div> 
-                            <div class="nombre" data-alternar-ficha="${escapar(idFicha(registro))}" title="${estaFichaColapsada(registro) ? t.mostrarTodos : t.esconder}"><span class="indicador-ficha">${estaFichaColapsada(registro) ? "▶" : "▼"}</span>${resaltar(registro.nombre)}</div> 
+                            <div class="nombre">${resaltar(registro.nombre)}</div> 
                         </div> 
                         <div class="cuadricula"> 
                             ${campo(t.productoCampo, registro.producto)} 
@@ -1150,24 +1078,16 @@
  
         $("estado").textContent = 
           `${t.mostrando} ${registros.length} ${t.registros}.`; 
-      }
-      $("contenido").addEventListener("click", (evento) => {
-        const control = evento.target.closest("[data-alternar-ficha]");
-        if (!control) return;
-        evento.preventDefault();
-        alternarFicha(control.dataset.alternarFicha);
-      });
-
+      } 
  
- 
-      ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+      ["buscar", "filtrarProducto", "filtrarPais"].forEach( 
         (id) => { 
           $(id).addEventListener("input", renderizar); 
         }, 
       ); 
  
       function limpiarFiltros() { 
-        ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+        ["buscar", "filtrarProducto", "filtrarPais"].forEach( 
           (id) => { 
             $(id).value = ""; 
           }, 
