@@ -222,7 +222,22 @@
         padding: 10px 15px; 
         color: var(--naranja); 
         font-size: 24px; 
-        font-weight: 300; 
+        font-weight: 300;
+        cursor: pointer;
+        user-select: none;
+      }
+      .ficha.colapsada .ficha-encabezado {
+        border-bottom: 0;
+      }
+      .ficha.colapsada .cuadricula {
+        display: none;
+      }
+      .indicador-ficha {
+        display: inline-block;
+        width: 18px;
+        color: var(--gris);
+        font-size: 15px;
+        font-weight: 800;
       } 
  
       .cuadricula { 
@@ -524,6 +539,12 @@
       <input id="filtrarPais" placeholder="Filtrar país" /> 
       <button id="botonLimpiar" class="boton" onclick="limpiarFiltros()"> 
         Limpiar filtros 
+      </button>
+      <button id="botonEsconderTodos" class="boton" onclick="esconderTodasLasFichas()">
+        Esconder todos
+      </button>
+      <button id="botonMostrarTodos" class="boton boton-naranja" onclick="mostrarTodasLasFichas()">
+        Mostrar todos
       </button> 
     </section> 
  
@@ -651,7 +672,11 @@
           recomendados: "Parámetros recomendados", 
           sinSugerencias: 
             "No encontré coincidencias suficientes. Pruebe con términos más específicos.", 
-          abrir: "Abrir ficha", 
+          abrir: "Abrir ficha",
+          esconderTodos: "Esconder todos",
+          mostrarTodos: "Mostrar todos",
+          mostrarFicha: "Mostrar ficha",
+          esconderFicha: "Esconder ficha",
         }, 
         en: { 
           titulo: "Issuer Parameters", 
@@ -687,7 +712,11 @@
           recomendados: "Recommended parameters", 
           sinSugerencias: 
             "I did not find enough matches. Try more specific terms.", 
-          abrir: "Open card", 
+          abrir: "Open card",
+          esconderTodos: "Hide all",
+          mostrarTodos: "Show all",
+          mostrarFicha: "Show card",
+          esconderFicha: "Hide card",
         }, 
       }; 
  
@@ -765,7 +794,36 @@
       let etiquetasPersonalizadas = {}; 
       let ambito = "externo"; 
       let opcion = "05"; 
-      let datos = {}; 
+      let datos = {};
+      let colapsoPorContexto = cargarColapsoPorContexto();
+      const excepcionesPorContexto = {};
+
+      function cargarColapsoPorContexto() {
+        try {
+          return JSON.parse(localStorage.getItem("peVisorColapsoPorContexto") || "{}") || {};
+        } catch (error) {
+          console.warn(error);
+          return {};
+        }
+      }
+
+      function guardarColapsoPorContexto() {
+        localStorage.setItem(
+          "peVisorColapsoPorContexto",
+          JSON.stringify(colapsoPorContexto),
+        );
+      }
+
+      function claveContextoActual() {
+        const pestana = opcion === "todas" ? "todas" : `op${opcion}`;
+        return `${idioma}|${ambito}|${pestana}`;
+      }
+
+      function excepcionesActuales() {
+        const clave = claveContextoActual();
+        excepcionesPorContexto[clave] ||= new Set();
+        return excepcionesPorContexto[clave];
+      } 
  
       function normalizar(valor) { 
         return String(valor ?? "") 
@@ -893,7 +951,9 @@
         $("externo").textContent = t.externo; 
         $("interno").textContent = t.interno; 
         $("botonExportar").textContent = t.exportar; 
-        $("botonLimpiar").textContent = t.limpiar; 
+        $("botonLimpiar").textContent = t.limpiar;
+        $("botonEsconderTodos").textContent = t.esconderTodos;
+        $("botonMostrarTodos").textContent = t.mostrarTodos;
         $("buscar").placeholder = t.buscar; 
         $("filtrarProducto").placeholder = t.producto; 
         $("filtrarPais").placeholder = t.pais; 
@@ -949,12 +1009,12 @@
         const general = normalizar($("buscar").value); 
         const producto = normalizar($("filtrarProducto").value); 
         const pais = normalizar($("filtrarPais").value); 
-        const base = 
-          general || opcion === "todas" 
-            ? todosLosRegistros() 
-            : (datos[opcion] || []).map((registro) => ({ 
-                ...registro, 
-                __opcion: opcion, 
+        const base =
+          opcion === "todas"
+            ? todosLosRegistros()
+            : (datos[opcion] || []).map((registro) => ({
+                ...registro,
+                __opcion: opcion,
               })); 
  
         return base.filter((registro) => { 
@@ -1042,6 +1102,34 @@
         return `ficha-${registro.__opcion}-${claveRegistro(registro)}`; 
       } 
  
+      function estaFichaColapsada(registro) {
+        const contexto = claveContextoActual();
+        const modoColapsado = Boolean(colapsoPorContexto[contexto]);
+        const esExcepcion = excepcionesActuales().has(idFicha(registro));
+        return modoColapsado ? !esExcepcion : esExcepcion;
+      }
+
+      function esconderTodasLasFichas() {
+        colapsoPorContexto[claveContextoActual()] = true;
+        excepcionesActuales().clear();
+        guardarColapsoPorContexto();
+        renderizar();
+      }
+
+      function mostrarTodasLasFichas() {
+        colapsoPorContexto[claveContextoActual()] = false;
+        excepcionesActuales().clear();
+        guardarColapsoPorContexto();
+        renderizar();
+      }
+
+      function alternarFicha(registroId) {
+        const excepciones = excepcionesActuales();
+        if (excepciones.has(registroId)) excepciones.delete(registroId);
+        else excepciones.add(registroId);
+        renderizar();
+      }
+
       function renderizar() { 
         const t = textosActivos(); 
         const registros = registrosVisibles(); 
@@ -1054,10 +1142,14 @@
           ? registros 
               .map( 
                 (registro) => ` 
-                    <article id="${escapar(idFicha(registro))}" class="ficha" data-id="${escapar(claveRegistro(registro))}"> 
+                    <article id="${escapar(idFicha(registro))}" class="ficha ${estaFichaColapsada(registro) ? "colapsada" : ""}" data-id="${escapar(claveRegistro(registro))}"> 
                         <div class="ficha-encabezado"> 
                             <div class="codigo">Op. ${registro.__opcion}</div> 
-                            <div class="nombre">${resaltar(registro.nombre)}</div> 
+                            <div
+                              class="nombre"
+                              data-alternar-ficha="${escapar(idFicha(registro))}"
+                              title="${estaFichaColapsada(registro) ? t.mostrarFicha : t.esconderFicha}"
+                            ><span class="indicador-ficha">${estaFichaColapsada(registro) ? "▶" : "▼"}</span>${resaltar(registro.nombre)}</div> 
                         </div> 
                         <div class="cuadricula"> 
                             ${campo(t.productoCampo, registro.producto)} 
@@ -1080,6 +1172,13 @@
           `${t.mostrando} ${registros.length} ${t.registros}.`; 
       } 
  
+      $("contenido").addEventListener("click", (evento) => {
+        const tituloFicha = evento.target.closest("[data-alternar-ficha]");
+        if (!tituloFicha) return;
+        evento.preventDefault();
+        alternarFicha(tituloFicha.dataset.alternarFicha);
+      });
+
       ["buscar", "filtrarProducto", "filtrarPais"].forEach( 
         (id) => { 
           $(id).addEventListener("input", renderizar); 
