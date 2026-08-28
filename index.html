@@ -204,7 +204,7 @@
  
       .ficha-encabezado { 
         display: grid; 
-        grid-template-columns: 145px 1fr; 
+        grid-template-columns: 145px 1fr auto; 
         border-bottom: 1px solid var(--borde); 
       } 
  
@@ -223,7 +223,14 @@
         color: var(--naranja); 
         font-size: 24px; 
         font-weight: 300; 
-      } 
+      }
+      .nombre { cursor: pointer; }
+      .acciones-ficha { display: flex; align-items: center; padding: 6px; }
+      .acciones-ficha .boton { padding: 7px 10px; font-size: 12px; }
+      .ficha.colapsada .ficha-encabezado { border-bottom: 0; }
+      .ficha.colapsada .cuadricula { display: none; }
+      .indicador-ficha { display: inline-block; width: 18px; color: var(--gris); font-size: 15px; font-weight: 800; }
+ 
  
       .cuadricula { 
         display: grid; 
@@ -475,7 +482,8 @@
         } 
         .ficha-encabezado { 
           grid-template-columns: 90px 1fr; 
-        } 
+        }
+        .acciones-ficha { grid-column: 1/-1; justify-content: flex-end; } 
       } 
     </style> 
   </head> 
@@ -525,7 +533,9 @@
       <input id="filtrarPais" placeholder="Filtrar país" /> 
       <button id="botonLimpiar" class="boton" onclick="limpiarFiltros()"> 
         Limpiar filtros 
-      </button> 
+      </button>
+      <button id="botonEsconderTodos" class="boton" onclick="esconderTodasLasFichas()">Esconder todos</button>
+      <button id="botonMostrarTodos" class="boton boton-naranja" onclick="mostrarTodasLasFichas()">Mostrar todos</button> 
     </section> 
  
     <div id="estado" class="estado"></div> 
@@ -652,7 +662,10 @@
           recomendados: "Parámetros recomendados", 
           sinSugerencias: 
             "No encontré coincidencias suficientes. Pruebe con términos más específicos.", 
-          abrir: "Abrir ficha", 
+          abrir: "Abrir ficha",
+          esconderTodos: "Esconder todos",
+          mostrarTodos: "Mostrar todos",
+          esconder: "Esconder", 
         }, 
         en: { 
           titulo: "Issuer Parameters", 
@@ -688,7 +701,10 @@
           recomendados: "Recommended parameters", 
           sinSugerencias: 
             "I did not find enough matches. Try more specific terms.", 
-          abrir: "Open card", 
+          abrir: "Open card",
+          esconderTodos: "Hide all",
+          mostrarTodos: "Show all",
+          esconder: "Hide", 
         }, 
       }; 
  
@@ -766,7 +782,9 @@
       let etiquetasPersonalizadas = {}; 
       let ambito = "externo"; 
       let opcion = "05"; 
-      let datos = {}; 
+      let datos = {};
+      let fichasColapsadas = localStorage.getItem("peVisorFichasColapsadas") === "true";
+      const fichasAbiertasIndividualmente = new Set(); 
  
       function normalizar(valor) { 
         return String(valor ?? "") 
@@ -894,7 +912,9 @@
         $("externo").textContent = t.externo; 
         $("interno").textContent = t.interno; 
         $("botonExportar").textContent = t.exportar; 
-        $("botonLimpiar").textContent = t.limpiar; 
+        $("botonLimpiar").textContent = t.limpiar;
+        $("botonEsconderTodos").textContent = t.esconderTodos;
+        $("botonMostrarTodos").textContent = t.mostrarTodos; 
         $("buscar").placeholder = t.buscar; 
         $("filtrarNombre").placeholder = t.nombre; 
         $("filtrarProducto").placeholder = t.producto; 
@@ -1044,7 +1064,41 @@
  
       function idFicha(registro) { 
         return `ficha-${registro.__opcion}-${claveRegistro(registro)}`; 
-      } 
+      }
+      function estaFichaColapsada(registro) {
+        return fichasColapsadas && !fichasAbiertasIndividualmente.has(idFicha(registro));
+      }
+      function esconderTodasLasFichas() {
+        fichasColapsadas = true;
+        fichasAbiertasIndividualmente.clear();
+        localStorage.setItem("peVisorFichasColapsadas", "true");
+        renderizar();
+      }
+      function mostrarTodasLasFichas() {
+        fichasColapsadas = false;
+        fichasAbiertasIndividualmente.clear();
+        localStorage.setItem("peVisorFichasColapsadas", "false");
+        renderizar();
+      }
+      function alternarFicha(registroId) {
+        const ficha = document.getElementById(registroId);
+        if (!ficha) return;
+        const estabaColapsada = ficha.classList.contains("colapsada");
+        if (!fichasColapsadas) {
+          fichasColapsadas = true;
+          fichasAbiertasIndividualmente.clear();
+          document.querySelectorAll(".ficha:not(.colapsada)").forEach((elemento) => {
+            if (elemento.id !== registroId) fichasAbiertasIndividualmente.add(elemento.id);
+          });
+        } else if (estabaColapsada) {
+          fichasAbiertasIndividualmente.add(registroId);
+        } else {
+          fichasAbiertasIndividualmente.delete(registroId);
+        }
+        renderizar();
+      }
+
+ 
  
       function renderizar() { 
         const t = textosActivos(); 
@@ -1058,10 +1112,11 @@
           ? registros 
               .map( 
                 (registro) => ` 
-                    <article id="${escapar(idFicha(registro))}" class="ficha" data-id="${escapar(claveRegistro(registro))}"> 
+                    <article id="${escapar(idFicha(registro))}" class="ficha ${estaFichaColapsada(registro) ? "colapsada" : ""}" data-id="${escapar(claveRegistro(registro))}"> 
                         <div class="ficha-encabezado"> 
                             <div class="codigo">Op. ${registro.__opcion}</div> 
-                            <div class="nombre">${resaltar(registro.nombre)}</div> 
+                            <div class="nombre" data-alternar-ficha="${escapar(idFicha(registro))}" title="${estaFichaColapsada(registro) ? t.mostrarTodos : t.esconder}"><span class="indicador-ficha">${estaFichaColapsada(registro) ? "▶" : "▼"}</span>${resaltar(registro.nombre)}</div>
+                            <div class="acciones-ficha">${estaFichaColapsada(registro) ? "" : `<button class="boton" data-esconder-ficha="${escapar(idFicha(registro))}">${t.esconder}</button>`}</div> 
                         </div> 
                         <div class="cuadricula"> 
                             ${campo(t.productoCampo, registro.producto)} 
@@ -1082,7 +1137,15 @@
  
         $("estado").textContent = 
           `${t.mostrando} ${registros.length} ${t.registros}.`; 
-      } 
+      }
+      $("contenido").addEventListener("click", (evento) => {
+        const control = evento.target.closest("[data-alternar-ficha], [data-esconder-ficha]");
+        if (!control) return;
+        evento.preventDefault();
+        alternarFicha(control.dataset.alternarFicha || control.dataset.esconderFicha);
+      });
+
+ 
  
       ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
         (id) => { 
