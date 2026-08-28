@@ -9,11 +9,11 @@
     "dependencias": "Requiere que el BIN esté previamente definido y aprobado por la Marca.",
     "cuando": "Aplica desde el momento en que el emisor se encuentra activo y para todas las operaciones asociadas a sus productos.",
     "ejemplo": "Un banco cuenta con un identificador de emisor que le permite gestionar todas sus tarjetas de crédito y débito dentro del sistema.",
-    "notas": "Este identificador es único, no editable y forma parte de la configuración general del producto...",
+    "notas": "Este identificador es único, no editable y forma parte de la configuración general del producto PRUEBA DE CAMBIO",
     "codigo": "05",
     "id": "6b8df515-da9e-4a1d-9030-14339dd3f367",
     "creadoEn": "2026-08-19T19:57:27.324Z",
-    "actualizadoEn": "2026-08-28T17:01:00.991Z"
+    "actualizadoEn": "2026-08-28T17:06:35.608Z"
   },
   {
     "nombre": "Franquicia",
