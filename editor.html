@@ -113,7 +113,7 @@
         top: 0; 
         z-index: 80; 
         display: grid; 
-        grid-template-columns: 2fr 1fr 1fr 1fr auto; 
+        grid-template-columns: 2fr 1fr 1fr auto auto auto; 
         gap: 8px; 
         padding: 11px 20px;        background: var(--fondo); 
         border-bottom: 1px solid var(--borde); 
@@ -190,7 +190,37 @@
         color: var(--naranja); 
         font-size: 24px; 
         font-weight: 300; 
-        outline: none; 
+        outline: none;
+      }
+      .ficha.colapsada .cabecera-ficha {
+        border-bottom: 0;
+      }
+      .ficha.colapsada .cuadricula {
+        display: none;
+      }
+      .control-ficha {
+        display: flex;
+        align-items: center;
+        min-width: 0;
+      }
+      .control-ficha .nombre {
+        flex: 1;
+        min-width: 0;
+      }
+      .alternar-ficha {
+        align-self: stretch;
+        width: 40px;
+        padding: 0;
+        border: 0;
+        background: transparent;
+        color: var(--gris);
+        font-size: 16px;
+        font-weight: 850;
+      }
+      .alternar-ficha:hover,
+      .alternar-ficha:focus-visible {
+        background: #f2f2f2;
+        color: var(--naranja);
       } 
       .nombre[contenteditable="true"]:focus, 
       .editable-ficha:focus { 
@@ -579,13 +609,18 @@
     <section class="filtros"> 
       <input 
         id="buscar" 
-        placeholder="Buscar por palabra clave en TODAS las opciones" 
+        placeholder="Buscar por nombre de parámetro o palabra clave" 
       /> 
-      <input id="filtrarNombre" placeholder="Filtrar nombre" /> 
-      <input id="filtrarProducto" placeholder="Filtrar producto" /> 
-      <input id="filtrarPais" placeholder="Filtrar país" /> 
+      <input id="filtrarProducto" placeholder="Buscar por producto" /> 
+      <input id="filtrarPais" placeholder="Buscar por país" /> 
       <button id="btnLimpiar" class="boton" onclick="limpiarFiltros()"> 
         Limpiar filtros 
+      </button>
+      <button id="btnEsconderTodos" class="boton" onclick="esconderTodasLasFichas()">
+        Esconder todos
+      </button>
+      <button id="btnMostrarTodos" class="boton boton-naranja" onclick="mostrarTodasLasFichas()">
+        Mostrar todos
       </button> 
     </section> 
     <div id="estado" class="estado"></div> 
@@ -773,7 +808,33 @@
         seleccionDependencia = null, 
         elementoDependenciaActivo = null, 
         ocultarTarjeta = null, 
-        cambiosPendientes = new Set(); 
+        cambiosPendientes = new Set();
+      let colapsoPorContexto = cargarColapsoPorContexto();
+      const excepcionesPorContexto = {};
+
+      function cargarColapsoPorContexto() {
+        try {
+          return JSON.parse(localStorage.getItem("peEditorColapsoPorContexto") || "{}") || {};
+        } catch (error) {
+          console.warn(error);
+          return {};
+        }
+      }
+      function guardarColapsoPorContexto() {
+        localStorage.setItem(
+          "peEditorColapsoPorContexto",
+          JSON.stringify(colapsoPorContexto),
+        );
+      }
+      function claveContextoActual() {
+        const pestana = opcion === "todas" ? "todas" : `op${opcion}`;
+        return `${idiomaEditor}|${ambito}|${pestana}`;
+      }
+      function excepcionesActuales() {
+        const clave = claveContextoActual();
+        excepcionesPorContexto[clave] ||= new Set();
+        return excepcionesPorContexto[clave];
+      } 
       let github = { 
         url: "", 
         propietario: "", 
@@ -788,10 +849,10 @@
         interno: "Internal", 
         exportar: "Export to Excel", 
         limpiar: "Clear filters", 
-        buscar: "Search by keyword across all options", 
+        buscar: "Search by parameter name or keyword", 
         nombre: "Filter by name", 
-        producto: "Filter by product", 
-        pais: "Filter by country", 
+        producto: "Search by product", 
+        pais: "Search by country", 
         preguntas: "Questions?", 
         faq: "Frequently asked questions", 
         desea: "What do you want to do?", 
@@ -825,10 +886,9 @@
           guardar: "Guardar cambios", 
           externo: "Externo", 
           interno: "Interno", 
-          buscar: "Buscar por palabra clave en TODAS las opciones", 
-          filtrarNombre: "Filtrar nombre", 
-          filtrarProducto: "Filtrar producto", 
-          filtrarPais: "Filtrar país", 
+          buscar: "Buscar por nombre de parámetro o palabra clave", 
+          filtrarProducto: "Buscar por producto", 
+          filtrarPais: "Buscar por país", 
           limpiar: "Limpiar filtros", 
           todas: "Todas", 
           resultados: "Resultados en todas las opciones", 
@@ -843,7 +903,11 @@
           ejemplo: "Ejemplo Funcional", 
           notas: "Notas Visibles al Cliente", 
           duplicar: "Duplicar", 
-          eliminar: "Eliminar", 
+          eliminar: "Eliminar",
+          esconderTodos: "Esconder todos",
+          mostrarTodos: "Mostrar todos",
+          mostrarFicha: "Mostrar ficha",
+          esconderFicha: "Esconder ficha",
         }, 
         en: { 
           titulo: "Issuer Parameters", 
@@ -856,10 +920,9 @@
           guardar: "Save changes", 
           externo: "External", 
           interno: "Internal", 
-          buscar: "Search by keyword across ALL options", 
-          filtrarNombre: "Filter by name", 
-          filtrarProducto: "Filter by product", 
-          filtrarPais: "Filter by country", 
+          buscar: "Search by parameter name or keyword", 
+          filtrarProducto: "Search by product", 
+          filtrarPais: "Search by country", 
           limpiar: "Clear filters", 
           todas: "All", 
           resultados: "Results across all options", 
@@ -874,7 +937,11 @@
           ejemplo: "Functional Example", 
           notas: "Customer-visible Notes", 
           duplicar: "Duplicate", 
-          eliminar: "Delete", 
+          eliminar: "Delete",
+          esconderTodos: "Hide all",
+          mostrarTodos: "Show all",
+          mostrarFicha: "Show card",
+          esconderFicha: "Hide card",
         }, 
       }; 
  
@@ -898,10 +965,11 @@
         $("externo").textContent = textoEditor("externo"); 
         $("interno").textContent = textoEditor("interno"); 
         $("buscar").placeholder = textoEditor("buscar"); 
-        $("filtrarNombre").placeholder = textoEditor("filtrarNombre"); 
         $("filtrarProducto").placeholder = textoEditor("filtrarProducto"); 
         $("filtrarPais").placeholder = textoEditor("filtrarPais"); 
-        $("btnLimpiar").textContent = textoEditor("limpiar"); 
+        $("btnLimpiar").textContent = textoEditor("limpiar");
+        $("btnEsconderTodos").textContent = textoEditor("esconderTodos");
+        $("btnMostrarTodos").textContent = textoEditor("mostrarTodos"); 
       } 
  
       function escapar(v) { 
@@ -1015,12 +1083,11 @@
           ); 
         } 
         const q = normalizar($("buscar").value), 
-          n = normalizar($("filtrarNombre").value), 
           p = normalizar($("filtrarProducto").value), 
           c = normalizar($("filtrarPais").value); 
-        const base = 
-          q || opcion === "todas" 
-            ? todos() 
+        const base =
+          opcion === "todas"
+            ? todos()
             : (datos[opcion] || []).map((r) => ({ ...r, __opcion: opcion })); 
         return base.filter( 
           (r) => 
@@ -1028,7 +1095,6 @@
               normalizar(CAMPOS.map((k) => textoHTML(r[k])).join(" ")).includes( 
                 q, 
               )) && 
-            (!n || normalizar(r.nombre).includes(n)) && 
             (!p || normalizar(r.producto).includes(p)) && 
             (!c || normalizar(r.pais).includes(c)), 
         ); 
@@ -1111,6 +1177,34 @@
               x.pais === r.pais), 
         ); 
       } 
+      function idFichaEditor(codigo, indice, registro) {
+        const identificador = registro.id || `${codigo}-${indice}-${normalizar(registro.nombre).replaceAll(" ", "-")}`;
+        return `ficha-editor-${codigo}-${identificador}`;
+      }
+      function estaFichaColapsada(codigo, indice, registro) {
+        const modoColapsado = Boolean(colapsoPorContexto[claveContextoActual()]);
+        const esExcepcion = excepcionesActuales().has(idFichaEditor(codigo, indice, registro));
+        return modoColapsado ? !esExcepcion : esExcepcion;
+      }
+      function esconderTodasLasFichas() {
+        colapsoPorContexto[claveContextoActual()] = true;
+        excepcionesActuales().clear();
+        guardarColapsoPorContexto();
+        renderizar();
+      }
+      function mostrarTodasLasFichas() {
+        colapsoPorContexto[claveContextoActual()] = false;
+        excepcionesActuales().clear();
+        guardarColapsoPorContexto();
+        renderizar();
+      }
+      function alternarFichaEditor(registroId) {
+        const excepciones = excepcionesActuales();
+        if (excepciones.has(registroId)) excepciones.delete(registroId);
+        else excepciones.add(registroId);
+        renderizar();
+      }
+
       function renderizar() { 
         const a = registrosVisibles(), 
           hayBusqueda = Boolean(normalizar($("buscar").value)); 
@@ -1124,13 +1218,21 @@
               .map((r) => { 
                 const c = r.__opcion, 
                   i = indiceReal(r); 
-                return `<article class="ficha"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${resaltar(r.nombre)}</div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${campoEditable(textoEditor("producto"), c, i, "producto", r.producto)}${campoEditable(textoEditor("pais"), c, i, "pais", r.pais)}${campoEditable(textoEditor("valores"), c, i, "valores", r.valores)}${campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)}${campoEditable(textoEditor("como"), c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)}${campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
+                const fichaId = idFichaEditor(c, i, r),
+                  colapsada = estaFichaColapsada(c, i, r);
+                return `<article id="${escapar(fichaId)}" class="ficha ${colapsada ? "colapsada" : ""}"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="control-ficha"><button type="button" class="alternar-ficha" data-alternar-ficha="${escapar(fichaId)}" title="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}" aria-label="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}">${colapsada ? "▶" : "▼"}</button><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${resaltar(r.nombre)}</div></div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${campoEditable(textoEditor("producto"), c, i, "producto", r.producto)}${campoEditable(textoEditor("pais"), c, i, "pais", r.pais)}${campoEditable(textoEditor("valores"), c, i, "valores", r.valores)}${campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)}${campoEditable(textoEditor("como"), c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)}${campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
               }) 
               .join("") 
           : '<div class="vacio">No hay registros para mostrar.</div>'; 
         $("estado").textContent = `Mostrando ${a.length} registro(s).`; 
       } 
-      $("contenido").addEventListener("click", (e) => { 
+      $("contenido").addEventListener("click", (e) => {
+        const alternar = e.target.closest("[data-alternar-ficha]");
+        if (alternar) {
+          e.preventDefault();
+          alternarFichaEditor(alternar.dataset.alternarFicha);
+          return;
+        }
         for (const tipo of ["duplicar", "eliminar"]) { 
           const b = e.target.closest(`[data-${tipo}]`); 
           if (!b) continue; 
@@ -1146,11 +1248,11 @@
           e.preventDefault(); 
         } 
       }); 
-      ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+      ["buscar", "filtrarProducto", "filtrarPais"].forEach( 
         (id) => $(id).addEventListener("input", renderizar), 
       ); 
       function limpiarFiltros() { 
-        ["buscar", "filtrarNombre", "filtrarProducto", "filtrarPais"].forEach( 
+        ["buscar", "filtrarProducto", "filtrarPais"].forEach( 
           (id) => ($(id).value = ""), 
         ); 
         renderizar(); 
