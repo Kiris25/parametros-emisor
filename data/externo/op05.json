@@ -64,22 +64,6 @@
     "actualizadoEn": "2026-08-19T19:57:27.324Z"
   },
   {
-    "nombre": "Saldo Origen (Uso Evertec)",
-    "producto": "",
-    "pais": "",
-    "valores": "",
-    "que": "",
-    "como": "",
-    "dependencias": "",
-    "cuando": "",
-    "ejemplo": "",
-    "notas": "",
-    "codigo": "05",
-    "id": "9d4b9b6d-3bf5-4a4c-a07a-ea238e8a610f",
-    "creadoEn": "2026-08-19T19:57:27.324Z",
-    "actualizadoEn": "2026-08-19T19:57:27.324Z"
-  },
-  {
     "nombre": "Cantidad de Importes Vencidos para Arreglo de Pago",
     "producto": "Crédito",
     "pais": "Todos",
