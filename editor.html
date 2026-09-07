@@ -642,16 +642,18 @@
           <label>Nombre del Parámetro<input id="nombre" required /></label> 
           <label>Producto<input id="producto" /></label> 
           <label>País<input id="pais" /></label> 
-          <label class="completo" 
-            >Valores Permitidos<textarea id="valores"></textarea> 
+          <label class="completo">Valores Permitidos<textarea id="valores"></textarea></label> 
+          <label class="completo campo-externo">¿Qué hace el parámetro?<textarea id="que"></textarea> 
           </label> 
-          <label class="completo" 
-            >¿Qué hace el parámetro?<textarea id="que"></textarea> 
+          <label class="completo campo-externo">¿Cómo funciona?<textarea id="como"></textarea> 
           </label> 
-          <label class="completo" 
-            >¿Cómo funciona?<textarea id="como"></textarea> 
-          </label> 
-          <label class="completo"> 
+          <label class="campo-interno" hidden>Obligatorio<input id="obligatorio" /></label>
+          <label class="campo-interno" hidden>Permite Blancos<input id="permiteBlancos" /></label>
+          <label class="completo campo-interno" hidden>Requisitos de Implementación<textarea id="requisitosImplementacion"></textarea></label>
+          <label class="completo campo-interno" hidden>Configuración y Comportamiento<textarea id="configuracionComportamiento"></textarea></label>
+          <label class="completo campo-interno" hidden>Condiciones Operativas<textarea id="condicionesOperativas"></textarea></label>
+          <label class="completo campo-interno" hidden>Ejemplo Operativo<textarea id="ejemploOperativo"></textarea></label>
+          <label class="completo">   
             Dependencias / Reglas 
             <div 
               id="dependencias" 
@@ -663,14 +665,11 @@
               buscador de parámetros. 
             </p> 
           </label> 
-          <label class="completo" 
-            >¿Cuándo aplica?<textarea id="cuando"></textarea> 
+          <label class="completo campo-externo">¿Cuándo aplica?<textarea id="cuando"></textarea> 
           </label> 
-          <label class="completo" 
-            >Ejemplo Funcional<textarea id="ejemplo"></textarea> 
+          <label class="completo campo-externo">Ejemplo Funcional<textarea id="ejemplo"></textarea> 
           </label> 
-          <label class="completo" 
-            >Notas Visibles al Cliente<textarea id="notas"></textarea> 
+          <label class="completo campo-externo">Notas Visibles al Cliente<textarea id="notas"></textarea> 
           </label> 
           <div class="acciones-formulario"> 
             <button type="button" class="boton" onclick="cerrarFormulario()"> 
@@ -787,19 +786,18 @@
         ["52", "Rangos"], 
         ["53", "Tecnología"], 
       ]; 
-      const CAMPOS = [ 
-        "codigo", 
-        "nombre", 
-        "producto", 
-        "pais", 
-        "valores", 
-        "que", 
-        "como", 
-        "dependencias", 
-        "cuando", 
-        "ejemplo", 
-        "notas", 
-      ]; 
+      const CAMPOS_EXTERNOS = [
+        "codigo", "nombre", "producto", "pais", "valores", "que", "como",
+        "dependencias", "cuando", "ejemplo", "notas"
+      ];
+      const CAMPOS_INTERNOS = [
+        "codigo", "nombre", "obligatorio", "permiteBlancos", "producto", "pais",
+        "valores", "requisitosImplementacion", "configuracionComportamiento",
+        "dependencias", "condicionesOperativas", "ejemploOperativo"
+      ];
+      function camposActuales() {
+        return ambito === "interno" ? CAMPOS_INTERNOS : CAMPOS_EXTERNOS;
+      }
       const $ = (id) => document.getElementById(id); 
       let idiomaEditor = "es", 
         ambito = "externo", 
@@ -1092,7 +1090,7 @@
         return base.filter( 
           (r) => 
             (!q || 
-              normalizar(CAMPOS.map((k) => textoHTML(r[k])).join(" ")).includes( 
+              normalizar(camposActuales().map((k) => textoHTML(r[k])).join(" ")).includes( 
                 q, 
               )) && 
             (!p || normalizar(r.producto).includes(p)) && 
@@ -1220,7 +1218,26 @@
                   i = indiceReal(r); 
                 const fichaId = idFichaEditor(c, i, r),
                   colapsada = estaFichaColapsada(c, i, r);
-                return `<article id="${escapar(fichaId)}" class="ficha ${colapsada ? "colapsada" : ""}"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="control-ficha"><button type="button" class="alternar-ficha" data-alternar-ficha="${escapar(fichaId)}" title="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}" aria-label="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}">${colapsada ? "▶" : "▼"}</button><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${resaltar(r.nombre)}</div></div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${campoEditable(textoEditor("producto"), c, i, "producto", r.producto)}${campoEditable(textoEditor("pais"), c, i, "pais", r.pais)}${campoEditable(textoEditor("valores"), c, i, "valores", r.valores)}${campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)}${campoEditable(textoEditor("como"), c, i, "como", r.como)}${campoDependencia(c, i, r.dependencias || r.dep)}${campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)}${campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")}${campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
+                return `<article id="${escapar(fichaId)}" class="ficha ${colapsada ? "colapsada" : ""}"><div class="cabecera-ficha"><div class="codigo">Op. ${c}</div><div class="control-ficha"><button type="button" class="alternar-ficha" data-alternar-ficha="${escapar(fichaId)}" title="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}" aria-label="${colapsada ? textoEditor("mostrarFicha") : textoEditor("esconderFicha")}">${colapsada ? "▶" : "▼"}</button><div class="nombre" contenteditable="true" data-campo="nombre" data-opcion="${c}" data-indice="${i}">${resaltar(r.nombre)}</div></div><div class="acciones-ficha"><button class="boton" data-duplicar="${c}|${i}">${textoEditor("duplicar")}</button><button class="boton boton-rojo" data-eliminar="${c}|${i}">${textoEditor("eliminar")}</button></div></div><div class="cuadricula">${ambito === "interno"
+  ? campoEditable("Obligatorio", c, i, "obligatorio", r.obligatorio)
+    + campoEditable("Permite Blancos", c, i, "permiteBlancos", r.permiteBlancos)
+    + campoEditable(textoEditor("producto"), c, i, "producto", r.producto)
+    + campoEditable(textoEditor("pais"), c, i, "pais", r.pais)
+    + campoEditable(textoEditor("valores"), c, i, "valores", r.valores)
+    + campoEditable("Requisitos de Implementación", c, i, "requisitosImplementacion", r.requisitosImplementacion)
+    + campoEditable("Configuración y Comportamiento", c, i, "configuracionComportamiento", r.configuracionComportamiento)
+    + campoDependencia(c, i, r.dependencias || r.dep)
+    + campoEditable("Condiciones Operativas", c, i, "condicionesOperativas", r.condicionesOperativas)
+    + campoEditable("Ejemplo Operativo", c, i, "ejemploOperativo", r.ejemploOperativo, "ejemplo")
+  : campoEditable(textoEditor("producto"), c, i, "producto", r.producto)
+    + campoEditable(textoEditor("pais"), c, i, "pais", r.pais)
+    + campoEditable(textoEditor("valores"), c, i, "valores", r.valores)
+    + campoEditable(textoEditor("que"), c, i, "que", r.que || r.descripcion)
+    + campoEditable(textoEditor("como"), c, i, "como", r.como)
+    + campoDependencia(c, i, r.dependencias || r.dep)
+    + campoEditable(textoEditor("cuando"), c, i, "cuando", r.cuando)
+    + campoEditable(textoEditor("ejemplo"), c, i, "ejemplo", r.ejemplo, "ejemplo")
+    + campoEditable(textoEditor("notas"), c, i, "notas", r.notas)}</div></article>`; 
               }) 
               .join("") 
           : '<div class="vacio">No hay registros para mostrar.</div>'; 
@@ -1257,6 +1274,22 @@
         ); 
         renderizar(); 
       } 
+      function aplicarCamposFormulario() {
+        const interno = ambito === "interno";
+        document.querySelectorAll(".campo-interno").forEach((el) => (el.hidden = !interno));
+        document.querySelectorAll(".campo-externo").forEach((el) => (el.hidden = interno));
+        const ordenInterno = [
+          "codigo", "nombre", "obligatorio", "permiteBlancos", "producto", "pais",
+          "valores", "requisitosImplementacion", "configuracionComportamiento",
+          "dependencias", "condicionesOperativas", "ejemploOperativo"
+        ];
+        ordenInterno.forEach((id, indice) => {
+          const campo = $(id)?.closest("label");
+          if (campo) campo.style.order = interno ? String(indice) : "";
+        });
+        const acciones = document.querySelector("#formulario .acciones-formulario");
+        if (acciones) acciones.style.order = interno ? "99" : "";
+      }
       function nuevoRegistro() { 
         const c = opcion === "todas" ? "05" : opcion; 
         $("formulario").reset(); 
@@ -1267,28 +1300,22 @@
         $("tituloFormulario").textContent = "Nuevo registro"; 
         $("modalRegistro").hidden = false; 
       } 
-      function editarRegistro(c, i) { 
-        const r = datos[c]?.[i]; 
-        if (!r) return; 
-        $("formulario").reset(); 
-        $("indiceEdicion").value = i; 
-        $("opcionOrigen").value = c; 
-        opcionesFormulario(c); 
-        [ 
-          "nombre", 
-          "producto", 
-          "pais", 
-          "valores", 
-          "que", 
-          "como", 
-          "cuando", 
-          "ejemplo", 
-          "notas", 
-        ].forEach((k) => ($(k).value = r[k] ?? "")); 
-        $("dependencias").innerHTML = r.dependencias || r.dep || ""; 
-        $("tituloFormulario").textContent = "Editar registro"; 
-        $("modalRegistro").hidden = false; 
-      } 
+      function editarRegistro(c, i) {
+        const r = datos[c]?.[i];
+        if (!r) return;
+        $("formulario").reset();
+        aplicarCamposFormulario();
+        $("indiceEdicion").value = i;
+        $("opcionOrigen").value = c;
+        opcionesFormulario(c);
+        const campos = ambito === "interno"
+          ? ["nombre", "obligatorio", "permiteBlancos", "producto", "pais", "valores", "requisitosImplementacion", "configuracionComportamiento", "condicionesOperativas", "ejemploOperativo"]
+          : ["nombre", "producto", "pais", "valores", "que", "como", "cuando", "ejemplo", "notas"];
+        campos.forEach((k) => { if ($(k)) $(k).value = r[k] ?? ""; });
+        $("dependencias").innerHTML = r.dependencias || r.dep || "";
+        $("tituloFormulario").textContent = "Editar registro";
+        $("modalRegistro").hidden = false;
+      }
       function cerrarFormulario() { 
         $("modalRegistro").hidden = true; 
         cerrarMenuDependencias(); 
@@ -1313,22 +1340,35 @@
           destino = $("codigo").value, 
           anterior = i >= 0 ? datos[origen][i] : null, 
           ahora = new Date().toISOString(); 
-        const r = { 
-          id: anterior?.id || crypto.randomUUID(), 
-          codigo: destino, 
-          nombre: $("nombre").value.trim(), 
-          producto: $("producto").value.trim(), 
-          pais: $("pais").value.trim(), 
-          valores: $("valores").value.trim(), 
-          que: $("que").value.trim(), 
-          como: $("como").value.trim(), 
-          dependencias: $("dependencias").innerHTML.trim(), 
-          cuando: $("cuando").value.trim(), 
-          ejemplo: $("ejemplo").value.trim(), 
-          notas: $("notas").value.trim(), 
-          creadoEn: anterior?.creadoEn || ahora, 
-          actualizadoEn: ahora, 
-        }; 
+        const base = {
+          id: anterior?.id || crypto.randomUUID(),
+          codigo: destino,
+          nombre: $("nombre").value.trim(),
+          producto: $("producto").value.trim(),
+          pais: $("pais").value.trim(),
+          valores: $("valores").value.trim(),
+          dependencias: $("dependencias").innerHTML.trim(),
+          creadoEn: anterior?.creadoEn || ahora,
+          actualizadoEn: ahora
+        };
+        const r = ambito === "interno"
+          ? {
+              ...base,
+              obligatorio: $("obligatorio").value.trim(),
+              permiteBlancos: $("permiteBlancos").value.trim(),
+              requisitosImplementacion: $("requisitosImplementacion").value.trim(),
+              configuracionComportamiento: $("configuracionComportamiento").value.trim(),
+              condicionesOperativas: $("condicionesOperativas").value.trim(),
+              ejemploOperativo: $("ejemploOperativo").value.trim()
+            }
+          : {
+              ...base,
+              que: $("que").value.trim(),
+              como: $("como").value.trim(),
+              cuando: $("cuando").value.trim(),
+              ejemplo: $("ejemplo").value.trim(),
+              notas: $("notas").value.trim()
+            };
         if (!r.nombre) return aviso("Nombre es obligatorio.", true); 
         if (existe(r, destino, origen === destino ? i : -1)) 
           return aviso("El registro ya existe.", true); 
@@ -1596,7 +1636,7 @@
         const palabras = normalizar(q) 
             .split(" ") 
             .filter((x) => x.length > 2), 
-          texto = normalizar(CAMPOS.map((k) => textoHTML(r[k])).join(" ")); 
+          texto = normalizar(camposActuales().map((k) => textoHTML(r[k])).join(" ")); 
         return palabras.reduce((s, x) => s + (texto.includes(x) ? 1 : 0), 0); 
       } 
       function mostrarResultadosDependencia(q) { 
@@ -1685,7 +1725,9 @@
           Math.min(rect.bottom + 8, window.innerHeight - 455) + "px"; 
         const fila = (t, v) => 
           `<div class="vista-previa-campo"><b>${t}</b>${escapar(textoHTML(v) || "—")}</div>`; 
-        h.innerHTML = `<h4>${escapar(r.nombre)}</h4><p>Opción ${r.__opcion} ${escapar(nombreOpcion(r.__opcion))}</p>${fila("Producto", r.producto)}${fila("País", r.pais)}${fila("Valores", r.valores)}${fila("Qué hace", r.que)}${fila("Cómo funciona", r.como)}${fila("Dependencias / Reglas", r.dependencias || r.dep)}${fila("Cuándo aplica", r.cuando)}${fila("Ejemplo", r.ejemplo)}${fila("Notas", r.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-nueva-pestana="${escapar(a.dataset.target)}">Abrir en nueva pestaña</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`; 
+        h.innerHTML = `<h4>${escapar(r.nombre)}</h4><p>Opción ${r.__opcion} ${escapar(nombreOpcion(r.__opcion))}</p>${ambito === "interno"
+          ? fila("Obligatorio", r.obligatorio) + fila("Permite Blancos", r.permiteBlancos) + fila("Producto", r.producto) + fila("País", r.pais) + fila("Valores Permitidos", r.valores) + fila("Requisitos de Implementación", r.requisitosImplementacion) + fila("Configuración y Comportamiento", r.configuracionComportamiento) + fila("Dependencias / Reglas", r.dependencias || r.dep) + fila("Condiciones Operativas", r.condicionesOperativas) + fila("Ejemplo Operativo", r.ejemploOperativo)
+          : fila("Producto", r.producto) + fila("País", r.pais) + fila("Valores", r.valores) + fila("Qué hace", r.que) + fila("Cómo funciona", r.como) + fila("Dependencias / Reglas", r.dependencias || r.dep) + fila("Cuándo aplica", r.cuando) + fila("Ejemplo", r.ejemplo) + fila("Notas", r.notas)}<div class="acciones-flotantes"><button class="boton boton-naranja" data-nueva-pestana="${escapar(a.dataset.target)}">Abrir en nueva pestaña</button><button class="boton" data-quitar-relacion="${escapar(a.dataset.target)}">Quitar vínculo</button></div>`; 
       }); 
       document.addEventListener("mouseout", (e) => { 
         if (e.target.closest?.(".dep-ref-inline")) 
@@ -1856,29 +1898,33 @@
             r.some((c) => normalizar(c).includes("nombre del parametro")), 
         ); 
       } 
-      function mapaColumnas(h) { 
-        const defs = { 
-            nombre: ["nombre del parametro"], 
-            producto: ["producto"], 
-            pais: ["pais"], 
-            valores: ["valores permitidos"], 
-            que: ["que hace el parametro", "que hace"], 
-            como: ["como funciona"], 
-            dependencias: ["dependencias reglas", "dependencias"], 
-            cuando: ["cuando aplica"], 
-            ejemplo: ["ejemplo funcional"], 
-            notas: ["notas visibles al cliente", "notas"], 
-          }, 
-          m = {}; 
-        h.forEach((x, i) => { 
-          const n = normalizar(x); 
-          Object.entries(defs).forEach(([k, a]) => { 
-            if (m[k] === undefined && a.some((v) => n === v || n.includes(v))) 
-              m[k] = i; 
-          }); 
-        }); 
-        return m; 
-      } 
+      function mapaColumnas(h) {
+        const defsExternos = {
+          nombre: ["nombre del parametro"], producto: ["producto"], pais: ["pais"],
+          valores: ["valores permitidos"], que: ["que hace el parametro", "que hace"],
+          como: ["como funciona"], dependencias: ["dependencias reglas", "dependencias"],
+          cuando: ["cuando aplica"], ejemplo: ["ejemplo funcional"],
+          notas: ["notas visibles al cliente", "notas"]
+        };
+        const defsInternos = {
+          nombre: ["nombre del parametro"], obligatorio: ["obligatorio"],
+          permiteBlancos: ["permite blancos"], producto: ["producto"], pais: ["pais"],
+          valores: ["valores permitidos"], requisitosImplementacion: ["requisitos de implementacion", "requisitos implementacion", "requisitos de implemetacion", "requisitos implemetacion"],
+          configuracionComportamiento: ["configuracion y comportamiento"],
+          dependencias: ["dependencias reglas", "dependencias"],
+          condicionesOperativas: ["condiciones operativas"], ejemploOperativo: ["ejemplo operativo"]
+        };
+        const defs = ambito === "interno" ? defsInternos : defsExternos;
+        const m = {};
+        h.forEach((x, i) => {
+          const n = normalizar(x);
+          if (ambito === "interno" && n === "columna1") return;
+          Object.entries(defs).forEach(([k, aliases]) => {
+            if (m[k] === undefined && aliases.some((v) => n === v || n.includes(v))) m[k] = i;
+          });
+        });
+        return m;
+      }
       $("archivoExcel").addEventListener("change", async (e) => { 
         if (opcion === "todas") 
           return aviso("Seleccione una opción antes de importar.", true); 
@@ -1895,18 +1941,23 @@
           if (i < 0) throw new Error("No se encontró Nombre del Parámetro."); 
           const m = mapaColumnas(filas[i]), 
             get = (r, k) => String(r[m[k]] ?? "").trim(), 
-            items = filas.slice(i + 1).map((r) => ({ 
-              nombre: get(r, "nombre"), 
-              producto: get(r, "producto"), 
-              pais: get(r, "pais"), 
-              valores: get(r, "valores"), 
-              que: get(r, "que"), 
-              como: get(r, "como"), 
-              dependencias: get(r, "dependencias"), 
-              cuando: get(r, "cuando"), 
-              ejemplo: get(r, "ejemplo"), 
-              notas: get(r, "notas"), 
-            })); 
+            items = filas.slice(i + 1).map((r) => ambito === "interno"
+              ? {
+                  nombre: get(r, "nombre"), obligatorio: get(r, "obligatorio"),
+                  permiteBlancos: get(r, "permiteBlancos"), producto: get(r, "producto"),
+                  pais: get(r, "pais"), valores: get(r, "valores"),
+                  requisitosImplementacion: get(r, "requisitosImplementacion"),
+                  configuracionComportamiento: get(r, "configuracionComportamiento"),
+                  dependencias: get(r, "dependencias"),
+                  condicionesOperativas: get(r, "condicionesOperativas"),
+                  ejemploOperativo: get(r, "ejemploOperativo")
+                }
+              : {
+                  nombre: get(r, "nombre"), producto: get(r, "producto"), pais: get(r, "pais"),
+                  valores: get(r, "valores"), que: get(r, "que"), como: get(r, "como"),
+                  dependencias: get(r, "dependencias"), cuando: get(r, "cuando"),
+                  ejemplo: get(r, "ejemplo"), notas: get(r, "notas")
+                }); 
           importarUnicos(items, opcion); 
         } catch (error) { 
           aviso(error.message, true); 
@@ -2230,42 +2281,18 @@
               insideHorizontal: borde,
               insideVertical: borde
             },
-            rows: [
-              new TableRow({
-                cantSplit: false,
-                children: [
-                  celda("Producto", registro.producto),
-                  celda("País", registro.pais),
-                  celda("Valores Permitidos", registro.valores)
+            rows: ambito === "interno"
+              ? [
+                  new TableRow({ cantSplit: false, children: [celda("Obligatorio", registro.obligatorio), celda("Permite Blancos", registro.permiteBlancos), celda("Producto", registro.producto)] }),
+                  new TableRow({ cantSplit: false, children: [celda("País", registro.pais), celda("Valores Permitidos", registro.valores), celda("Requisitos de Implementación", registro.requisitosImplementacion)] }),
+                  new TableRow({ cantSplit: false, children: [celda("Configuración y Comportamiento", registro.configuracionComportamiento), celda("Dependencias / Reglas", registro.dependencias || registro.dep, true), celda("Condiciones Operativas", registro.condicionesOperativas)] }),
+                  new TableRow({ cantSplit: false, children: [celda("Ejemplo Operativo", registro.ejemploOperativo), celda("", ""), celda("", "")] })
                 ]
-              }),
-              new TableRow({
-                cantSplit: false,
-                children: [
-                  celda(
-                    "¿Qué hace?",
-                    registro.que || registro.descripcion
-                  ),
-                  celda("¿Cómo funciona?", registro.como),
-                  celda(
-                    "Dependencias / Reglas",
-                    registro.dependencias || registro.dep,
-                    true
-                  )
+              : [
+                  new TableRow({ cantSplit: false, children: [celda("Producto", registro.producto), celda("País", registro.pais), celda("Valores Permitidos", registro.valores)] }),
+                  new TableRow({ cantSplit: false, children: [celda("¿Qué hace?", registro.que || registro.descripcion), celda("¿Cómo funciona?", registro.como), celda("Dependencias / Reglas", registro.dependencias || registro.dep, true)] }),
+                  new TableRow({ cantSplit: false, children: [celda("¿Cuándo aplica?", registro.cuando), celda("Ejemplo Funcional", registro.ejemplo), celda("Notas Visibles al Cliente", registro.notas)] })
                 ]
-              }),
-              new TableRow({
-                cantSplit: false,
-                children: [
-                  celda("¿Cuándo aplica?", registro.cuando),
-                  celda("Ejemplo Funcional", registro.ejemplo),
-                  celda(
-                    "Notas Visibles al Cliente",
-                    registro.notas
-                  )
-                ]
-              })
-            ]
           });
         }
 
