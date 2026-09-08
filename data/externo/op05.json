@@ -19,7 +19,7 @@
     "nombre": "Franquicia",
     "producto": "Todos",
     "pais": "Todos",
-    "valores": "Códigos de producto como Visa Crédito, Visa Débito, Visa Prepago, Mastercard Crédito, Mastercard Débito, Mastercard Prepago, según corresponda.",
+    "valores": "Código del producto",
     "que": "Define el tipo de producto de tarjeta que se va a configurar dentro del emisor.",
     "como": "Se selecciona un código de producto que ya existe en el sistema. Este código identifica la marca y el tipo de tarjeta que tendrá el emisor.",
     "dependencias": "El código del producto debe estar creado previamente. Sin este código no se puede continuar con la configuración del emisor.",
@@ -29,7 +29,7 @@
     "codigo": "05",
     "id": "27c505e3-c040-4851-8118-f6f07229531f",
     "creadoEn": "2026-08-19T19:57:27.324Z",
-    "actualizadoEn": "2026-08-19T19:57:27.324Z"
+    "actualizadoEn": "2026-09-08T19:13:54.998Z"
   },
   {
     "nombre": "Moneda Asignada",
