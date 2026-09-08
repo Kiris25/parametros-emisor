@@ -275,7 +275,7 @@
     "nombre": "Clase Inicial Cuenta \r\n(Clasificación de Pago)",
     "producto": "Crédito y Débito",
     "pais": "Todos",
-    "valores": "A = Cero importes vencidos y cumple pago mínimo\r\nB = Ha tenido un importe vencido (mora de 0 a 29 días)\r\nC = Dos importes vencidos (mora consecutiva de 30 a 59 días)\r\nD = Tres importes vencidos (mora consecutiva de 60 a 89 días)\r\nN = Nuevas = Cuatro o cinco importes vencidos (mora consecutiva de 90 a 149 días)\r\nZ = Seis o más importes vencidos (mora mayor a 150 días)",
+    "valores": "A = Cero importes vencidos y cumple pago mínimo\nB = Ha tenido un importe vencido (mora de 0 a 29 días)\nC = Dos importes vencidos (mora consecutiva de 30 a 59 días)\nD = Tres importes vencidos (mora consecutiva de 60 a 89 días)\nN = Nuevas \nX= Cuatro o cinco importes vencidos (mora consecutiva de 90 a 149 días)\nZ = Seis o más importes vencidos (mora mayor a 150 días)",
     "que": "El parámetro debe configurarse obligatoriamente al crear el emisor. De forma estándar, el valor inicial es N = Nuevas.",
     "como": "Las cuentas inician con una clasificación inicial y, con el tiempo, el sistema ajusta esa clasificación según el cumplimiento de pagos.",
     "dependencias": "La clasificación influye en la disponibilidad de algunos productos financieros, como adelantos o financiamientos.",
@@ -285,7 +285,7 @@
     "codigo": "05",
     "id": "6ac34578-93d8-41ed-8f62-138ef5203991",
     "creadoEn": "2026-08-19T19:57:27.324Z",
-    "actualizadoEn": "2026-08-19T19:57:27.324Z"
+    "actualizadoEn": "2026-09-08T17:13:10.962Z"
   },
   {
     "nombre": "Tipo Inicial Cuenta",
